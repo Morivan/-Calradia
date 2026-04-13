@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#111111"/>
+  <path d="M0 0H512L0 512V0Z" fill="#44593B"/>
+  <path d="M14 14H498V498H14V14Z" stroke="#F4F1EB" stroke-width="4"/>
+  <path d="M149 361L252 270" stroke="#F4F1EB" stroke-width="18" stroke-linecap="round"/>
+  <path d="M177 230L259 345" stroke="#F4F1EB" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="143" cy="366" r="18" fill="#F4F1EB"/>
+  <path d="M205 284C205 226 242 182 289 182C336 182 372 219 372 269C372 332 321 382 264 382C226 382 205 342 205 284Z" fill="#F4F1EB" stroke="#111111" stroke-width="6"/>
+  <path d="M218 279L184 250L171 279L142 281L162 306L154 335L187 321L210 341L212 307L236 291L218 279Z" fill="#111111"/>
+  <path d="M265 284C276 284 286 292 286 304C286 316 276 324 265 324C254 324 244 316 244 304C244 292 254 284 265 284Z" fill="#111111"/>
+  <path d="M305 287C316 287 326 295 326 307C326 318 316 327 305 327C293 327 284 318 284 307C284 295 293 287 305 287Z" fill="#111111"/>
+  <path d="M285 325L302 354H266L285 325Z" fill="#111111"/>
+  <path d="M240 356C265 370 304 370 330 356" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M226 364L246 383" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M249 373L267 391" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M273 377L289 392" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M296 375L309 389" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M198 214C201 157 243 122 308 122C362 122 396 162 394 220L377 229L362 205L337 186L296 173L249 177L221 194L204 215L198 214Z" fill="#F4F1EB" stroke="#111111" stroke-width="6"/>
+  <path d="M321 137L381 95L408 116L333 173" fill="#F4F1EB"/>
+  <path d="M321 137L381 95L408 116L333 173" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M221 193L196 173L226 154L271 142L330 146L366 166L379 198L353 182L304 170L246 174L221 193Z" fill="#44593B" fill-opacity="0.4"/>
+  <defs/>
+</svg>

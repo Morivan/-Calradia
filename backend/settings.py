@@ -143,17 +143,15 @@ REST_FRAMEWORK = {
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_MANAGER_CHAT_ID = os.getenv("TELEGRAM_MANAGER_CHAT_ID", "")
-TELEGRAM_MARKETING_CHAT_ID = os.getenv("TELEGRAM_MARKETING_CHAT_ID", "")
+TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 VK_COMMUNITY_URL = os.getenv("VK_COMMUNITY_URL", "https://vk.com/calradia_band")
 VK_MESSAGES_URL = os.getenv(
     "VK_MESSAGES_URL",
     "https://vk.com/im/convo/-234061306?entrypoint=community_page&tab=all",
 )
+VK_CALLBACK_SECRET = os.getenv("VK_CALLBACK_SECRET", "")
+VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
 TELEGRAM_PUBLIC_URL = os.getenv("TELEGRAM_PUBLIC_URL", "https://web.telegram.org/k/#@kalradiaWarBand")
-GOOGLE_SHEETS_URL = os.getenv(
-    "GOOGLE_SHEETS_URL",
-    "https://docs.google.com/spreadsheets/u/0/?ec=wgc-sheets-[module]-goto",
-)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

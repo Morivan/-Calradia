@@ -10,7 +10,8 @@ from rest_framework.views import APIView
 
 from .models import IntegrationLink, Product, Review
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
-from .services.telegram import TelegramConfigError, store_update
+from .services.telegram import TelegramConfigError, repost_to_channel, store_update
+from .services.vk import parse_post
 
 _CAMEL_TO_SNAKE = {
     "priceFrom": "price_from",
@@ -184,3 +185,55 @@ class TelegramWebhookView(APIView):
     def post(self, request):
         client = store_update(request.data)
         return Response({"ok": True, "client": client.id if client else None})
+
+
+class VkCallbackView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        data = request.data
+
+        # VK sends this once to verify the endpoint
+        if data.get("type") == "confirmation":
+            token = settings.VK_CONFIRMATION_TOKEN
+            if not token:
+                return Response({"detail": "VK_CONFIRMATION_TOKEN не настроен."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(token, content_type="text/plain")
+
+        # Verify secret key
+        if settings.VK_CALLBACK_SECRET and data.get("secret") != settings.VK_CALLBACK_SECRET:
+            return Response({"detail": "Неверный секретный ключ."}, status=status.HTTP_403_FORBIDDEN)
+
+        event_type = data.get("type")
+
+        if event_type == "wall_post_new":
+            post = data.get("object", {})
+
+            # Skip reposts (copy_history present means it's a repost, not original)
+            if post.get("copy_history"):
+                return Response("ok")
+
+            # Skip postponed posts that aren't published yet
+            if post.get("post_type") == "postpone":
+                return Response("ok")
+
+            channel_id = settings.TELEGRAM_CHANNEL_ID
+            if not channel_id:
+                return Response("ok")
+
+            text, photos = parse_post(post)
+
+            if not text and not photos:
+                return Response("ok")
+
+            try:
+                repost_to_channel(channel_id, text, photos)
+            except TelegramConfigError:
+                pass  # Bot not configured — silently skip, VK still gets "ok"
+            except Exception as exc:
+                # Log but always return "ok" to VK — otherwise VK retries endlessly
+                print(f"[VK→TG] repost error: {exc}")
+
+        # VK expects plain "ok" for all handled events
+        return Response("ok")

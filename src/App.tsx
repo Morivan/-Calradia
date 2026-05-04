@@ -90,6 +90,20 @@ interface AuthUser {
   isStaff: boolean;
 }
 
+function getCsrfToken(): string {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}
+
+async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const method = (options.method ?? 'GET').toUpperCase();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(options.headers as Record<string, string>) };
+  if (method !== 'GET' && method !== 'HEAD') {
+    headers['X-CSRFToken'] = getCsrfToken();
+  }
+  return fetch(url, { ...options, headers });
+}
+
 const defaultLinks: ExternalLinks = {
   telegramOrder: 'https://web.telegram.org/k/#@kalradiaWarBand',
   telegramPublic: 'https://web.telegram.org/k/#@kalradiaWarBand',
@@ -931,9 +945,8 @@ function LoginPage({
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login/', {
+      const response = await apiFetch('/api/auth/login/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       const data = await response.json();
@@ -1071,11 +1084,7 @@ function ProductFormModal({
     try {
       const url = product ? `/api/catalog/products/${product.id}/` : '/api/catalog/products/';
       const method = product ? 'PATCH' : 'POST';
-      const resp = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const resp = await apiFetch(url, { method, body: JSON.stringify(body) });
       const data = await resp.json();
       if (!resp.ok) {
         setError(data.detail ?? JSON.stringify(data));
@@ -1207,7 +1216,7 @@ function AdminModule({
     if (!confirm('Удалить товар из каталога?')) return;
     setDeleting(productId);
     try {
-      await fetch(`/api/catalog/products/${productId}/`, { method: 'DELETE' });
+      await apiFetch(`/api/catalog/products/${productId}/`, { method: 'DELETE' });
       onRefresh();
     } finally {
       setDeleting(null);
@@ -1375,6 +1384,7 @@ export default function App() {
   };
 
   useEffect(() => {
+    void fetch('/api/csrf/');
     void loadBootstrap();
     void checkAuth();
   }, []);
@@ -1471,9 +1481,8 @@ export default function App() {
     }));
 
     try {
-      await fetch(`/api/catalog/products/${productId}/reviews/`, {
+      await apiFetch(`/api/catalog/products/${productId}/reviews/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(review),
       });
     } catch (error) {
@@ -1500,7 +1509,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout/', { method: 'POST' });
+    await apiFetch('/api/auth/logout/', { method: 'POST' });
     setUser(null);
     goHome();
   };

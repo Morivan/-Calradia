@@ -61,6 +61,7 @@ class BootstrapView(APIView):
                 "telegramPublic": links.get("telegram_public", settings.TELEGRAM_PUBLIC_URL),
                 "vkCommunity": links.get("vk_community", settings.VK_COMMUNITY_URL),
                 "vkMessages": links.get("vk_messages", settings.VK_MESSAGES_URL),
+                "yandexForm": links.get("yandex_form", ""),
             },
         }
         return Response(payload)

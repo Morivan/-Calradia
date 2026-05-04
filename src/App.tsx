@@ -75,6 +75,7 @@ interface ExternalLinks {
   telegramPublic: string;
   vkCommunity: string;
   vkMessages: string;
+  yandexForm: string;
 }
 
 interface BootstrapPayload {
@@ -109,6 +110,7 @@ const defaultLinks: ExternalLinks = {
   telegramPublic: 'https://web.telegram.org/k/#@kalradiaWarBand',
   vkCommunity: 'https://vk.com/calradia_band',
   vkMessages: 'https://vk.com/im/convo/-234061306?entrypoint=community_page&tab=all',
+  yandexForm: '',
 };
 
 
@@ -690,21 +692,51 @@ function ProductCard({
   );
 }
 
+function OrderModal({
+  yandexFormUrl,
+  onClose,
+}: {
+  yandexFormUrl: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="contact-overlay" role="dialog" aria-modal="true">
+      <div className="contact-dialog order-form-dialog">
+        <div className="contact-header">
+          <div>
+            <h3>Оформить заказ</h3>
+            <p>Заполните форму — мы свяжемся с вами для уточнения деталей.</p>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Закрыть">
+            <X size={16} />
+          </button>
+        </div>
+        <iframe
+          src={yandexFormUrl}
+          className="order-form-iframe"
+          title="Форма заказа"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ProductDetail({
   product,
   reviews,
   onBack,
   onAddReview,
-  orderLink,
+  links,
 }: {
   product: Product;
   reviews: Review[];
   onBack: () => void;
   onAddReview: (productId: string, review: Review) => void;
-  orderLink: string;
+  links: ExternalLinks;
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0]);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     author: '',
     text: '',
@@ -808,23 +840,39 @@ function ProductDetail({
               <strong>{product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
             </div>
             <div className="detail-actions">
-              <a
-                className="cta-button detail-cta"
-                href={orderLink}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Связаться для заказа
-              </a>
+              {links.yandexForm ? (
+                <button className="cta-button detail-cta" onClick={() => setOrderModalOpen(true)}>
+                  Оформить заказ
+                </button>
+              ) : (
+                <a
+                  className="cta-button detail-cta"
+                  href={links.telegramOrder}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Связаться для заказа
+                </a>
+              )}
+              {links.vkMessages ? (
+                <a
+                  className="ghost-button detail-secondary"
+                  href={links.vkMessages}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Написать в ВКонтакте
+                </a>
+              ) : null}
               <button className="ghost-button detail-secondary" onClick={() => setReviewOpen(true)}>
                 Оставить отзыв
               </button>
               <a
                 className="icon-button detail-icon-button"
-                href={orderLink}
+                href={links.vkCommunity || links.telegramPublic}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Открыть Telegram"
+                aria-label="Перейти в сообщество"
               >
                 <ExternalLink size={18} />
               </a>
@@ -862,6 +910,10 @@ function ProductDetail({
           </div>
         </div>
       </div>
+
+      {orderModalOpen && links.yandexForm ? (
+        <OrderModal yandexFormUrl={links.yandexForm} onClose={() => setOrderModalOpen(false)} />
+      ) : null}
 
       {reviewOpen ? (
         <div className="contact-overlay" role="dialog" aria-modal="true">
@@ -1541,7 +1593,7 @@ export default function App() {
             reviews={reviewsByProduct[selectedProduct.id] ?? []}
             onBack={goHome}
             onAddReview={addReview}
-            orderLink={externalLinks.telegramOrder}
+            links={externalLinks}
           />
         ) : (
           <>

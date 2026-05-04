@@ -1,25 +1,15 @@
 from collections import defaultdict
 
 from django.conf import settings
-from django.db import transaction
+from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, FinanceCalculation, IntegrationLink, MarketingPublication, MaterialReference, Message, Order, Product, Review
-from .serializers import ClientSerializer, FinanceCalculationSerializer, IntegrationLinkSerializer, MarketingPublicationSerializer, MaterialReferenceSerializer, ProductSerializer, ReviewSerializer
-from .services.google_sheets import fetch_csv_rows
-from .services.marketing import send_publication_to_telegram
-from .services.telegram import TelegramConfigError, send_message, store_update
-
-
-def _normalize_header(value: str) -> str:
-    return value.strip().lower().replace("ё", "е")
-
-
-def _row_to_dict(headers: list[str], row: list[str]) -> dict[str, str]:
-    return {_normalize_header(header): row[index] if index < len(row) else "" for index, header in enumerate(headers)}
+from .models import IntegrationLink, Product, Review
+from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
+from .services.telegram import TelegramConfigError, store_update
 
 
 class BootstrapView(APIView):
@@ -36,19 +26,11 @@ class BootstrapView(APIView):
         payload = {
             "products": ProductSerializer(Product.objects.all(), many=True).data,
             "reviewsByProduct": reviews_by_product,
-            "materials": MaterialReferenceSerializer(MaterialReference.objects.all(), many=True).data,
-            "financeHistory": FinanceCalculationSerializer(FinanceCalculation.objects.all(), many=True).data,
-            "marketingPosts": MarketingPublicationSerializer(MarketingPublication.objects.all(), many=True).data,
-            "crmClients": ClientSerializer(
-                Client.objects.all().prefetch_related("messages", "orders__product"),
-                many=True,
-            ).data,
             "links": {
                 "telegramOrder": links.get("telegram_order", settings.TELEGRAM_PUBLIC_URL),
                 "telegramPublic": links.get("telegram_public", settings.TELEGRAM_PUBLIC_URL),
                 "vkCommunity": links.get("vk_community", settings.VK_COMMUNITY_URL),
                 "vkMessages": links.get("vk_messages", settings.VK_MESSAGES_URL),
-                "googleSheets": links.get("google_sheets", settings.GOOGLE_SHEETS_URL),
             },
         }
         return Response(payload)
@@ -70,162 +52,100 @@ class ReviewCreateView(APIView):
         return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
 
 
-class FinanceGoogleSheetsSyncView(APIView):
-    @transaction.atomic
+class ProductListCreateView(APIView):
+    def get(self, request):
+        return Response(ProductSerializer(Product.objects.all(), many=True).data)
+
     def post(self, request):
-        sheet_url = request.data.get("sheetUrl", "").strip()
-        materials_sheet = request.data.get("materialsSheet", "Справочник материалов").strip()
-        history_sheet = request.data.get("historySheet", "История расчётов").strip()
-        if not sheet_url:
-            return Response({"detail": "Не передана ссылка на Google Sheets."}, status=status.HTTP_400_BAD_REQUEST)
+        if not request.user.is_authenticated:
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            materials_rows = fetch_csv_rows(sheet_url, materials_sheet)
-            history_rows = fetch_csv_rows(sheet_url, history_sheet)
-        except Exception as exc:
-            return Response(
-                {
-                    "detail": (
-                        "Не удалось прочитать Google Sheets. Проверьте, что таблица доступна по ссылке "
-                        "или опубликована для чтения, а имена листов указаны верно."
-                    ),
-                    "error": str(exc),
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        materials_synced = False
-        history_synced = False
+        serializer = ProductSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(materials_rows) >= 2:
-            material_headers = materials_rows[0]
-            MaterialReference.objects.all().delete()
-            for row in materials_rows[1:]:
-                values = _row_to_dict(material_headers, row)
-                MaterialReference.objects.create(
-                    name=values.get("название материала") or values.get("материал") or values.get("name") or "Материал",
-                    unit_price=values.get("цена за единицу") or values.get("цена") or values.get("unit_price") or "-",
-                    stock=values.get("текущий остаток на складе") or values.get("остаток") or values.get("stock") or "-",
-                    note=values.get("примечание") or values.get("note") or values.get("единица измерения") or "",
-                )
-            materials_synced = True
-
-        if len(history_rows) >= 2:
-            history_headers = history_rows[0]
-            FinanceCalculation.objects.all().delete()
-            for row in history_rows[1:]:
-                values = _row_to_dict(history_headers, row)
-                FinanceCalculation.objects.create(
-                    calculation_date=values.get("дата расчета") or values.get("дата") or values.get("date") or "",
-                    product_name=values.get("товар") or values.get("изделие") or values.get("product") or "",
-                    material=values.get("материал") or "",
-                    weight=values.get("вес") or values.get("количество материала") or values.get("weight") or "",
-                    hours=values.get("часы") or values.get("трудозатраты") or values.get("hours") or "",
-                    cost=values.get("себестоимость") or values.get("cost") or "",
-                    markup=values.get("наценка") or values.get("процент наценки") or values.get("markup") or "",
-                    total=values.get("итоговая цена") or values.get("итог") or values.get("total") or "",
-                )
-            history_synced = True
-
-        if not materials_synced and not history_synced:
-            return Response(
-                {"detail": "В таблице недостаточно данных для синхронизации."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        IntegrationLink.objects.update_or_create(
-            key="google_sheets",
-            defaults={"label": "Google Sheets", "url": sheet_url},
+        product = Product.objects.create(
+            **{k: v for k, v in request.data.items() if k not in ("createdBy", "updatedBy", "created_at", "updated_at")},
+            created_by=request.user,
+            updated_by=request.user,
         )
-
-        return Response(
-            {
-                "synced": {
-                    "materials": materials_synced,
-                    "history": history_synced,
-                },
-                "materials": MaterialReferenceSerializer(MaterialReference.objects.all(), many=True).data,
-                "financeHistory": FinanceCalculationSerializer(FinanceCalculation.objects.all(), many=True).data,
-            }
-        )
+        return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
-class ClientReplyView(APIView):
-    def post(self, request, client_id: int):
-        client = Client.objects.filter(pk=client_id).first()
-        if not client:
-            return Response({"detail": "Клиент не найден."}, status=status.HTTP_404_NOT_FOUND)
+class ProductDetailView(APIView):
+    def get_product(self, pk):
+        return Product.objects.filter(pk=pk).first()
 
-        text = request.data.get("text", "").strip()
-        if not text:
-            return Response({"detail": "Текст сообщения пуст."}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, product_id: int):
+        product = self.get_product(product_id)
+        if not product:
+            return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(ProductSerializer(product).data)
 
-        if client.source == Client.Source.TELEGRAM and client.external_id and not client.external_id.startswith("demo_"):
-            try:
-                send_message(client.external_id, text)
-            except TelegramConfigError as exc:
-                return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-            except Exception as exc:
-                return Response({"detail": f"Не удалось отправить сообщение: {exc}"}, status=status.HTTP_502_BAD_GATEWAY)
+    def patch(self, request, product_id: int):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        message = Message.objects.create(
-            client=client,
-            direction=Message.Direction.MANAGER,
-            text=text,
-            sent_at_label=timezone.localtime().strftime("%H:%M"),
-            is_read=True,
-        )
-        client.last_message = text
-        client.last_time = message.sent_at_label
-        client.unread = 0
-        client.save(update_fields=["last_message", "last_time", "unread"])
+        product = self.get_product(product_id)
+        if not product:
+            return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
+
+        allowed = {"name", "subtitle", "status", "category", "era", "material", "sizes",
+                   "price_from", "lead_time", "weight", "popularity", "protection_class",
+                   "history", "description", "image", "gallery", "badge"}
+        for field, value in request.data.items():
+            if field in allowed:
+                setattr(product, field, value)
+        product.updated_by = request.user
+        product.save()
+        return Response(ProductSerializer(product).data)
+
+    def delete(self, request, product_id: int):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        product = self.get_product(product_id)
+        if not product:
+            return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AuthView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get("username", "").strip()
+        password = request.data.get("password", "")
+        user = authenticate(request, username=username, password=password)
+        if not user:
+            return Response({"detail": "Неверный логин или пароль."}, status=status.HTTP_401_UNAUTHORIZED)
+        login(request, user)
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "fullName": user.get_full_name() or user.username,
+            "isStaff": user.is_staff,
+        })
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        logout(request)
         return Response({"ok": True})
 
 
-class OrderCreateView(APIView):
-    def post(self, request):
-        client = Client.objects.filter(pk=request.data.get("clientId")).first()
-        if not client:
-            return Response({"detail": "Клиент не найден."}, status=status.HTTP_400_BAD_REQUEST)
-
-        product = Product.objects.filter(pk=request.data.get("productId")).first()
-        order = Order.objects.create(
-            client=client,
-            product=product,
-            status=request.data.get("status") or Order.Status.CONFIRMED,
-            total_cost=int(request.data.get("totalCost") or 0),
-            notes=request.data.get("notes", ""),
-            items=request.data.get("items") or ([product.name] if product else []),
-        )
-        return Response({"id": order.id, "status": order.status}, status=status.HTTP_201_CREATED)
-
-
-class MarketingPublicationPublishView(APIView):
-    def post(self, request, publication_id: int):
-        publication = MarketingPublication.objects.filter(pk=publication_id).first()
-        if not publication:
-            return Response({"detail": "Публикация не найдена."}, status=status.HTTP_404_NOT_FOUND)
-
-        if "Telegram" not in publication.channels:
-            return Response(
-                {"detail": "Для этой публикации не выбран канал Telegram."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            result = send_publication_to_telegram(publication, force=True)
-        except TelegramConfigError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as exc:
-            return Response({"detail": f"Ошибка публикации: {exc}"}, status=status.HTTP_502_BAD_GATEWAY)
-
-        return Response(
-            {
-                "ok": True,
-                "status": publication.status,
-                "publishedUrl": publication.published_url,
-                "telegram": result,
-            }
-        )
+class MeView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Не авторизован."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({
+            "id": request.user.id,
+            "username": request.user.username,
+            "fullName": request.user.get_full_name() or request.user.username,
+            "isStaff": request.user.is_staff,
+        })
 
 
 class TelegramWebhookView(APIView):

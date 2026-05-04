@@ -1,4 +1,5 @@
 from collections import defaultdict
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +11,34 @@ from rest_framework.views import APIView
 from .models import IntegrationLink, Product, Review
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, store_update
+
+_CAMEL_TO_SNAKE = {
+    "priceFrom": "price_from",
+    "leadTime": "lead_time",
+    "protectionClass": "protection_class",
+}
+
+_PRODUCT_FIELDS = {
+    "name", "subtitle", "status", "category", "era", "material",
+    "sizes", "weight", "popularity", "history", "description",
+    "image", "gallery", "badge",
+}
+
+
+def _product_kwargs(data: dict) -> dict:
+    kwargs: dict = {}
+    for key, value in data.items():
+        field = _CAMEL_TO_SNAKE.get(key, key)
+        if field in _PRODUCT_FIELDS | set(_CAMEL_TO_SNAKE.values()):
+            kwargs[field] = value
+    return kwargs
+
+
+def _unique_slug(name: str) -> str:
+    suffix = uuid4().hex[:8]
+    base = "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "product"
+    slug = f"{base}-{suffix}"
+    return slug[:50]
 
 
 class BootstrapView(APIView):
@@ -60,15 +89,18 @@ class ProductListCreateView(APIView):
         if not request.user.is_authenticated:
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = ProductSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        kwargs = _product_kwargs(request.data)
+        if not kwargs.get("name"):
+            return Response({"detail": "Поле name обязательно."}, status=status.HTTP_400_BAD_REQUEST)
 
-        product = Product.objects.create(
-            **{k: v for k, v in request.data.items() if k not in ("createdBy", "updatedBy", "created_at", "updated_at")},
-            created_by=request.user,
-            updated_by=request.user,
-        )
+        kwargs.setdefault("popularity", 0)
+        kwargs.setdefault("badge", "")
+        kwargs.setdefault("sizes", [])
+        kwargs.setdefault("description", [])
+        kwargs.setdefault("gallery", [])
+        kwargs["slug"] = _unique_slug(kwargs["name"])
+
+        product = Product.objects.create(**kwargs, created_by=request.user, updated_by=request.user)
         return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
@@ -90,12 +122,9 @@ class ProductDetailView(APIView):
         if not product:
             return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
 
-        allowed = {"name", "subtitle", "status", "category", "era", "material", "sizes",
-                   "price_from", "lead_time", "weight", "popularity", "protection_class",
-                   "history", "description", "image", "gallery", "badge"}
-        for field, value in request.data.items():
-            if field in allowed:
-                setattr(product, field, value)
+        kwargs = _product_kwargs(request.data)
+        for field, value in kwargs.items():
+            setattr(product, field, value)
         product.updated_by = request.user
         product.save()
         return Response(ProductSerializer(product).data)

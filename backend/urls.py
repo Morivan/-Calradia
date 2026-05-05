@@ -1,23 +1,7 @@
-"""
-URL configuration for backend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
 from django.contrib import admin
-from django.http import JsonResponse
-from django.urls import include, path
+from django.conf import settings
+from django.http import FileResponse, HttpResponse, JsonResponse
+from django.urls import include, path, re_path
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 
@@ -26,8 +10,21 @@ def csrf_view(request):
     return JsonResponse({"ok": True})
 
 
+def spa_view(request):
+    index = settings.BASE_DIR / "dist" / "index.html"
+    if index.exists():
+        return FileResponse(open(index, "rb"), content_type="text/html")
+    return HttpResponse(
+        "<p>Фронтенд не собран. Выполните <code>npm run build</code>.</p>",
+        status=503,
+        content_type="text/html",
+    )
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/csrf/", csrf_view, name="csrf"),
     path("api/", include("workshop.urls")),
+    # SPA catch-all: все маршруты кроме /api/ и /static/ отдают index.html
+    re_path(r"^(?!api/|static/|admin/).*$", spa_view, name="spa"),
 ]

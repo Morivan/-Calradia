@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -18,26 +17,20 @@ def load_env_file(path: Path) -> None:
 
 load_env_file(BASE_DIR / ".env")
 
+# ── Core ──────────────────────────────────────────────────────────────────────
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-u9xy3zwhg0=57$!y%4s*v01@me!!$ck+(8_h!de)#dj_nb#(-i",
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"] if "DJANGO_SECRET_KEY" in os.environ else (
+    "django-insecure-u9xy3zwhg0=57$!y%4s*v01@me!!$ck+(8_h!de)#dj_nb#(-i"
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if host.strip()]
-for dev_host in ("127.0.0.1", "localhost", "testserver"):
-    if dev_host not in ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(dev_host)
+_default_hosts = "127.0.0.1,localhost" if DEBUG else ""
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", _default_hosts).split(",") if h.strip()]
+if DEBUG and "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
 
-
-# Application definition
+# ── Apps ──────────────────────────────────────────────────────────────────────
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -51,8 +44,11 @@ INSTALLED_APPS = [
     "workshop",
 ]
 
+# ── Middleware ─────────────────────────────────────────────────────────────────
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -81,9 +77,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# ── Database ──────────────────────────────────────────────────────────────────
 
 DATABASES = {
     "default": {
@@ -92,45 +86,72 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# ── Auth ──────────────────────────────────────────────────────────────────────
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# ── i18n ──────────────────────────────────────────────────────────────────────
 
 LANGUAGE_CODE = "ru-ru"
-
 TIME_ZONE = "Europe/Moscow"
-
 USE_I18N = True
-
 USE_TZ = True
 
+# ── Static files ──────────────────────────────────────────────────────────────
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Include built frontend when dist/ exists (after `npm run build`)
+STATICFILES_DIRS = [BASE_DIR / "dist"] if (BASE_DIR / "dist").exists() else []
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        o.strip()
+        for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+        if o.strip()
+    ]
+
+# ── CSRF ──────────────────────────────────────────────────────────────────────
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
+
+# ── Security (production only) ────────────────────────────────────────────────
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    # Включить, если Django напрямую принимает HTTPS (без nginx-прокси).
+    # За nginx-прокси оставить false — редирект делает сам прокси.
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "false").lower() == "true"
+
+# ── DRF ───────────────────────────────────────────────────────────────────────
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
@@ -141,9 +162,13 @@ REST_FRAMEWORK = {
     ],
 }
 
+# ── Integrations ──────────────────────────────────────────────────────────────
+
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_MANAGER_CHAT_ID = os.getenv("TELEGRAM_MANAGER_CHAT_ID", "")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
+TELEGRAM_PUBLIC_URL = os.getenv("TELEGRAM_PUBLIC_URL", "https://web.telegram.org/k/#@kalradiaWarBand")
+
 VK_COMMUNITY_URL = os.getenv("VK_COMMUNITY_URL", "https://vk.com/calradia_band")
 VK_MESSAGES_URL = os.getenv(
     "VK_MESSAGES_URL",
@@ -151,9 +176,7 @@ VK_MESSAGES_URL = os.getenv(
 )
 VK_CALLBACK_SECRET = os.getenv("VK_CALLBACK_SECRET", "")
 VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
-TELEGRAM_PUBLIC_URL = os.getenv("TELEGRAM_PUBLIC_URL", "https://web.telegram.org/k/#@kalradiaWarBand")
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# ── Misc ──────────────────────────────────────────────────────────────────────
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

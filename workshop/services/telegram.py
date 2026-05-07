@@ -1,8 +1,6 @@
 import requests
 from django.conf import settings
 
-from workshop.models import Client, Message
-
 
 class TelegramConfigError(RuntimeError):
     pass
@@ -24,36 +22,51 @@ def send_message(chat_id: str, text: str) -> dict:
     return response.json()
 
 
-def store_update(update: dict) -> Client | None:
-    message = update.get("message") or update.get("edited_message")
-    if not message:
-        return None
-
-    chat = message.get("chat", {})
-    sender = message.get("from", {})
-    text = message.get("text") or message.get("caption") or ""
-    external_id = str(chat.get("id", ""))
-    name = " ".join(part for part in [sender.get("first_name"), sender.get("last_name")] if part).strip() or "Telegram клиент"
-    handle = f"@{sender['username']}" if sender.get("username") else ""
-
-    client, _ = Client.objects.get_or_create(
-        source=Client.Source.TELEGRAM,
-        external_id=external_id,
-        defaults={"name": name, "handle": handle, "contact": handle},
+def send_channel_text(channel_id: str, text: str) -> dict:
+    response = requests.post(
+        f"{get_api_base()}/sendMessage",
+        json={"chat_id": channel_id, "text": text, "disable_web_page_preview": False},
+        timeout=20,
     )
-    client.name = name or client.name
-    if handle:
-        client.handle = handle
-        client.contact = handle
-    client.last_message = text
-    client.last_time = str(message.get("date", ""))
-    client.unread += 1
-    client.save()
+    response.raise_for_status()
+    return response.json()
 
-    Message.objects.get_or_create(
-        client=client,
-        direction=Message.Direction.CLIENT,
-        external_message_id=str(message.get("message_id", "")),
-        defaults={"text": text, "sent_at_label": str(message.get("date", ""))},
+
+def send_channel_photo(channel_id: str, photo_url: str, caption: str = "") -> dict:
+    response = requests.post(
+        f"{get_api_base()}/sendPhoto",
+        json={"chat_id": channel_id, "photo": photo_url, "caption": caption},
+        timeout=20,
     )
-    return client
+    response.raise_for_status()
+    return response.json()
+
+
+def send_channel_media_group(channel_id: str, photo_urls: list[str], caption: str = "") -> dict:
+    """Send up to 10 photos as an album. Caption goes on the first item."""
+    media = [
+        {"type": "photo", "media": url, **({"caption": caption} if i == 0 and caption else {})}
+        for i, url in enumerate(photo_urls[:10])
+    ]
+    response = requests.post(
+        f"{get_api_base()}/sendMediaGroup",
+        json={"chat_id": channel_id, "media": media},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def repost_to_channel(channel_id: str, text: str, photos: list[str]) -> None:
+    """High-level helper: send text + photos to channel."""
+    if photos and len(photos) == 1:
+        send_channel_photo(channel_id, photos[0], caption=text)
+    elif photos:
+        send_channel_media_group(channel_id, photos, caption=text)
+    elif text:
+        send_channel_text(channel_id, text)
+
+
+def store_update(update: dict) -> None:
+    # Webhook stub — full inbound bot planned separately
+    return None

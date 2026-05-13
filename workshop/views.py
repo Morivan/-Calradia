@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import IntegrationLink, Product, Review
+from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, repost_to_channel, store_update
 from .services.vk import parse_post
@@ -177,6 +177,95 @@ class MeView(APIView):
             "fullName": request.user.get_full_name() or request.user.username,
             "isStaff": request.user.is_staff,
         })
+
+
+def _check_webhook_token(request) -> bool:
+    expected = settings.WEBHOOK_TOKEN
+    if not expected:
+        return True
+    return request.query_params.get("token") == expected
+
+
+class ClientWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if not _check_webhook_token(request):
+            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
+        client = Client.objects.create(
+            name=request.data.get("name", "").strip(),
+            vk_url=request.data.get("vk_url", "").strip(),
+            status=request.data.get("status", Client.Status.POTENTIAL),
+            notes=request.data.get("notes", "").strip(),
+        )
+        return Response({"ok": True, "id": client.id}, status=status.HTTP_201_CREATED)
+
+
+class OrderWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if not _check_webhook_token(request):
+            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
+        deadline_raw = request.data.get("deadline", "").strip()
+        from datetime import datetime
+        deadline = None
+        for fmt in ("%d.%m.%Y", "%Y-%m-%d"):
+            try:
+                deadline = datetime.strptime(deadline_raw, fmt).date()
+                break
+            except (ValueError, TypeError):
+                pass
+        order = Order.objects.create(
+            client_name=request.data.get("client_name", "").strip(),
+            product=request.data.get("product", "").strip(),
+            configuration=request.data.get("configuration", "").strip(),
+            status=request.data.get("status", Order.Status.NEW),
+            deadline=deadline,
+            total=int(request.data.get("total", 0) or 0),
+            advance=int(request.data.get("advance", 0) or 0),
+            notes=request.data.get("notes", "").strip(),
+        )
+        return Response({"ok": True, "id": order.id}, status=status.HTTP_201_CREATED)
+
+
+class MaterialWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if not _check_webhook_token(request):
+            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
+        material = Material.objects.create(
+            name=request.data.get("name", "").strip(),
+            type=request.data.get("type", Material.Type.MATERIAL),
+            direction=request.data.get("direction", Material.Direction.IRON),
+            unit=request.data.get("unit", "шт").strip(),
+            price=request.data.get("price") or None,
+            stock=request.data.get("stock", 0) or 0,
+            min_stock=request.data.get("min_stock", 0) or 0,
+            supplier=request.data.get("supplier", "").strip(),
+            notes=request.data.get("notes", "").strip(),
+        )
+        return Response({"ok": True, "id": material.id}, status=status.HTTP_201_CREATED)
+
+
+class ColleagueWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if not _check_webhook_token(request):
+            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
+        colleague = Colleague.objects.create(
+            name=request.data.get("name", "").strip(),
+            direction=request.data.get("direction", Colleague.Direction.IRON),
+            specialization=request.data.get("specialization", "").strip(),
+            contact=request.data.get("contact", "").strip(),
+        )
+        return Response({"ok": True, "id": colleague.id}, status=status.HTTP_201_CREATED)
 
 
 class TelegramWebhookView(APIView):

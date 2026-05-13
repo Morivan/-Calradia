@@ -177,6 +177,8 @@ VK_MESSAGES_URL = os.getenv(
 VK_CALLBACK_SECRET = os.getenv("VK_CALLBACK_SECRET", "")
 VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
 
+WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN", "")
+
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

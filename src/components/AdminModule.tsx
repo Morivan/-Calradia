@@ -1,0 +1,97 @@
+import { useState } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { apiFetch } from '../api';
+import { statusStyles } from '../data';
+import { ProductFormModal } from './ProductFormModal';
+import type { Product } from '../types';
+
+export function AdminModule({
+  products,
+  onRefresh,
+}: {
+  products: Product[];
+  onRefresh: () => void;
+}) {
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [formTarget, setFormTarget] = useState<Product | null | 'new'>(undefined as unknown as null);
+  const formOpen = formTarget !== (undefined as unknown as null);
+
+  const handleDelete = async (productId: string) => {
+    if (!confirm('Удалить товар из каталога?')) return;
+    setDeleting(productId);
+    try {
+      await apiFetch(`/api/catalog/products/${productId}/`, { method: 'DELETE' });
+      onRefresh();
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <section className="admin-page">
+      {formOpen ? (
+        <ProductFormModal
+          product={formTarget === 'new' ? null : formTarget}
+          onClose={() => setFormTarget(undefined as unknown as null)}
+          onSaved={() => { onRefresh(); setFormTarget(undefined as unknown as null); }}
+        />
+      ) : null}
+
+      <div className="admin-hero">
+        <div>
+          <p className="eyebrow">Управление</p>
+          <h1>Каталог товаров</h1>
+        </div>
+        <button className="cta-button" onClick={() => setFormTarget('new')}>
+          <Plus size={16} />
+          Добавить товар
+        </button>
+      </div>
+
+      <div className="secondary-card" style={{ padding: '0' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              {['Название', 'Категория', 'Статус', 'Цена от', 'Создал', 'Изменил', ''].map((h) => (
+                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '12px 16px' }}>
+                  <strong>{p.name}</strong>
+                  <br />
+                  <small style={{ color: 'var(--muted)' }}>{p.subtitle}</small>
+                </td>
+                <td style={{ padding: '12px 16px' }}>{p.category}</td>
+                <td style={{ padding: '12px 16px' }}>
+                  <span className={statusStyles[p.status]}>{p.status}</span>
+                </td>
+                <td style={{ padding: '12px 16px' }}>{p.priceFrom.toLocaleString('ru-RU')} ₽</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{p.createdBy ?? '—'}</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{p.updatedBy ?? '—'}</td>
+                <td style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="icon-button" title="Редактировать" onClick={() => setFormTarget(p)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      className="icon-button"
+                      title="Удалить"
+                      onClick={() => handleDelete(p.id)}
+                      disabled={deleting === p.id}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}

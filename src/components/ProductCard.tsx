@@ -1,0 +1,70 @@
+import { statusStyles } from '../data';
+import type { Product } from '../types';
+
+export function ProductCard({
+  product,
+  onOpen,
+}: {
+  product: Product;
+  onOpen: (product: Product) => void;
+}) {
+  return (
+    <article
+      className="product-card"
+      onClick={() => onOpen(product)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpen(product);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
+      <div className="product-image-wrap">
+        <img className="product-image" src={product.image} alt={product.name} />
+        {product.badge ? <span className="product-badge">{product.badge}</span> : null}
+      </div>
+
+      <div className="product-body">
+        <div className="product-headline">
+          <h3>{product.name}</h3>
+          <p>{product.subtitle}</p>
+        </div>
+
+        <div className="product-highlights">
+          <span>{product.category}</span>
+          <span>{product.material}</span>
+          <span>Размеры: {product.sizes.join(', ')}</span>
+        </div>
+
+        <div className="product-meta">
+          <span className={statusStyles[product.status]}>{product.status}</span>
+          <strong>от {product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
+        </div>
+
+        <dl className="product-specs">
+          <div>
+            <dt>Материал</dt>
+            <dd>{product.material}</dd>
+          </div>
+          <div>
+            <dt>Срок</dt>
+            <dd>{product.leadTime}</dd>
+          </div>
+        </dl>
+
+        <button
+          className="cta-button"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen(product);
+          }}
+        >
+          Подробнее
+        </button>
+      </div>
+    </article>
+  );
+}

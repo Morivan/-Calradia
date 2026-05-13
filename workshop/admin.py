@@ -32,8 +32,8 @@ class ClientAdmin(admin.ModelAdmin):
     class OrderInline(admin.TabularInline):
         model = Order
         extra = 0
-        fields = ("product", "status", "total", "advance", "deadline")
-        readonly_fields = ("product", "status", "total", "advance", "deadline")
+        fields = ("product", "product_name", "status", "total", "advance", "deadline")
+        readonly_fields = ("product", "product_name", "status", "total", "advance", "deadline")
         show_change_link = True
 
         def has_add_permission(self, request, obj=None):
@@ -48,11 +48,11 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("client_name", "client", "product", "status", "total", "advance", "deadline", "created_at")
+    list_display = ("client_name", "client", "product_name", "product", "status", "total", "advance", "deadline", "created_at")
     list_filter = ("status",)
-    search_fields = ("client_name", "product", "notes")
+    search_fields = ("client_name", "product_name", "notes")
     readonly_fields = ("created_at", "updated_at")
-    raw_id_fields = ("client",)
+    raw_id_fields = ("client", "product")
 
 
 @admin.register(Material)

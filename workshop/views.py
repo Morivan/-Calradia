@@ -236,7 +236,7 @@ class ClientWithOrderWebhookView(APIView):
             order = Order.objects.create(
                 client=client,
                 client_name=client.name,
-                product=product,
+                product_name=product,
                 configuration=request.data.get("configuration", "").strip(),
                 status=request.data.get("order_status", Order.Status.NEW),
                 deadline=deadline,
@@ -274,7 +274,7 @@ class OrderWebhookView(APIView):
         order = Order.objects.create(
             client=client,
             client_name=client_name,
-            product=request.data.get("product", "").strip(),
+            product_name=request.data.get("product", "").strip(),
             configuration=request.data.get("configuration", "").strip(),
             status=request.data.get("status", Order.Status.NEW),
             deadline=deadline,

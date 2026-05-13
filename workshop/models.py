@@ -91,7 +91,8 @@ class Order(TimestampedModel):
 
     client = models.ForeignKey("Client", null=True, blank=True, on_delete=models.SET_NULL, related_name="orders")
     client_name = models.CharField(max_length=255)
-    product = models.CharField(max_length=255)
+    product_name = models.CharField(max_length=255, blank=True)
+    product = models.ForeignKey("Product", null=True, blank=True, on_delete=models.SET_NULL, related_name="orders")
     configuration = models.TextField(blank=True)
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.NEW)
     deadline = models.DateField(null=True, blank=True)

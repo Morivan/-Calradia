@@ -210,12 +210,15 @@ class ClientWithOrderWebhookView(APIView):
         if not _check_webhook_token(request):
             return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
 
-        client = Client.objects.create(
-            name=request.data.get("name", "").strip(),
-            vk_url=request.data.get("vk_url", "").strip(),
-            status=request.data.get("client_status", Client.Status.ACTIVE),
-            notes=request.data.get("notes", "").strip(),
-        )
+        client_id = request.data.get("client_id")
+        client = Client.objects.filter(pk=client_id).first() if client_id else None
+        if not client:
+            client = Client.objects.create(
+                name=request.data.get("name", "").strip(),
+                vk_url=request.data.get("vk_url", "").strip(),
+                status=request.data.get("client_status", Client.Status.ACTIVE),
+                notes=request.data.get("notes", "").strip(),
+            )
 
         result = {"ok": True, "client_id": client.id, "order_id": None}
 

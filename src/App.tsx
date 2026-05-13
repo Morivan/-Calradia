@@ -88,7 +88,12 @@ export default function App() {
 
     switch (sort) {
       case 'newest':
-        result = result.sort((a, b) => Number(Boolean(b.badge)) - Number(Boolean(a.badge)));
+        result = result.sort((a, b) => {
+          if (a.created_at && b.created_at) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+          return Number(Boolean(b.created_at)) - Number(Boolean(a.created_at));
+        });
         break;
       case 'popular':
         result = result.sort((a, b) => b.popularity - a.popularity);

@@ -231,6 +231,7 @@ class ClientWithOrderWebhookView(APIView):
                 except (ValueError, TypeError):
                     pass
             order = Order.objects.create(
+                client=client,
                 client_name=client.name,
                 product=product,
                 configuration=request.data.get("configuration", "").strip(),
@@ -261,8 +262,15 @@ class OrderWebhookView(APIView):
                 break
             except (ValueError, TypeError):
                 pass
+        client_name = request.data.get("client_name", "").strip()
+        client_id = request.data.get("client_id")
+        client = Client.objects.filter(pk=client_id).first() if client_id else None
+        if client and not client_name:
+            client_name = client.name
+
         order = Order.objects.create(
-            client_name=request.data.get("client_name", "").strip(),
+            client=client,
+            client_name=client_name,
             product=request.data.get("product", "").strip(),
             configuration=request.data.get("configuration", "").strip(),
             status=request.data.get("status", Order.Status.NEW),

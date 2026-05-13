@@ -89,6 +89,7 @@ class Order(TimestampedModel):
         DONE = "Выполнен", "Выполнен"
         CANCELLED = "Отменён", "Отменён"
 
+    client = models.ForeignKey("Client", null=True, blank=True, on_delete=models.SET_NULL, related_name="orders")
     client_name = models.CharField(max_length=255)
     product = models.CharField(max_length=255)
     configuration = models.TextField(blank=True)

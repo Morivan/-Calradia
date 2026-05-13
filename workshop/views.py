@@ -202,6 +202,49 @@ class ClientWebhookView(APIView):
         return Response({"ok": True, "id": client.id}, status=status.HTTP_201_CREATED)
 
 
+class ClientWithOrderWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if not _check_webhook_token(request):
+            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
+
+        client = Client.objects.create(
+            name=request.data.get("name", "").strip(),
+            vk_url=request.data.get("vk_url", "").strip(),
+            status=request.data.get("client_status", Client.Status.ACTIVE),
+            notes=request.data.get("notes", "").strip(),
+        )
+
+        result = {"ok": True, "client_id": client.id, "order_id": None}
+
+        product = request.data.get("product", "").strip()
+        if product:
+            from datetime import datetime
+            deadline_raw = request.data.get("deadline", "").strip()
+            deadline = None
+            for fmt in ("%d.%m.%Y", "%Y-%m-%d"):
+                try:
+                    deadline = datetime.strptime(deadline_raw, fmt).date()
+                    break
+                except (ValueError, TypeError):
+                    pass
+            order = Order.objects.create(
+                client_name=client.name,
+                product=product,
+                configuration=request.data.get("configuration", "").strip(),
+                status=request.data.get("order_status", Order.Status.NEW),
+                deadline=deadline,
+                total=int(request.data.get("total", 0) or 0),
+                advance=int(request.data.get("advance", 0) or 0),
+                notes=request.data.get("order_notes", "").strip(),
+            )
+            result["order_id"] = order.id
+
+        return Response(result, status=status.HTTP_201_CREATED)
+
+
 class OrderWebhookView(APIView):
     authentication_classes = []
     permission_classes = []

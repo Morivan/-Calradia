@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AuthView, BootstrapView, ClientWebhookView, ColleagueWebhookView, LogoutView, MaterialWebhookView, MeView, OrderWebhookView, ProductDetailView, ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView
+from .views import AuthView, BootstrapView, ClientWebhookView, ClientWithOrderWebhookView, ColleagueWebhookView, LogoutView, MaterialWebhookView, MeView, OrderWebhookView, ProductDetailView, ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView
 
 urlpatterns = [
     path("bootstrap/", BootstrapView.as_view(), name="bootstrap"),
@@ -13,6 +13,7 @@ urlpatterns = [
     path("integrations/telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
     path("integrations/vk/callback/", VkCallbackView.as_view(), name="vk-callback"),
     path("webhook/client/", ClientWebhookView.as_view(), name="webhook-client"),
+    path("webhook/client-order/", ClientWithOrderWebhookView.as_view(), name="webhook-client-order"),
     path("webhook/order/", OrderWebhookView.as_view(), name="webhook-order"),
     path("webhook/material/", MaterialWebhookView.as_view(), name="webhook-material"),
     path("webhook/colleague/", ColleagueWebhookView.as_view(), name="webhook-colleague"),

@@ -1,5 +1,3 @@
-import { Mail } from 'lucide-react';
-
 export function Footer() {
   return (
     <footer className="site-footer" id="contacts">
@@ -25,12 +23,7 @@ export function Footer() {
         </div>
         <div>
           <h4>Новости мастерской</h4>
-          <form className="subscribe-form">
-            <input type="email" placeholder="Ваш email" />
-            <button className="icon-button" type="button" aria-label="Подписаться">
-              <Mail size={16} />
-            </button>
-          </form>
+          <p>Следите за обновлениями в нашем <a href="https://vk.com/calradia_band" target="_blank" rel="noreferrer">ВКонтакте</a> и <a href="https://t.me/kalradiaWarBand" target="_blank" rel="noreferrer">Telegram</a>.</p>
         </div>
       </div>
     </footer>

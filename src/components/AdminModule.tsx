@@ -53,7 +53,7 @@ export function AdminModule({
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
               {['Название', 'Категория', 'Статус', 'Цена от', 'Создал', 'Изменил', ''].map((h) => (
-                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}>{h}</th>
+                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: 'var(--text-muted)' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -63,15 +63,15 @@ export function AdminModule({
                 <td style={{ padding: '12px 16px' }}>
                   <strong>{p.name}</strong>
                   <br />
-                  <small style={{ color: 'var(--muted)' }}>{p.subtitle}</small>
+                  <small style={{ color: 'var(--text-muted)' }}>{p.subtitle}</small>
                 </td>
                 <td style={{ padding: '12px 16px' }}>{p.category}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <span className={statusStyles[p.status]}>{p.status}</span>
                 </td>
                 <td style={{ padding: '12px 16px' }}>{p.priceFrom.toLocaleString('ru-RU')} ₽</td>
-                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{p.createdBy ?? '—'}</td>
-                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{p.updatedBy ?? '—'}</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{p.createdBy ?? '—'}</td>
+                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{p.updatedBy ?? '—'}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="icon-button" title="Редактировать" onClick={() => setFormTarget(p)}>

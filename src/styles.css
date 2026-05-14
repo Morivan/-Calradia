@@ -1091,6 +1091,9 @@ h1 {
 
   .detail-price-row,
   .contact-form-actions,
+  .detail-actions {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1179,19 +1182,20 @@ h1 {
 
 .product-form-field span {
   font-weight: 500;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .product-form-field input,
 .product-form-field select,
 .product-form-field textarea {
-  background: var(--surface);
+  background: var(--bg-panel-soft);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 10px;
-  color: var(--text);
+  color: var(--text-main);
   font-size: 14px;
   font-family: inherit;
+  outline: none;
 }
 
 .product-form-field textarea {

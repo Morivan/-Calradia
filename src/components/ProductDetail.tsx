@@ -16,7 +16,7 @@ export function ProductDetail({
   onAddReview: (productId: string, review: Review) => void;
   links: ExternalLinks;
 }) {
-  const [activeImage, setActiveImage] = useState(product.gallery[0]);
+  const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState({ author: '', text: '', rating: '5' });
@@ -50,7 +50,7 @@ export function ProductDetail({
           <div className="detail-main-image">
             <img src={activeImage} alt={product.name} />
             <div className="detail-overlay-tag">FIG. {product.gallery.indexOf(activeImage) + 1}</div>
-            <div className="detail-overlay-code">ARCHIVE REF: {product.id.toUpperCase()}</div>
+            <div className="detail-overlay-code">ARCHIVE REF: {String(product.id).toUpperCase()}</div>
           </div>
 
           <div className="detail-thumbnails">
@@ -155,8 +155,8 @@ export function ProductDetail({
             </div>
             {reviews.length > 0 ? (
               <div className="review-list">
-                {reviews.map((review) => (
-                  <article className="review-card" key={`${review.author}-${review.date}-${review.text}`}>
+                {reviews.map((review, index) => (
+                  <article className="review-card" key={review.id ?? `${review.author}-${review.date}-${index}`}>
                     <div className="review-meta">
                       <strong>{review.author}</strong>
                       <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>

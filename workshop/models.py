@@ -104,7 +104,8 @@ class Order(TimestampedModel):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return f"{self.client_name} — {self.product}"
+        product_display = self.product_name or (self.product.name if self.product else "—")
+        return f"{self.client_name} — {product_display}"
 
 
 class Material(TimestampedModel):

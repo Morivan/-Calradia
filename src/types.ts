@@ -7,6 +7,7 @@ export type SortMode = 'default' | 'newest' | 'popular' | 'duration';
 export type ViewMode = 'catalog' | 'admin' | 'login';
 
 export interface Review {
+  id?: number;
   author: string;
   text: string;
   rating: number;

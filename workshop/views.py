@@ -17,6 +17,13 @@ from .services.vk import parse_post
 
 logger = logging.getLogger(__name__)
 
+
+def _parse_int(value, default: int = 0) -> int:
+    try:
+        return int(value or default)
+    except (ValueError, TypeError):
+        return default
+
 _CAMEL_TO_SNAKE = {
     "priceFrom": "price_from",
     "leadTime": "lead_time",
@@ -272,8 +279,8 @@ class ClientWithOrderWebhookView(APIView):
                     configuration=request.data.get("configuration", "").strip(),
                     status=request.data.get("order_status", Order.Status.NEW),
                     deadline=deadline,
-                    total=int(request.data.get("total", 0) or 0),
-                    advance=int(request.data.get("advance", 0) or 0),
+                    total=_parse_int(request.data.get("total")),
+                    advance=_parse_int(request.data.get("advance")),
                     notes=request.data.get("order_notes", "").strip(),
                 )
                 result["order_id"] = order.id
@@ -310,8 +317,8 @@ class OrderWebhookView(APIView):
             configuration=request.data.get("configuration", "").strip(),
             status=request.data.get("status", Order.Status.NEW),
             deadline=deadline,
-            total=int(request.data.get("total", 0) or 0),
-            advance=int(request.data.get("advance", 0) or 0),
+            total=_parse_int(request.data.get("total")),
+            advance=_parse_int(request.data.get("advance")),
             notes=request.data.get("notes", "").strip(),
         )
         return Response({"ok": True, "id": order.id}, status=status.HTTP_201_CREATED)

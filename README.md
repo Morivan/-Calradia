@@ -121,6 +121,7 @@ WhiteNoise раздаёт статику (Django admin + собранный Reac
 | `VK_CONFIRMATION_TOKEN` | Для VK | Строка подтверждения от ВКонтакте |
 | `VK_COMMUNITY_URL` | — | Ссылка на сообщество ВКонтакте |
 | `VK_MESSAGES_URL` | — | Ссылка на диалоги сообщества ВКонтакте |
+| `WEBHOOK_TOKEN` | Для вебхуков | Токен защиты webhook-эндпоинтов Яндекс Форм. Генерируется командой: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 
 ## Настройка интеграций
 
@@ -141,6 +142,24 @@ WhiteNoise раздаёт статику (Django admin + собранный Reac
    - Key: `yandex_form`
    - URL: `https://forms.yandex.ru/cloud/FORM_ID/?iframe=1`
 3. Форма появится в модальном окне на странице каждого товара.
+
+### Яндекс Формы → вебхуки (клиенты, заказы, материалы, коллеги)
+
+1. Сгенерировать `WEBHOOK_TOKEN` и прописать в `.env` на сервере:
+   ```bash
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+2. Создать нужные формы в [Яндекс Формах](https://forms.yandex.ru).
+3. В каждой форме настроить **Интеграции → HTTP-запрос** (метод `POST`) на соответствующий URL:
+
+   | Форма | URL |
+   |-------|-----|
+   | Новый клиент | `https://your-domain.com/api/webhook/client/?token=TOKEN` |
+   | Клиент + заказ | `https://your-domain.com/api/webhook/client-order/?token=TOKEN` |
+   | Новый материал | `https://your-domain.com/api/webhook/material/?token=TOKEN` |
+   | Новый коллега | `https://your-domain.com/api/webhook/colleague/?token=TOKEN` |
+
+4. Передавать поля формы в теле запроса (JSON). Ответы при этом продолжают сохраняться в Яндекс Таблицы как обычно.
 
 ### Ссылки на VK и Telegram
 
@@ -172,3 +191,7 @@ WhiteNoise раздаёт статику (Django admin + собранный Reac
 | `GET` | `/api/csrf/` | Установить CSRF-куку |
 | `POST` | `/api/integrations/telegram/webhook/` | Вебхук Telegram-бота |
 | `POST` | `/api/integrations/vk/callback/` | Callback API ВКонтакте |
+| `POST` | `/api/webhook/client/?token=TOKEN` | Яндекс Форма: новый клиент |
+| `POST` | `/api/webhook/client-order/?token=TOKEN` | Яндекс Форма: клиент + заказ (либо заказ к существующему клиенту через `client_id`) |
+| `POST` | `/api/webhook/material/?token=TOKEN` | Яндекс Форма: новый материал |
+| `POST` | `/api/webhook/colleague/?token=TOKEN` | Яндекс Форма: новый коллега |

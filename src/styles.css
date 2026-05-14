@@ -206,6 +206,22 @@ textarea {
   color: var(--text-main);
 }
 
+.searchbox:focus-within {
+  border-color: var(--accent);
+}
+
+.sortbox select:focus,
+.contact-form select:focus,
+.contact-form input:focus,
+.contact-form textarea:focus,
+.subscribe-form input:focus,
+.product-form-field input:focus,
+.product-form-field select:focus,
+.product-form-field textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
 .searchbox input::placeholder,
 .subscribe-form input::placeholder,
 .contact-form input::placeholder,
@@ -399,6 +415,7 @@ h1 {
   gap: 10px;
   background: transparent;
   color: var(--text-main);
+  cursor: pointer;
 }
 
 .sidebar-trigger span {
@@ -433,6 +450,11 @@ h1 {
   width: auto;
   padding: 0;
   color: var(--text-muted);
+}
+
+.text-link:hover {
+  color: var(--text-main);
+  text-decoration: underline;
 }
 
 .filter-option {
@@ -514,6 +536,10 @@ h1 {
 .product-card:hover {
   transform: translateY(-6px);
   border-color: rgba(194, 63, 63, 0.45);
+}
+
+.product-card:hover .cta-button {
+  transform: none;
 }
 
 .product-image-wrap {
@@ -1091,6 +1117,16 @@ h1 {
 
   .detail-price-row,
   .contact-form-actions,
+  .detail-actions {
+    flex-wrap: wrap;
+  }
+
+  .icon-button,
+  .detail-back,
+  .detail-back-inline {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1179,19 +1215,20 @@ h1 {
 
 .product-form-field span {
   font-weight: 500;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .product-form-field input,
 .product-form-field select,
 .product-form-field textarea {
-  background: var(--surface);
+  background: var(--bg-panel-soft);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 10px;
-  color: var(--text);
+  color: var(--text-main);
   font-size: 14px;
   font-family: inherit;
+  outline: none;
 }
 
 .product-form-field textarea {

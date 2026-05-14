@@ -24,18 +24,35 @@ class IntegrationLinkAdmin(admin.ModelAdmin):
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ("name", "vk_url", "status", "created_at")
+    list_display = ("name", "vk_url", "status", "order_count", "created_at")
     list_filter = ("status",)
     search_fields = ("name", "notes")
     readonly_fields = ("created_at", "updated_at")
 
+    class OrderInline(admin.TabularInline):
+        model = Order
+        extra = 0
+        fields = ("product", "product_name", "status", "total", "advance", "deadline")
+        readonly_fields = ("product", "product_name", "status", "total", "advance", "deadline")
+        show_change_link = True
+
+        def has_add_permission(self, request, obj=None):
+            return False
+
+    inlines = [OrderInline]
+
+    @admin.display(description="Заказов")
+    def order_count(self, obj):
+        return obj.orders.count()
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("client_name", "product", "status", "total", "advance", "deadline", "created_at")
+    list_display = ("client_name", "client", "product_name", "product", "status", "total", "advance", "deadline", "created_at")
     list_filter = ("status",)
-    search_fields = ("client_name", "product", "notes")
+    search_fields = ("client_name", "product_name", "notes")
     readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("client", "product")
 
 
 @admin.register(Material)

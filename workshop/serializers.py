@@ -8,10 +8,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ("author", "text", "rating", "date")
+        fields = ("id", "author", "text", "rating", "date")
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
     priceFrom = serializers.IntegerField(source="price_from")
     leadTime = serializers.CharField(source="lead_time")
     protectionClass = serializers.CharField(source="protection_class")

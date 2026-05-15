@@ -182,8 +182,11 @@ export default function App() {
         ) : (
           <>
             <section className="hero" id="catalog">
-              <p className="eyebrow">Средневековая мастерская полного цикла</p>
-              <h1>Каталог доспехов и реконструкторского снаряжения</h1>
+              <div className="hero-content">
+                <p className="eyebrow">Средневековая мастерская полного цикла</p>
+                <h1>Каталог доспехов и реконструкторского снаряжения</h1>
+              </div>
+              <img className="hero-emblem" src="/club-emblem.png" alt="Эмблема клуба" />
             </section>
 
             <section className="catalog-layout" id="collections">

@@ -630,9 +630,9 @@ h1 {
   color: #e4d4af;
 }
 
-.status-reconstruction {
-  background: rgba(56, 74, 50, 0.9);
-  color: #b2bcab;
+.status-archive {
+  background: rgba(60, 60, 60, 0.7);
+  color: #a0a0a0;
 }
 
 .product-specs {

@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { apiFetch } from '../api';
 import type { Category, Era, Material, Product, ProductStatus, Size } from '../types';
 
-const STATUSES: ProductStatus[] = ['Готовый комплект', 'Под заказ', 'Реконструкция'];
+const STATUSES: ProductStatus[] = ['В наличии', 'Изготовим на заказ', 'Снят с производства'];
 const CATEGORIES: Category[] = ['Шлемы', 'Нагрудники', 'Полные комплекты', 'Аксессуары', 'Щиты', 'Рукавицы'];
 const ERAS: Era[] = ['XIII век', 'XIV век', 'XV век', 'XVI век'];
 const MATERIALS: Material[] = ['Сталь', 'Кожа', 'Комбинированный', 'Латунь и сталь'];
@@ -17,7 +17,7 @@ type ProductFormData = {
 };
 
 const EMPTY_FORM: ProductFormData = {
-  name: '', subtitle: '', status: 'Под заказ', category: 'Шлемы',
+  name: '', subtitle: '', status: 'Изготовим на заказ', category: 'Шлемы',
   era: 'XV век', material: 'Сталь', sizes: ['M'], priceFrom: '',
   leadTime: '', weight: '', history: '',
   description: '', image: '', gallery: '', badge: '',

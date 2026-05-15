@@ -12,9 +12,9 @@ class TimestampedModel(models.Model):
 
 class Product(TimestampedModel):
     class Status(models.TextChoices):
-        READY = "Готовый комплект", "Готовый комплект"
-        CUSTOM = "Под заказ", "Под заказ"
-        REPLICA = "Реконструкция", "Реконструкция"
+        READY = "В наличии", "В наличии"
+        CUSTOM = "Изготовим на заказ", "Изготовим на заказ"
+        ARCHIVED = "Снят с производства", "Снят с производства"
 
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=255)

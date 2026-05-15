@@ -12,9 +12,9 @@ export const sortOptions: { value: SortMode; label: string }[] = [
 ];
 
 export const statusStyles: Record<ProductStatus, string> = {
-  'Готовый комплект': 'status status-ready',
-  'Под заказ': 'status status-order',
-  'Реконструкция': 'status status-reconstruction',
+  'В наличии': 'status status-ready',
+  'Изготовим на заказ': 'status status-order',
+  'Снят с производства': 'status status-archive',
 };
 
 export const sidebarSections = [
@@ -33,5 +33,5 @@ export const filterSections = [
   { key: 'eras', title: 'Эпоха', options: ['XIII век', 'XIV век', 'XV век', 'XVI век'] },
   { key: 'materials', title: 'Материал', options: ['Сталь', 'Кожа', 'Комбинированный', 'Латунь и сталь'] },
   { key: 'sizes', title: 'Размер', options: ['XS', 'S', 'M', 'L', 'XL'] },
-  { key: 'statuses', title: 'Статус', options: ['Готовый комплект', 'Под заказ', 'Реконструкция'] },
+  { key: 'statuses', title: 'Статус', options: ['В наличии', 'Изготовим на заказ', 'Снят с производства'] },
 ] as const;

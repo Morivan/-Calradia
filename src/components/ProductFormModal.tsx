@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { apiFetch } from '../api';
 import type { Category, Era, Material, Product, ProductStatus, Size } from '../types';
 
-const STATUSES: ProductStatus[] = ['Готовый комплект', 'Под заказ', 'Реконструкция'];
+const STATUSES: ProductStatus[] = ['В наличии', 'Изготовим на заказ', 'Снят с производства'];
 const CATEGORIES: Category[] = ['Шлемы', 'Нагрудники', 'Полные комплекты', 'Аксессуары', 'Щиты', 'Рукавицы'];
 const ERAS: Era[] = ['XIII век', 'XIV век', 'XV век', 'XVI век'];
 const MATERIALS: Material[] = ['Сталь', 'Кожа', 'Комбинированный', 'Латунь и сталь'];
@@ -12,14 +12,14 @@ const SIZES: Size[] = ['XS', 'S', 'M', 'L', 'XL'];
 type ProductFormData = {
   name: string; subtitle: string; status: ProductStatus; category: Category;
   era: Era; material: Material; sizes: Size[]; priceFrom: string;
-  leadTime: string; weight: string; protectionClass: string; history: string;
+  leadTime: string; weight: string; history: string;
   description: string; image: string; gallery: string; badge: string;
 };
 
 const EMPTY_FORM: ProductFormData = {
-  name: '', subtitle: '', status: 'Под заказ', category: 'Шлемы',
+  name: '', subtitle: '', status: 'Изготовим на заказ', category: 'Шлемы',
   era: 'XV век', material: 'Сталь', sizes: ['M'], priceFrom: '',
-  leadTime: '', weight: '', protectionClass: '', history: '',
+  leadTime: '', weight: '', history: '',
   description: '', image: '', gallery: '', badge: '',
 };
 
@@ -29,7 +29,7 @@ function productToForm(p: Product): ProductFormData {
     category: p.category as Category, era: p.era as Era,
     material: p.material as Material, sizes: p.sizes,
     priceFrom: String(p.priceFrom), leadTime: p.leadTime, weight: p.weight,
-    protectionClass: p.protectionClass, history: p.history,
+    history: p.history,
     description: p.description.join('\n\n'),
     image: p.image, gallery: p.gallery.join('\n'), badge: p.badge ?? '',
   };
@@ -69,7 +69,6 @@ export function ProductFormModal({
       priceFrom: Number(form.priceFrom),
       leadTime: form.leadTime.trim(),
       weight: form.weight.trim(),
-      protectionClass: form.protectionClass.trim(),
       history: form.history.trim(),
       description: form.description.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean),
       image: form.image.trim(),
@@ -159,7 +158,6 @@ export function ProductFormModal({
           {field('Цена от (₽)', 'priceFrom', 'number')}
           {field('Срок изготовления', 'leadTime')}
           {field('Вес', 'weight')}
-          {field('Класс защиты', 'protectionClass')}
           {field('Значок (Новинка / Полевые испытания)', 'badge')}
           {field('Фото (URL)', 'image', 'url')}
 

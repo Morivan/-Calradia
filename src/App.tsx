@@ -127,21 +127,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const addReview = async (productId: string, review: Review) => {
-    setReviewsByProduct((current) => ({
-      ...current,
-      [productId]: [review, ...(current[productId] ?? [])],
-    }));
-    try {
-      await apiFetch(`/api/catalog/products/${productId}/reviews/`, {
-        method: 'POST',
-        body: JSON.stringify(review),
-      });
-    } catch (error) {
-      console.error('Не удалось сохранить отзыв в backend', error);
-    }
-  };
-
   const goHome = () => {
     setCurrentView('catalog');
     setSelectedProduct(null);
@@ -192,7 +177,6 @@ export default function App() {
             product={selectedProduct}
             reviews={reviewsByProduct[selectedProduct.id] ?? []}
             onBack={goHome}
-            onAddReview={addReview}
             links={externalLinks}
           />
         ) : (

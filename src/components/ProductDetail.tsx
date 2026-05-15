@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, Shield, X } from 'lucide-react';
+import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, Shield } from 'lucide-react';
 import { OrderModal } from './OrderModal';
 import type { ExternalLinks, Product, Review } from '../types';
 
@@ -7,31 +7,15 @@ export function ProductDetail({
   product,
   reviews,
   onBack,
-  onAddReview,
   links,
 }: {
   product: Product;
   reviews: Review[];
   onBack: () => void;
-  onAddReview: (productId: string, review: Review) => void;
   links: ExternalLinks;
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
-  const [reviewForm, setReviewForm] = useState({ author: '', text: '', rating: '5' });
-
-  const submitReview = () => {
-    if (!reviewForm.author.trim() || !reviewForm.text.trim()) return;
-    onAddReview(product.id, {
-      author: reviewForm.author.trim(),
-      text: reviewForm.text.trim(),
-      rating: Number(reviewForm.rating),
-      date: new Intl.DateTimeFormat('ru-RU').format(new Date()),
-    });
-    setReviewForm({ author: '', text: '', rating: '5' });
-    setReviewOpen(false);
-  };
 
   return (
     <section className="detail-page">
@@ -49,7 +33,7 @@ export function ProductDetail({
         <div className="detail-gallery">
           <div className="detail-main-image">
             <img src={activeImage} alt={product.name} />
-            <div className="detail-overlay-tag">FIG. {product.gallery.indexOf(activeImage) + 1}</div>
+            <div className="detail-overlay-tag">FIG. {Math.max(product.gallery.indexOf(activeImage) + 1, 1)}</div>
             <div className="detail-overlay-code">ARCHIVE REF: {String(product.id).toUpperCase()}</div>
           </div>
 
@@ -70,7 +54,7 @@ export function ProductDetail({
           <div className="detail-title-block">
             <span className="detail-badge">{product.category}</span>
             <h1>{product.name}</h1>
-            <p>{product.subtitle}</p>
+            {product.subtitle && product.subtitle !== product.name ? <p>{product.subtitle}</p> : null}
           </div>
 
           <div className="detail-spec-grid">
@@ -126,9 +110,6 @@ export function ProductDetail({
                   Написать в ВКонтакте
                 </a>
               ) : null}
-              <button className="ghost-button detail-secondary" onClick={() => setReviewOpen(true)}>
-                Оставить отзыв
-              </button>
               <a
                 className="icon-button detail-icon-button"
                 href={links.vkCommunity || links.telegramPublic}
@@ -167,7 +148,7 @@ export function ProductDetail({
                 ))}
               </div>
             ) : (
-              <p className="review-empty">Пока нет отзывов. Станьте первым, кто оставит впечатления о работе мастерской.</p>
+              <p className="review-empty">Пока нет отзывов об этом изделии.</p>
             )}
           </div>
         </div>
@@ -177,65 +158,6 @@ export function ProductDetail({
         <OrderModal yandexFormUrl={links.yandexForm} onClose={() => setOrderModalOpen(false)} />
       ) : null}
 
-      {reviewOpen ? (
-        <div className="contact-overlay" role="dialog" aria-modal="true">
-          <div className="contact-dialog">
-            <div className="contact-header">
-              <div>
-                <h3>Новый отзыв</h3>
-                <p>Поделитесь впечатлениями о качестве изделия и взаимодействии с мастерской.</p>
-              </div>
-              <button className="icon-button" onClick={() => setReviewOpen(false)} aria-label="Закрыть форму">
-                <X size={16} />
-              </button>
-            </div>
-            <form
-              className="contact-form"
-              onSubmit={(event) => { event.preventDefault(); submitReview(); }}
-            >
-              <label>
-                <span>Имя</span>
-                <input
-                  type="text"
-                  placeholder="Ваше имя"
-                  value={reviewForm.author}
-                  onChange={(event) => setReviewForm((c) => ({ ...c, author: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>Оценка</span>
-                <select
-                  value={reviewForm.rating}
-                  onChange={(event) => setReviewForm((c) => ({ ...c, rating: event.target.value }))}
-                >
-                  <option value="5">5 - отлично</option>
-                  <option value="4">4 - хорошо</option>
-                  <option value="3">3 - нормально</option>
-                  <option value="2">2 - с замечаниями</option>
-                  <option value="1">1 - требуется доработка</option>
-                </select>
-              </label>
-              <label className="contact-form-wide">
-                <span>Текст отзыва</span>
-                <textarea
-                  placeholder="Например: удобная посадка, хорошая подгонка, аккуратная отделка..."
-                  rows={4}
-                  value={reviewForm.text}
-                  onChange={(event) => setReviewForm((c) => ({ ...c, text: event.target.value }))}
-                />
-              </label>
-              <div className="contact-form-actions contact-form-wide">
-                <button type="button" className="cta-button cta-muted" onClick={() => setReviewOpen(false)}>
-                  Отмена
-                </button>
-                <button type="submit" className="cta-button">
-                  Сохранить отзыв
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }

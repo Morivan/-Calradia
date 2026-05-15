@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, Shield } from 'lucide-react';
+import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale } from 'lucide-react';
 import { OrderModal } from './OrderModal';
 import type { ExternalLinks, Product, Review } from '../types';
 
@@ -69,10 +69,6 @@ export function ProductDetail({
             <div>
               <span><Clock3 size={14} /> Срок изготовления</span>
               <strong>{product.leadTime}</strong>
-            </div>
-            <div>
-              <span><Shield size={14} /> Класс защиты</span>
-              <strong>{product.protectionClass}</strong>
             </div>
           </div>
 

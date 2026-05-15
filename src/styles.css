@@ -993,6 +993,11 @@ h1 {
   margin: 0 0 10px;
 }
 
+.site-footer p a {
+  display: inline;
+  margin: 0;
+}
+
 .subscribe-form {
   display: flex;
   gap: 10px;

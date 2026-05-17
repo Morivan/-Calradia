@@ -11,6 +11,7 @@ import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
 import { Sidebar } from './components/Sidebar';
 import { SortControl } from './components/SortControl';
+import { WorkshopServices } from './components/WorkshopServices';
 import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, SortMode, ViewMode } from './types';
 
 export default function App() {
@@ -222,6 +223,8 @@ if (payload.links) {
                 ) : null}
               </section>
             </section>
+
+            <WorkshopServices />
           </>
         )}
       </main>

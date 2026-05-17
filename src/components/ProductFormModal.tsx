@@ -112,6 +112,13 @@ export function ProductFormModal({
           </button>
         </div>
         <form className="contact-form product-form" onSubmit={submit}>
+          {field('Фото (URL)', 'image', 'url')}
+
+          <label className="product-form-field contact-form-wide">
+            <span>Галерея (по одному URL на строку)</span>
+            <textarea rows={3} value={form.gallery} onChange={(e) => set('gallery', e.target.value)} />
+          </label>
+
           {field('Название', 'name')}
           {field('Подзаголовок', 'subtitle')}
 
@@ -159,7 +166,6 @@ export function ProductFormModal({
           {field('Срок изготовления', 'leadTime')}
           {field('Вес', 'weight')}
           {field('Значок (Новинка / Полевые испытания)', 'badge')}
-          {field('Фото (URL)', 'image', 'url')}
 
           <label className="product-form-field contact-form-wide">
             <span>Историческая справка</span>
@@ -169,11 +175,6 @@ export function ProductFormModal({
           <label className="product-form-field contact-form-wide">
             <span>Описание (параграфы — пустая строка между ними)</span>
             <textarea rows={5} value={form.description} onChange={(e) => set('description', e.target.value)} />
-          </label>
-
-          <label className="product-form-field contact-form-wide">
-            <span>Галерея (по одному URL на строку)</span>
-            <textarea rows={3} value={form.gallery} onChange={(e) => set('gallery', e.target.value)} />
           </label>
 
           {error ? <p className="form-error contact-form-wide">{error}</p> : null}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { apiFetch, defaultLinks } from './api';
-import { fallbackProducts, fallbackReviews } from './data';
+import { fallbackProducts } from './data';
 import { AdminModule } from './components/AdminModule';
 import { FiltersPanel } from './components/FiltersPanel';
 import { Footer } from './components/Footer';
@@ -11,7 +11,7 @@ import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
 import { Sidebar } from './components/Sidebar';
 import { SortControl } from './components/SortControl';
-import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, SortMode, ViewMode } from './types';
+import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, SortMode, ViewMode } from './types';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('catalog');
@@ -28,7 +28,6 @@ export default function App() {
     sizes: [],
     statuses: [],
   });
-  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, Review[]>>(fallbackReviews);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -40,10 +39,7 @@ export default function App() {
       if (payload.products?.length) {
         setCatalogProducts(payload.products);
       }
-      if (payload.reviewsByProduct) {
-        setReviewsByProduct(payload.reviewsByProduct);
-      }
-      if (payload.links) {
+if (payload.links) {
         setExternalLinks({ ...defaultLinks, ...payload.links });
       }
     } catch (error) {
@@ -175,7 +171,6 @@ export default function App() {
         ) : selectedProduct ? (
           <ProductDetail
             product={selectedProduct}
-            reviews={reviewsByProduct[selectedProduct.id] ?? []}
             onBack={goHome}
             links={externalLinks}
           />

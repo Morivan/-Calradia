@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale } from 'lucide-react';
 import { OrderModal } from './OrderModal';
-import type { ExternalLinks, Product, Review } from '../types';
+import type { ExternalLinks, Product } from '../types';
 
 export function ProductDetail({
   product,
-  reviews,
   onBack,
   links,
 }: {
   product: Product;
-  reviews: Review[];
   onBack: () => void;
   links: ExternalLinks;
 }) {
@@ -125,28 +123,6 @@ export function ProductDetail({
             ))}
           </div>
 
-          <div className="review-section">
-            <div className="review-section-head">
-              <h2>Отзывы</h2>
-              <span>{reviews.length} шт.</span>
-            </div>
-            {reviews.length > 0 ? (
-              <div className="review-list">
-                {reviews.map((review, index) => (
-                  <article className="review-card" key={review.id ?? `${review.author}-${review.date}-${index}`}>
-                    <div className="review-meta">
-                      <strong>{review.author}</strong>
-                      <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                    </div>
-                    <p>{review.text}</p>
-                    <small>{review.date}</small>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="review-empty">Пока нет отзывов об этом изделии.</p>
-            )}
-          </div>
         </div>
       </div>
 

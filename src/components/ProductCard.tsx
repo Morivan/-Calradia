@@ -22,7 +22,16 @@ export function ProductCard({
       tabIndex={0}
     >
       <div className="product-image-wrap">
-        <img className="product-image" src={product.image} alt={product.name} />
+        <img
+          className="product-image"
+          src={product.image}
+          alt={product.name}
+          onError={(e) => {
+            const img = e.currentTarget;
+            img.onerror = null;
+            img.src = `https://placehold.co/400x300/1a1a12/c1c8bc?text=${encodeURIComponent(product.category)}`;
+          }}
+        />
         {product.badge ? <span className="product-badge">{product.badge}</span> : null}
       </div>
 

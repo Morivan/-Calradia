@@ -454,9 +454,9 @@ PRODUCTS = [
             "образа городского жителя или наёмника. По заказу — травление или "
             "гравировка на клинке.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-baselard-dagger-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Baselard.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-baselard-dagger-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Baselard.jpg",
         ],
         "badge": "Новинка",
     },
@@ -490,9 +490,9 @@ PRODUCTS = [
             "фестивального образа XIII–XV вв. По заказу — тиснение или прошивка "
             "декоративным швом.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-belt-pouch-leather-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_purse.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-belt-pouch-leather-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_purse.jpg",
         ],
         "badge": "",
     },
@@ -526,9 +526,9 @@ PRODUCTS = [
             "поверх кольчуги. По заказу — гравировка накладок или нанесение "
             "геральдических символов.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-leather-belt-brass-fittings-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Knightly_girdle.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-leather-belt-brass-fittings-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Knightly_girdle.jpg",
         ],
         "badge": "",
     },
@@ -562,9 +562,9 @@ PRODUCTS = [
             "фестивального образа XV века, придворных и городских персонажей. "
             "Доступны натуральные и тонированные варианты кожи.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-poulaine-shoes-leather-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Poulaines.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-poulaine-shoes-leather-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Poulaines.jpg",
         ],
         "badge": "",
     },
@@ -598,9 +598,9 @@ PRODUCTS = [
             "Изготавливаются по меркам. Доступны варианты с гладким верхом "
             "или с декоративным тиснением.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-leather-boots-knee-high-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_shoes.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-leather-boots-knee-high-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_shoes.jpg",
         ],
         "badge": "",
     },
@@ -635,9 +635,9 @@ PRODUCTS = [
             "а также как самостоятельная защита класса «мягкий доспех». "
             "Изготавливается по меркам, доступны натуральные цвета ткани.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-gambeson-padded-arming-jacket-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gambeson.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-gambeson-padded-arming-jacket-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Gambeson.jpg",
         ],
         "badge": "Хит",
     },
@@ -672,9 +672,9 @@ PRODUCTS = [
             "паломника XIII–XIV вв. Носится самостоятельно или под сюрко. "
             "Доступна как в белом льне, так и в натуральных цветах.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-linen-tunic-cotte-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_tunic.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-linen-tunic-cotte-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Medieval_tunic.jpg",
         ],
         "badge": "",
     },
@@ -708,9 +708,9 @@ PRODUCTS = [
             "по эскизу заказчика. Подходит для рыцарских и дворянских образов "
             "XIII–XIV вв.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-wool-surcoat-heraldic-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Surcoat.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-wool-surcoat-heraldic-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Surcoat.jpg",
         ],
         "badge": "",
     },
@@ -745,9 +745,9 @@ PRODUCTS = [
             "паломника XIII–XIV вв. Возможна вышивка по индивидуальному эскизу "
             "или с геральдическими мотивами.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-embroidered-linen-shirt-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Birka_shirt.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-embroidered-linen-shirt-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Birka_shirt.jpg",
         ],
         "badge": "Новинка",
     },
@@ -783,9 +783,9 @@ PRODUCTS = [
             "и как сувенир. Безопасен для пищевого использования. "
             "По заказу — гравировка орнамента или монограммы.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-pewter-cup-goblet-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pewter.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-pewter-cup-goblet-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Pewter.jpg",
         ],
         "badge": "",
     },
@@ -820,9 +820,9 @@ PRODUCTS = [
             "Применима для воды или негазированных напитков на фестивалях. "
             "По заказу — тиснение орнамента или монограммы.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-leather-flask-water-bottle-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pilgrim_flask.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-leather-flask-water-bottle-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Pilgrim_flask.jpg",
         ],
         "badge": "",
     },
@@ -856,9 +856,9 @@ PRODUCTS = [
             "русской пехоты XIII в., а также для спортивной стрельбы. "
             "Комплектуется тетивой. По заказу — украшение рукояти.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-recurve-bow-archery-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Recurve_bow.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-recurve-bow-archery-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Recurve_bow.jpg",
         ],
         "badge": "",
     },
@@ -891,9 +891,9 @@ PRODUCTS = [
             "Комплектуется стременем для натяжения и 10 болтами. "
             "По заказу — воронение дуги и гравировка на ложе.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-crossbow-infantry-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Armbrust.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-crossbow-infantry-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Armbrust.jpg",
         ],
         "badge": "Новинка",
     },
@@ -927,9 +927,9 @@ PRODUCTS = [
             "спортивного метания топора и фестивального образа франкского воина. "
             "По заказу — гравировка или воронение.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-throwing-axe-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Francisca.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-throwing-axe-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Francisca.jpg",
         ],
         "badge": "",
     },
@@ -963,9 +963,9 @@ PRODUCTS = [
             "По заказу — воронение, золочение пёрьев или гравировка. "
             "Используется только как реквизит — не для контактного боя без защиты.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-flanged-mace-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Flanged_mace.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-flanged-mace-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Flanged_mace.jpg",
         ],
         "badge": "",
     },
@@ -998,9 +998,9 @@ PRODUCTS = [
             "Не сертифицирован для контактных боёв без дополнительной доработки. "
             "По заказу — ромбовидное сечение шипа или вариант с двуруким хватом.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-war-hammer-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/War_hammer.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-war-hammer-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/War_hammer.jpg",
         ],
         "badge": "",
     },
@@ -1033,9 +1033,9 @@ PRODUCTS = [
             "Используется исключительно как выставочный экспонат или реквизит — "
             "контактный бой с данным оружием опасен и не рекомендуется.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-flail-ball-chain-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Flail_(weapon).jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-flail-ball-chain-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Flail_(weapon).jpg",
         ],
         "badge": "",
     },
@@ -1070,9 +1070,9 @@ PRODUCTS = [
             "строевых выступлений и фестивалей. По заказу — воронение наконечника "
             "или дополнительный контр­шип на пяте древка.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-spear-pole-weapon-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Spear.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-spear-pole-weapon-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Spear.jpg",
         ],
         "badge": "",
     },
@@ -1106,9 +1106,9 @@ PRODUCTS = [
             "Тупой клинок без заточки — безопасен для выставок и фестивального реквизита. "
             "По заказу — гравировка или воронение клинка.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-estoc-sword-thrusting-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Estoc.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-estoc-sword-thrusting-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Estoc.jpg",
         ],
         "badge": "",
     },
@@ -1141,9 +1141,9 @@ PRODUCTS = [
             "Подходит для образа рыцаря или горожанина XIV–XV вв. "
             "По заказу — травление клинка или гравировка рондел.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-rondel-dagger-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rondel_dagger.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-rondel-dagger-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Rondel_dagger.jpg",
         ],
         "badge": "",
     },
@@ -1178,9 +1178,9 @@ PRODUCTS = [
             "Подходит для HEMA, реконструкции и турниров при наличии сертификации. "
             "По заказу — гравировка клинка, воронение или полировка.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-arming-sword-knight-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Arming_sword.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-arming-sword-knight-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Arming_sword.jpg",
         ],
         "badge": "Хит",
     },
@@ -1215,9 +1215,9 @@ PRODUCTS = [
             "Тупой вариант доступен для безопасного реквизита. "
             "По заказу — воронение, гравировка или историческая ножна из кожи.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-falchion-sword-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Falchion.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-falchion-sword-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Falchion.jpg",
         ],
         "badge": "",
     },
@@ -1251,9 +1251,9 @@ PRODUCTS = [
             "IX–XIII вв. Используется в боях HMB при наличии допуска. "
             "По заказу — воронение, инкрустация или геральдическая насечка.",
         ],
-        "image": "https://armstreet.com/catalogue/full/medieval-battle-axe-3.jpg",
+        "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_axe_P1160743.jpg",
         "gallery": [
-            "https://armstreet.com/catalogue/full/medieval-battle-axe-3.jpg",
+            "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_axe_P1160743.jpg",
         ],
         "badge": "",
     },

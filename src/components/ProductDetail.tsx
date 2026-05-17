@@ -30,7 +30,15 @@ export function ProductDetail({
       <div className="detail-layout">
         <div className="detail-gallery">
           <div className="detail-main-image">
-            <img src={activeImage} alt={product.name} />
+            <img
+              src={activeImage}
+              alt={product.name}
+              onError={(e) => {
+                const img = e.currentTarget;
+                img.onerror = null;
+                img.src = `https://placehold.co/600x450/1a1a12/c1c8bc?text=${encodeURIComponent(product.category)}`;
+              }}
+            />
             <div className="detail-overlay-tag">FIG. {Math.max(product.gallery.indexOf(activeImage) + 1, 1)}</div>
             <div className="detail-overlay-code">ARCHIVE REF: {String(product.id).toUpperCase()}</div>
           </div>
@@ -42,7 +50,15 @@ export function ProductDetail({
                 className={`detail-thumb ${activeImage === image ? 'detail-thumb-active' : ''}`}
                 onClick={() => setActiveImage(image)}
               >
-                <img src={image} alt={`${product.name} ${index + 1}`} />
+                <img
+                  src={image}
+                  alt={`${product.name} ${index + 1}`}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    img.onerror = null;
+                    img.src = `https://placehold.co/120x90/1a1a12/c1c8bc?text=${encodeURIComponent(String(index + 1))}`;
+                  }}
+                />
               </button>
             ))}
           </div>

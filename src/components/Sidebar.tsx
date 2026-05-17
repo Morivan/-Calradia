@@ -7,6 +7,11 @@ const icons: Record<string, React.ComponentType<{ size?: number }>> = {
   'Услуги мастерской': Hammer,
 };
 
+const sectionHref: Record<string, string> = {
+  'Каталог доспехов': '#catalog',
+  'Услуги мастерской': '#services',
+};
+
 export function Sidebar() {
   const [open, setOpen] = useState<string[]>(['Каталог доспехов']);
 
@@ -15,6 +20,7 @@ export function Sidebar() {
       {sidebarSections.map((section) => {
         const Icon = icons[section.title] ?? Swords;
         const expanded = open.includes(section.title);
+        const href = sectionHref[section.title] ?? '#catalog';
 
         return (
           <section className="sidebar-section" key={section.title}>
@@ -38,7 +44,7 @@ export function Sidebar() {
             {expanded ? (
               <div className="sidebar-links">
                 {section.links.map((link) => (
-                  <a href="#catalog" key={link}>
+                  <a href={href} key={link}>
                     {link}
                   </a>
                 ))}

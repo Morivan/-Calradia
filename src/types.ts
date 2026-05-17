@@ -1,7 +1,7 @@
 export type ProductStatus = 'В наличии' | 'Изготовим на заказ' | 'Снят с производства';
-export type Category = 'Шлемы' | 'Нагрудники' | 'Полные комплекты' | 'Аксессуары' | 'Щиты' | 'Рукавицы';
+export type Category = 'Шлемы' | 'Нагрудники' | 'Полные комплекты' | 'Аксессуары' | 'Щиты' | 'Рукавицы' | 'Обувь' | 'Одежда' | 'Предметы быта';
 export type Era = 'XIII век' | 'XIV век' | 'XV век' | 'XVI век';
-export type Material = 'Сталь' | 'Кожа' | 'Комбинированный' | 'Латунь и сталь';
+export type Material = 'Сталь' | 'Кожа' | 'Комбинированный' | 'Латунь и сталь' | 'Шерсть и лён' | 'Дерево';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 export type SortMode = 'default' | 'newest' | 'popular' | 'duration';
 export type ViewMode = 'catalog' | 'admin' | 'login';

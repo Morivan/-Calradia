@@ -2,11 +2,8 @@ import { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { apiFetch } from '../api';
 import { statusStyles } from '../data';
-import { NewsAdmin } from './NewsAdmin';
 import { ProductFormModal } from './ProductFormModal';
 import type { Product } from '../types';
-
-type AdminTab = 'catalog' | 'news';
 
 export function AdminModule({
   products,
@@ -15,7 +12,6 @@ export function AdminModule({
   products: Product[];
   onRefresh: () => void;
 }) {
-  const [tab, setTab] = useState<AdminTab>('catalog');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [formTarget, setFormTarget] = useState<Product | null | 'new'>(undefined as unknown as null);
   const formOpen = formTarget !== (undefined as unknown as null);
@@ -44,23 +40,15 @@ export function AdminModule({
       <div className="admin-hero">
         <div>
           <p className="eyebrow">Управление</p>
-          <h1>{tab === 'catalog' ? 'Каталог товаров' : 'Новости клуба'}</h1>
+          <h1>Каталог товаров</h1>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button className={`nav-button ${tab === 'catalog' ? 'nav-button-active' : ''}`} onClick={() => setTab('catalog')}>Каталог</button>
-          <button className={`nav-button ${tab === 'news' ? 'nav-button-active' : ''}`} onClick={() => setTab('news')}>Новости</button>
-          {tab === 'catalog' && (
-            <button className="cta-button" onClick={() => setFormTarget('new')}>
-              <Plus size={16} />
-              Добавить товар
-            </button>
-          )}
-        </div>
+        <button className="cta-button" onClick={() => setFormTarget('new')}>
+          <Plus size={16} />
+          Добавить товар
+        </button>
       </div>
 
-      {tab === 'news' ? <NewsAdmin /> : null}
-
-      {tab === 'catalog' && <div className="secondary-card" style={{ padding: '0' }}>
+      <div className="secondary-card" style={{ padding: '0' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
@@ -103,7 +91,7 @@ export function AdminModule({
             ))}
           </tbody>
         </table>
-      </div>}
+      </div>
     </section>
   );
 }

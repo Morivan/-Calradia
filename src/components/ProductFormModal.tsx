@@ -165,7 +165,6 @@ export function ProductFormModal({
           {field('Цена от (₽)', 'priceFrom', 'number')}
           {field('Срок изготовления', 'leadTime')}
           {field('Вес', 'weight')}
-          {field('Значок (Новинка / Полевые испытания)', 'badge')}
 
           <label className="product-form-field contact-form-wide">
             <span>Историческая справка</span>

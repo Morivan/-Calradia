@@ -25,6 +25,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 17px;
 }
 
 body {
@@ -384,8 +385,8 @@ h1 {
 
 .catalog-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 270px;
-  gap: 24px;
+  grid-template-columns: 220px minmax(0, 1fr) 250px;
+  gap: 16px;
   margin-top: 28px;
   align-items: start;
 }
@@ -540,8 +541,8 @@ h1 {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .product-card {

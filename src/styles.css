@@ -642,7 +642,11 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
+}
+
+.product-meta strong {
+  white-space: nowrap;
 }
 
 .product-highlights {
@@ -662,9 +666,10 @@ h1 {
 .status {
   display: inline-flex;
   align-items: center;
-  padding: 7px 10px;
+  padding: 5px 8px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .status-ready {

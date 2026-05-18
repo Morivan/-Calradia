@@ -385,13 +385,13 @@ h1 {
 
 .catalog-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  grid-template-columns: 300px minmax(0, 1fr) 640px;
   gap: 14px;
   margin-top: 28px;
   align-items: start;
   /* Extend sidebars into viewport margins beyond the shell container */
-  width: calc(100% + min(400px, calc(100vw - 100% - 32px)));
-  margin-left: calc(-1 * min(200px, calc((100vw - 100% - 32px) / 2)));
+  width: calc(100% + min(480px, calc(100vw - 100% - 32px)));
+  margin-left: calc(-1 * min(160px, calc((100vw - 100% - 32px) / 2)));
 }
 
 .catalog-side-stack {
@@ -1392,9 +1392,11 @@ h1 {
   top: 100px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 20px;
+  gap: 18px;
+  padding: 28px;
   overflow: hidden;
+  font-size: 1.05rem;
+  min-height: 600px;
 }
 
 .news-panel-head {
@@ -1406,12 +1408,12 @@ h1 {
 
 .news-panel-head h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
 .news-panel-head a {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   color: #d1b68c;
   white-space: nowrap;
 }

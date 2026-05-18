@@ -299,10 +299,10 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
-  padding: 44px clamp(22px, 4vw, 48px);
+  gap: 20px;
+  padding: 18px clamp(16px, 3vw, 32px);
   border: 1px solid rgba(117, 133, 108, 0.28);
-  border-radius: 28px;
+  border-radius: 20px;
   background: linear-gradient(135deg, rgba(18, 18, 18, 0.94), rgba(36, 45, 31, 0.92));
   box-shadow: var(--shadow);
 }
@@ -313,9 +313,9 @@ textarea {
 
 .hero-emblem {
   flex-shrink: 0;
-  width: clamp(140px, 16vw, 220px);
+  width: clamp(80px, 10vw, 130px);
   height: auto;
-  border-radius: 18px;
+  border-radius: 12px;
   mix-blend-mode: screen;
   opacity: 0.92;
 }
@@ -340,12 +340,12 @@ textarea {
 }
 
 h1 {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   max-width: 780px;
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  line-height: 1.08;
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
+  line-height: 1.15;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
 .hero-copy {
@@ -545,7 +545,7 @@ h1 {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 12px;
 }
 
 .product-card {
@@ -565,7 +565,7 @@ h1 {
 
 .product-image-wrap {
   position: relative;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 2;
   overflow: hidden;
   background: #232323;
 }
@@ -596,8 +596,8 @@ h1 {
 
 .product-body {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 8px;
+  padding: 12px;
 }
 
 .product-headline h3 {
@@ -1395,8 +1395,14 @@ h1 {
   gap: 18px;
   padding: 28px;
   overflow: hidden;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   min-height: 920px;
+}
+
+#vk_group_feed iframe {
+  transform: scale(1.25);
+  transform-origin: top left;
+  width: 80% !important;
 }
 
 .news-panel-head {

@@ -41,27 +41,10 @@ export function ProductCard({
           <p>{product.subtitle}</p>
         </div>
 
-        <div className="product-highlights">
-          <span>{product.category}</span>
-          <span>{product.material}</span>
-          <span>Размеры: {product.sizes.join(', ')}</span>
-        </div>
-
         <div className="product-meta">
           <span className={statusStyles[product.status]}>{product.status}</span>
           <strong>от {product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
         </div>
-
-        <dl className="product-specs">
-          <div>
-            <dt>Материал</dt>
-            <dd>{product.material}</dd>
-          </div>
-          <div>
-            <dt>Срок</dt>
-            <dd>{product.leadTime}</dd>
-          </div>
-        </dl>
 
         <button
           className="cta-button"

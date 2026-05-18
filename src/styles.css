@@ -348,6 +348,12 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+.hero h1 {
+  font-size: clamp(1rem, 1.9vw, 1.45rem);
+  white-space: nowrap;
+  max-width: none;
+}
+
 .hero-copy {
   margin: 0;
   max-width: 760px;
@@ -545,7 +551,7 @@ h1 {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .product-card {
@@ -596,8 +602,8 @@ h1 {
 
 .product-body {
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 14px 16px;
 }
 
 .product-headline h3 {
@@ -1399,11 +1405,6 @@ h1 {
   min-height: 920px;
 }
 
-#vk_group_feed iframe {
-  transform: scale(1.25);
-  transform-origin: top left;
-  width: 80% !important;
-}
 
 .news-panel-head {
   display: flex;

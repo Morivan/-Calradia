@@ -118,10 +118,10 @@ textarea {
 }
 
 .topbar-emblem {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 8px;
   mix-blend-mode: screen;
   opacity: 0.9;
 }
@@ -410,7 +410,7 @@ h1 {
 
 .catalog-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 640px;
+  grid-template-columns: 300px minmax(0, 1fr) 360px;
   gap: 14px;
   margin-top: 16px;
   align-items: start;

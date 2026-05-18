@@ -385,13 +385,13 @@ h1 {
 
 .catalog-layout {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 260px;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
   gap: 14px;
   margin-top: 28px;
   align-items: start;
   /* Extend sidebars into viewport margins beyond the shell container */
-  width: calc(100% + min(200px, calc(100vw - 100% - 32px)));
-  margin-left: calc(-1 * min(100px, calc((100vw - 100% - 32px) / 2)));
+  width: calc(100% + min(400px, calc(100vw - 100% - 32px)));
+  margin-left: calc(-1 * min(200px, calc((100vw - 100% - 32px) / 2)));
 }
 
 .catalog-side-stack {

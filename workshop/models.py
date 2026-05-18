@@ -153,3 +153,15 @@ class Colleague(TimestampedModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class VKPost(models.Model):
+    post_id = models.BigIntegerField(unique=True)
+    owner_id = models.BigIntegerField()
+    text = models.TextField(blank=True)
+    photo_url = models.URLField(blank=True)
+    posted_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-posted_at']

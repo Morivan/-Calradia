@@ -5,13 +5,14 @@ import logging
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views import View
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review
+from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, repost_to_channel, store_update
 from .services.vk import parse_post
@@ -456,6 +457,32 @@ class VkCallbackView(APIView):
                 return HttpResponse("ok", content_type="text/plain")
             cache.set(post_key, True, timeout=86400)  # 24 hours
 
+            # Save to DB
+            try:
+                import datetime
+                from django.utils.timezone import make_aware
+                photo_url = ''
+                attachments = post.get('attachments', [])
+                for att in attachments:
+                    if att.get('type') == 'photo':
+                        sizes = att['photo'].get('sizes', [])
+                        if sizes:
+                            best = max(sizes, key=lambda s: s.get('width', 0))
+                            photo_url = best.get('url', '')
+                        break
+                posted_at = make_aware(datetime.datetime.fromtimestamp(post.get('date', 0)))
+                VKPost.objects.get_or_create(
+                    post_id=post.get('id'),
+                    defaults={
+                        'owner_id': post.get('owner_id', 0),
+                        'text': post.get('text', '')[:2000],
+                        'photo_url': photo_url,
+                        'posted_at': posted_at,
+                    }
+                )
+            except Exception:
+                pass
+
             channel_id = settings.TELEGRAM_CHANNEL_ID
             if not channel_id:
                 return HttpResponse("ok", content_type="text/plain")
@@ -474,3 +501,18 @@ class VkCallbackView(APIView):
 
         # VK expects plain "ok" for all handled events
         return HttpResponse("ok", content_type="text/plain")
+
+
+class VKPostsView(View):
+    def get(self, request):
+        posts = VKPost.objects.all()[:10]
+        data = [
+            {
+                'id': p.post_id,
+                'text': p.text,
+                'photo_url': p.photo_url,
+                'posted_at': p.posted_at.isoformat(),
+            }
+            for p in posts
+        ]
+        return JsonResponse({'posts': data})

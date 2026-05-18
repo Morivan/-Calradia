@@ -276,7 +276,7 @@ class ClientWithOrderWebhookView(APIView):
             if product:
                 deadline_raw = request.data.get("deadline", "").strip()
                 deadline = None
-                for fmt in ("%d.%m.%Y", "%Y-%m-%d"):
+                for fmt in ("%d.%m.%Y", "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"):
                     try:
                         deadline = datetime.strptime(deadline_raw, fmt).date()
                         break

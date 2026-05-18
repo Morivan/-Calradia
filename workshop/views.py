@@ -449,6 +449,13 @@ class VkCallbackView(APIView):
             if post.get("post_type") == "postpone":
                 return HttpResponse("ok", content_type="text/plain")
 
+            # Deduplicate by post ID using Django cache
+            from django.core.cache import cache
+            post_key = f"vk_post_{post.get('owner_id')}_{post.get('id')}"
+            if cache.get(post_key):
+                return HttpResponse("ok", content_type="text/plain")
+            cache.set(post_key, True, timeout=86400)  # 24 hours
+
             channel_id = settings.TELEGRAM_CHANNEL_ID
             if not channel_id:
                 return HttpResponse("ok", content_type="text/plain")

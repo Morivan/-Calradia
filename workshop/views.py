@@ -22,6 +22,7 @@ class _AnyFormParser(BaseParser):
     def parse(self, stream, media_type=None, parser_context=None):
         encoding = (parser_context or {}).get('encoding', 'utf-8')
         raw = stream.read()
+        logger.warning("_AnyFormParser raw bytes repr: %r", raw[:2000])
         if isinstance(raw, bytes):
             raw = raw.decode(encoding)
         return QueryDict(raw, encoding=encoding)

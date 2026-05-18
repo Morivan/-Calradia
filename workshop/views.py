@@ -504,7 +504,17 @@ class VkCallbackView(APIView):
 
 
 class VKPostsView(View):
+    VK_RSS = "https://vk.com/rss/wall-238824374.rss"
+
     def get(self, request):
+        # Try RSS feed first (no token needed)
+        try:
+            data = self._fetch_rss()
+            if data:
+                return JsonResponse({'posts': data})
+        except Exception:
+            pass
+        # Fallback: DB (posts captured via callback)
         posts = VKPost.objects.all()[:10]
         data = [
             {
@@ -516,3 +526,41 @@ class VKPostsView(View):
             for p in posts
         ]
         return JsonResponse({'posts': data})
+
+    def _fetch_rss(self):
+        import xml.etree.ElementTree as ET
+        import requests as _req
+        resp = _req.get(self.VK_RSS, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        root = ET.fromstring(resp.content)
+        ns = {'media': 'http://search.yahoo.com/mrss/'}
+        items = root.findall('.//item')
+        posts = []
+        for i, item in enumerate(items[:10]):
+            title = (item.findtext('title') or '').strip()
+            description = (item.findtext('description') or '').strip()
+            text = description if description else title
+            # strip HTML tags simply
+            import re
+            text = re.sub(r'<[^>]+>', '', text).strip()
+            pub_date = item.findtext('pubDate') or ''
+            photo_url = ''
+            enc = item.find('enclosure')
+            if enc is not None:
+                photo_url = enc.get('url', '')
+            thumb = item.find('media:thumbnail', ns)
+            if not photo_url and thumb is not None:
+                photo_url = thumb.get('url', '')
+            link = item.findtext('link') or ''
+            post_id = i
+            try:
+                post_id = int(link.rstrip('/').split('_')[-1])
+            except (ValueError, IndexError):
+                pass
+            posts.append({
+                'id': post_id,
+                'text': text[:500],
+                'photo_url': photo_url,
+                'posted_at': pub_date,
+            })
+        return posts

@@ -9,9 +9,22 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from django.http import QueryDict
+from rest_framework.parsers import BaseParser, FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+
+class _AnyFormParser(BaseParser):
+    """Accept any Content-Type and parse body as URL-encoded form data."""
+    media_type = '*/*'
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        encoding = (parser_context or {}).get('encoding', 'utf-8')
+        raw = stream.read()
+        if isinstance(raw, bytes):
+            raw = raw.decode(encoding)
+        return QueryDict(raw, encoding=encoding)
 
 from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
@@ -253,7 +266,7 @@ class ClientWebhookView(APIView):
 class ClientWithOrderWebhookView(APIView):
     authentication_classes = []
     permission_classes = []
-    parser_classes = [JSONParser, FormParser, MultiPartParser]
+    parser_classes = [JSONParser, FormParser, MultiPartParser, _AnyFormParser]
 
     def post(self, request):
         if not _check_webhook_token(request):

@@ -46,16 +46,6 @@ export function ProductCard({
           <strong>от {product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
         </div>
 
-        <button
-          className="cta-button"
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpen(product);
-          }}
-        >
-          Подробнее
-        </button>
       </div>
     </article>
   );

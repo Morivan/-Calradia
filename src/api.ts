@@ -11,7 +11,7 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
   if (method !== 'GET' && method !== 'HEAD') {
     headers['X-CSRFToken'] = getCsrfToken();
   }
-  return fetch(url, { ...options, headers });
+  return fetch(url, { ...options, headers, credentials: 'include' });
 }
 
 export const defaultLinks: ExternalLinks = {

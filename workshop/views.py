@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -252,6 +253,7 @@ class ClientWebhookView(APIView):
 class ClientWithOrderWebhookView(APIView):
     authentication_classes = []
     permission_classes = []
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def post(self, request):
         if not _check_webhook_token(request):

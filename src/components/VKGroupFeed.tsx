@@ -14,7 +14,7 @@ const VK_SCREEN_NAME = 'calradia_band';
 // Числовой ID группы ВКонтакте — узнать: перейди на vk.com/calradia_band,
 // открой исходный код страницы и найди "group_id" или "owner_id".
 // Вставь число ниже (без минуса) и раскомментируй строки в useEffect.
-const VK_GROUP_ID: number | null = null;
+const VK_GROUP_ID: number | null = 238824374;
 const VK_APP_ID = 0; // замени на ID своего VK-приложения из vk.com/apps?act=manage
 
 import { useEffect, useRef } from 'react';

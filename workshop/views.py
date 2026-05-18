@@ -274,8 +274,8 @@ class ClientWithOrderWebhookView(APIView):
 
         from datetime import datetime
 
-        logger.info("Webhook data keys: %s", list(request.data.keys()))
-        logger.info("Webhook data: %s", dict(request.data))
+        logger.warning("Webhook data keys: %s", list(request.data.keys()))
+        logger.warning("Webhook data: %s", dict(request.data))
 
         with transaction.atomic():
             client_id = request.data.get("client_id")

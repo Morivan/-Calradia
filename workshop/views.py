@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -429,7 +430,7 @@ class VkCallbackView(APIView):
             token = settings.VK_CONFIRMATION_TOKEN
             if not token:
                 return Response({"detail": "VK_CONFIRMATION_TOKEN не настроен."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response(token, content_type="text/plain")
+            return HttpResponse(token, content_type="text/plain")
 
         # Verify secret key
         if settings.VK_CALLBACK_SECRET and data.get("secret") != settings.VK_CALLBACK_SECRET:

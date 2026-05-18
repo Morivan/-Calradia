@@ -30,7 +30,7 @@ export function VKGroupFeed() {
       window.VK?.Widgets.Group('vk_group_feed', {
         mode: 4,
         width: 'auto',
-        height: '500',
+        height: '900',
         color1: '12120c',
         color2: 'c1c8bc',
         color3: 'd1b68c',

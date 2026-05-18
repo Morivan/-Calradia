@@ -411,12 +411,9 @@ h1 {
 .catalog-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 360px;
-  gap: 14px;
+  gap: 16px;
   margin-top: 16px;
   align-items: start;
-  /* Extend sidebars to viewport edges (leave ~20px breathing room on each side) */
-  width: calc(100% + min(calc(100vw - 100% - 40px), 100vw - 40px));
-  margin-left: calc(-1 * min(calc((100vw - 100% - 40px) / 2), calc((100vw - 40px) / 2)));
 }
 
 .catalog-side-stack {
@@ -569,8 +566,9 @@ h1 {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  /* auto-fill: zoom in → fewer cols, zoom out → more cols (min 220px per card) */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
 }
 
 .product-card {
@@ -590,7 +588,7 @@ h1 {
 
 .product-image-wrap {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: #232323;
 }
@@ -1135,9 +1133,6 @@ h1 {
     position: static;
   }
 
-  .product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -1485,11 +1480,17 @@ h1 {
 /* Hide news panel below 1180px */
 @media (max-width: 1180px) {
   .catalog-layout {
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: 200px minmax(0, 1fr);
   }
 
   .news-panel {
     display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .catalog-layout {
+    grid-template-columns: 1fr;
   }
 }
 

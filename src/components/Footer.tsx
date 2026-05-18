@@ -10,12 +10,6 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <h4>Каталог</h4>
-          <a href="#catalog">Полные комплекты</a>
-          <a href="#catalog">Шлемы и защита головы</a>
-          <a href="#catalog">Щиты и аксессуары</a>
-        </div>
-        <div>
           <h4>Контакты</h4>
           <p>Telegram: @kalradia_forge</p>
           <p>Email: master@kalradia.ru</p>

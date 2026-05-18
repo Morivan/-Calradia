@@ -53,6 +53,7 @@ export function Header({
             ) : null}
           </div>
           <div className="topnav-secondary">
+            <a href="#services">Услуги мастерской</a>
             <a href="#contacts">Контакты</a>
           </div>
         </nav>

@@ -180,6 +180,10 @@ if (payload.links) {
             <section className="catalog-layout" id="catalog collections">
               <div className="catalog-side-column">
                 <div className="desktop-only catalog-side-stack">
+                  <div className="catalog-side-meta">
+                    <p className="catalog-count">Изделий: {filteredProducts.length}</p>
+                    <SortControl sort={sort} onChange={setSort} />
+                  </div>
                   <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
                 </div>
 
@@ -192,11 +196,6 @@ if (payload.links) {
               </div>
 
               <section className="catalog-column">
-                <div className="catalog-toolbar">
-                  <p>Показано изделий: {filteredProducts.length}</p>
-                  <SortControl sort={sort} onChange={setSort} />
-                </div>
-
                 <div className="product-grid">
                   {filteredProducts.map((product) => (
                     <ProductCard key={product.id} product={product} onOpen={openProduct} />

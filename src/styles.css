@@ -418,7 +418,19 @@ h1 {
 
 .catalog-side-stack {
   display: grid;
-  gap: 18px;
+  gap: 14px;
+}
+
+.catalog-side-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.catalog-count {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .secondary-card,

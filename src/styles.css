@@ -439,6 +439,9 @@ h1 {
 .filters {
   position: sticky;
   top: 104px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .sidebar-section + .sidebar-section,
@@ -486,7 +489,7 @@ h1 {
 .mobile-panel-head h3,
 .contact-header h3 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.1rem;
 }
 
 .text-link {

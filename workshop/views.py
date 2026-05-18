@@ -295,6 +295,24 @@ class ClientWithOrderWebhookView(APIView):
                 )
                 result["order_id"] = order.id
 
+        # Append to Clients table
+        clients_path = getattr(settings, "YANDEX_CLIENTS_TABLE_PATH", "")
+        if clients_path:
+            try:
+                from django.utils import timezone as tz
+                append_row(clients_path, [
+                    result["client_id"],
+                    client.name,
+                    client.vk_url,
+                    client.status,
+                    client.notes,
+                    tz.localtime().strftime("%d.%m.%Y"),
+                ])
+            except YandexDiskError:
+                pass
+            except Exception as exc:
+                logger.error("Yandex Disk clients append error: %s", exc, exc_info=True)
+
         # Append new order row to Yandex Disk spreadsheet if configured
         orders_path = getattr(settings, "YANDEX_ORDERS_TABLE_PATH", "")
         if orders_path and result.get("order_id"):

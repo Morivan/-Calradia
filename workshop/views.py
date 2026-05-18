@@ -434,7 +434,7 @@ class VkCallbackView(APIView):
 
         # Verify secret key
         if settings.VK_CALLBACK_SECRET and data.get("secret") != settings.VK_CALLBACK_SECRET:
-            return Response({"detail": "Неверный секретный ключ."}, status=status.HTTP_403_FORBIDDEN)
+            return HttpResponse("forbidden", content_type="text/plain", status=403)
 
         event_type = data.get("type")
 
@@ -443,20 +443,20 @@ class VkCallbackView(APIView):
 
             # Skip reposts (copy_history present means it's a repost, not original)
             if post.get("copy_history"):
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             # Skip postponed posts that aren't published yet
             if post.get("post_type") == "postpone":
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             channel_id = settings.TELEGRAM_CHANNEL_ID
             if not channel_id:
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             text, photos = parse_post(post)
 
             if not text and not photos:
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             try:
                 repost_to_channel(channel_id, text, photos)
@@ -466,4 +466,4 @@ class VkCallbackView(APIView):
                 logger.error("VK→TG repost error: %s", exc, exc_info=True)
 
         # VK expects plain "ok" for all handled events
-        return Response("ok")
+        return HttpResponse("ok", content_type="text/plain")

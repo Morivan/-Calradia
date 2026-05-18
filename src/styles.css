@@ -410,7 +410,7 @@ h1 {
 
 .catalog-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 360px;
+  grid-template-columns: 220px minmax(0, 1fr) 360px;
   gap: 14px;
   margin-top: 16px;
   align-items: start;

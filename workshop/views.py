@@ -564,3 +564,27 @@ class VKPostsView(View):
                 'posted_at': pub_date,
             })
         return posts
+
+
+class NewsPostCreateView(View):
+    def post(self, request):
+        if not request.user.is_staff:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        import json
+        body = json.loads(request.body)
+        post = VKPost.objects.create(
+            post_id=int(timezone.now().timestamp()),
+            owner_id=0,
+            text=body.get('text', '')[:2000],
+            photo_url=body.get('photo_url', ''),
+            posted_at=timezone.now(),
+        )
+        return JsonResponse({'id': post.post_id, 'text': post.text, 'photo_url': post.photo_url, 'posted_at': post.posted_at.isoformat()}, status=201)
+
+
+class NewsPostDeleteView(View):
+    def delete(self, request, post_id):
+        if not request.user.is_staff:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        VKPost.objects.filter(post_id=post_id).delete()
+        return JsonResponse({'ok': True})

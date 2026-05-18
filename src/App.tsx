@@ -9,7 +9,6 @@ import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
-import { Sidebar } from './components/Sidebar';
 import { SortControl } from './components/SortControl';
 import { VKGroupFeed } from './components/VKGroupFeed';
 import { WorkshopServices } from './components/WorkshopServices';
@@ -181,7 +180,6 @@ if (payload.links) {
             <section className="catalog-layout" id="catalog collections">
               <div className="catalog-side-column">
                 <div className="desktop-only catalog-side-stack">
-                  <Sidebar />
                   <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
                 </div>
 

@@ -70,7 +70,7 @@ textarea {
 }
 
 .shell {
-  width: min(1440px, calc(100% - 32px));
+  width: min(1440px, calc(100% - 80px));
   margin: 0 auto;
 }
 
@@ -111,10 +111,19 @@ textarea {
 .brand-button {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   padding: 0;
   color: var(--text-main);
   background: transparent;
+}
+
+.topbar-emblem {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 6px;
+  mix-blend-mode: screen;
+  opacity: 0.9;
 }
 
 .brand strong {
@@ -1410,7 +1419,6 @@ h1 {
   flex-direction: column;
   gap: 18px;
   padding: 28px;
-  overflow: hidden;
   font-size: 1.15rem;
 }
 

@@ -237,6 +237,13 @@ class ClientWebhookView(APIView):
             status=request.data.get("status", Client.Status.POTENTIAL),
             notes=request.data.get("notes", "").strip(),
         )
+        path = getattr(settings, "YANDEX_CLIENTS_TABLE_PATH", "")
+        if path:
+            try:
+                from django.utils import timezone as tz
+                append_row(path, [client.id, client.name, client.vk_url, client.status, client.notes, tz.localtime().strftime("%d.%m.%Y")])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": client.id}, status=status.HTTP_201_CREATED)
 
 
@@ -366,6 +373,16 @@ class MaterialWebhookView(APIView):
             supplier=request.data.get("supplier", "").strip(),
             notes=request.data.get("notes", "").strip(),
         )
+        path = getattr(settings, "YANDEX_MATERIALS_TABLE_PATH", "")
+        if path:
+            try:
+                append_row(path, [
+                    material.id, material.name, material.type, material.direction,
+                    material.unit, float(material.price) if material.price else "",
+                    float(material.stock), float(material.min_stock), material.supplier, material.notes,
+                ])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": material.id}, status=status.HTTP_201_CREATED)
 
 
@@ -382,6 +399,12 @@ class ColleagueWebhookView(APIView):
             specialization=request.data.get("specialization", "").strip(),
             contact=request.data.get("contact", "").strip(),
         )
+        path = getattr(settings, "YANDEX_COLLEAGUES_TABLE_PATH", "")
+        if path:
+            try:
+                append_row(path, [colleague.id, colleague.name, colleague.direction, colleague.specialization, colleague.contact])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": colleague.id}, status=status.HTTP_201_CREATED)
 
 

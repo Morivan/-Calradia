@@ -182,8 +182,10 @@ VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
 WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN", "")
 
 YANDEX_DISK_TOKEN = os.getenv("YANDEX_DISK_TOKEN", "")
-# Путь к файлу заказов на Яндекс Диске, например: /Калрадия/2_Заказы.xlsx
 YANDEX_ORDERS_TABLE_PATH = os.getenv("YANDEX_ORDERS_TABLE_PATH", "")
+YANDEX_CLIENTS_TABLE_PATH = os.getenv("YANDEX_CLIENTS_TABLE_PATH", "")
+YANDEX_MATERIALS_TABLE_PATH = os.getenv("YANDEX_MATERIALS_TABLE_PATH", "")
+YANDEX_COLLEAGUES_TABLE_PATH = os.getenv("YANDEX_COLLEAGUES_TABLE_PATH", "")
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 

@@ -52,7 +52,7 @@ class Command(BaseCommand):
             [c.id, c.name, c.vk_url, c.status, c.notes, c.created_at.strftime("%d.%m.%Y")]
             for c in Client.objects.order_by("-created_at")
         ]
-        self._write(out_dir / "1_Клиенты.xlsx", headers, rows)
+        self._write(out_dir / "Клиенты.xlsx", headers, rows)
 
     def _export_orders(self, out_dir: Path) -> None:
         headers = ["ID", "ID клиента", "Имя клиента", "Изделие", "Конфигурация",
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             ]
             for o in Order.objects.select_related("client", "product").order_by("-created_at")
         ]
-        self._write(out_dir / "2_Заказы.xlsx", headers, rows)
+        self._write(out_dir / "Заказы.xlsx", headers, rows)
 
     def _export_materials(self, out_dir: Path) -> None:
         headers = ["ID", "Название", "Тип", "Направление", "Единица", "Цена",
@@ -83,7 +83,7 @@ class Command(BaseCommand):
              float(m.price) if m.price else "", float(m.stock), float(m.min_stock), m.supplier, m.notes]
             for m in Material.objects.order_by("direction", "name")
         ]
-        self._write(out_dir / "3_Материалы.xlsx", headers, rows)
+        self._write(out_dir / "Материалы.xlsx", headers, rows)
 
     def _export_colleagues(self, out_dir: Path) -> None:
         headers = ["ID", "Имя", "Направление", "Специализация", "Контакт"]
@@ -91,7 +91,7 @@ class Command(BaseCommand):
             [c.id, c.name, c.direction, c.specialization, c.contact]
             for c in Colleague.objects.order_by("direction", "name")
         ]
-        self._write(out_dir / "6_Коллеги.xlsx", headers, rows)
+        self._write(out_dir / "Коллеги.xlsx", headers, rows)
 
     def _export_products(self, out_dir: Path) -> None:
         headers = ["ID", "Название", "Статус", "Категория", "Эпоха", "Материал",
@@ -101,4 +101,4 @@ class Command(BaseCommand):
              p.price_from, p.lead_time, p.weight, p.updated_at.strftime("%d.%m.%Y")]
             for p in Product.objects.order_by("name")
         ]
-        self._write(out_dir / "7_Каталог.xlsx", headers, rows)
+        self._write(out_dir / "Каталог.xlsx", headers, rows)

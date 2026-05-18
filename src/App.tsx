@@ -178,15 +178,7 @@ if (payload.links) {
           />
         ) : (
           <>
-            <section className="hero" id="catalog">
-              <div className="hero-content">
-                <p className="eyebrow">Средневековая мастерская полного цикла</p>
-                <h1>Каталог доспехов и реконструкторского снаряжения</h1>
-              </div>
-              <img className="hero-emblem" src="/club-emblem.png" alt="Эмблема клуба" />
-            </section>
-
-            <section className="catalog-layout" id="collections">
+            <section className="catalog-layout" id="catalog collections">
               <div className="catalog-side-column">
                 <div className="desktop-only catalog-side-stack">
                   <Sidebar />

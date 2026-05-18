@@ -94,7 +94,17 @@ textarea {
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
+}
+
+.topbar-catalog-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border-left: 1px solid rgba(117, 133, 108, 0.4);
+  padding-left: 18px;
 }
 
 .brand,
@@ -393,7 +403,7 @@ h1 {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr) 640px;
   gap: 14px;
-  margin-top: 28px;
+  margin-top: 16px;
   align-items: start;
   /* Extend sidebars to viewport edges (leave ~20px breathing room on each side) */
   width: calc(100% + min(calc(100vw - 100% - 40px), 100vw - 40px));
@@ -1402,7 +1412,6 @@ h1 {
   padding: 28px;
   overflow: hidden;
   font-size: 1.15rem;
-  min-height: 920px;
 }
 
 

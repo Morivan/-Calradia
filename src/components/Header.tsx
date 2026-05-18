@@ -35,6 +35,9 @@ export function Header({
               <small>Кальрадия</small>
             </span>
           </button>
+          {currentView === 'catalog' && !detailOpen ? (
+            <span className="topbar-catalog-title">Каталог доспехов и реконструкторского снаряжения</span>
+          ) : null}
         </div>
 
         <nav className="topnav">

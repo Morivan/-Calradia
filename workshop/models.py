@@ -99,6 +99,10 @@ class Order(TimestampedModel):
     total = models.PositiveIntegerField(default=0)
     advance = models.PositiveIntegerField(default=0)
     notes = models.TextField(blank=True)
+    assigned_to = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="assigned_orders", verbose_name="Ответственный",
+    )
 
     class Meta:
         ordering = ["-created_at"]

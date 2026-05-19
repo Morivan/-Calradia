@@ -1,9 +1,11 @@
 from collections import defaultdict
 from uuid import uuid4
+import json
 import logging
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import get_token as _get_csrf_token
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.views import View
@@ -208,6 +210,7 @@ class AuthView(APIView):
         if not user:
             return Response({"detail": "Неверный логин или пароль."}, status=status.HTTP_401_UNAUTHORIZED)
         login(request, user)
+        _get_csrf_token(request._request)  # ensure csrftoken cookie is set in response
         return Response({
             "id": user.id,
             "username": user.username,
@@ -239,6 +242,51 @@ def _check_webhook_token(request) -> bool:
     if not expected:
         return True
     return request.query_params.get("token") == expected
+
+
+# Yandex Forms slug → model field mapping.
+# Add new slugs here after adding questions to the form.
+_YANDEX_SLUG_MAP = {
+    "answer_short_text_9008978398981572": "name",
+    "answer_short_text_9008978399032620": "vk_url",
+    "answer_short_text_9008978399164668": "notes",
+    "answer_date_9008978399209504": "deadline",
+    "answer_integer_9008978399247136": "total",
+    "answer_integer_9008978399259784": "advance",
+    "answer_short_text_9008978399271892": "order_notes",
+}
+
+
+def _parse_yandex_forms(raw: bytes) -> dict:
+    """
+    Yandex Forms sends each question as a JSON context object embedded in the
+    request body. Each object has shape:
+      {"id":..., "answer": {"data": {"<slug>": {"value": <answer>, ...}}}}
+    We scan the raw body for all such objects and extract slug→value pairs.
+    """
+    try:
+        text = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+    except Exception:
+        return {}
+
+    result = {}
+    decoder = json.JSONDecoder()
+    pos = 0
+    while pos < len(text):
+        idx = text.find("{", pos)
+        if idx == -1:
+            break
+        try:
+            obj, end = decoder.raw_decode(text, idx)
+            if isinstance(obj, dict):
+                data = obj.get("answer", {}).get("data", {})
+                for slug, answer_data in (data or {}).items():
+                    if slug in _YANDEX_SLUG_MAP and isinstance(answer_data, dict) and "value" in answer_data:
+                        result[_YANDEX_SLUG_MAP[slug]] = answer_data["value"]
+            pos = end
+        except (json.JSONDecodeError, ValueError):
+            pos = idx + 1
+    return result
 
 
 class ClientWebhookView(APIView):
@@ -275,25 +323,36 @@ class ClientWithOrderWebhookView(APIView):
 
         from datetime import datetime
 
-        logger.warning("Webhook data keys: %s", list(request.data.keys()))
-        logger.warning("Webhook data: %s", dict(request.data))
+        # Parse Yandex Forms data from raw body (each question is a JSON context object)
+        raw_body = getattr(request._request, "body", b"")
+        yf_data = _parse_yandex_forms(raw_body)
+        if yf_data:
+            logger.info("Yandex Forms parsed: %s", yf_data)
+            data = yf_data
+        else:
+            # Fall back to standard DRF-parsed request.data (JSON / simple form)
+            data = request.data
+
+        def _get(key, default=""):
+            v = data.get(key, default)
+            return str(v).strip() if isinstance(v, str) else (v if v is not None else default)
 
         with transaction.atomic():
-            client_id = request.data.get("client_id")
+            client_id = _get("client_id") or None
             client = Client.objects.filter(pk=client_id).first() if client_id else None
             if not client:
                 client = Client.objects.create(
-                    name=request.data.get("name", "").strip(),
-                    vk_url=request.data.get("vk_url", "").strip(),
-                    status=request.data.get("client_status", Client.Status.ACTIVE),
-                    notes=request.data.get("notes", "").strip(),
+                    name=_get("name"),
+                    vk_url=_get("vk_url"),
+                    status=_get("client_status") or Client.Status.ACTIVE,
+                    notes=_get("notes"),
                 )
 
             result = {"ok": True, "client_id": client.id, "order_id": None}
 
-            product = request.data.get("product", "").strip()
+            product = _get("product")
             if product:
-                deadline_raw = request.data.get("deadline", "").strip()
+                deadline_raw = _get("deadline")
                 deadline = None
                 for fmt in ("%d.%m.%Y", "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"):
                     try:
@@ -305,12 +364,12 @@ class ClientWithOrderWebhookView(APIView):
                     client=client,
                     client_name=client.name,
                     product_name=product,
-                    configuration=request.data.get("configuration", "").strip(),
-                    status=request.data.get("order_status", Order.Status.NEW),
+                    configuration=_get("configuration"),
+                    status=_get("order_status") or Order.Status.NEW,
                     deadline=deadline,
-                    total=_parse_int(request.data.get("total")),
-                    advance=_parse_int(request.data.get("advance")),
-                    notes=request.data.get("order_notes", "").strip(),
+                    total=_parse_int(data.get("total")),
+                    advance=_parse_int(data.get("advance")),
+                    notes=_get("order_notes"),
                 )
                 result["order_id"] = order.id
 

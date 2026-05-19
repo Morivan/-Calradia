@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, X } from 'lucide-react';
 import { OrderModal } from './OrderModal';
 import type { ExternalLinks, Product } from '../types';
 
@@ -13,10 +13,32 @@ export function ProductDetail({
   links: ExternalLinks;
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightboxOpen]);
 
   return (
     <section className="detail-page">
+      {lightboxOpen && (
+        <div className="lightbox-overlay" onClick={() => setLightboxOpen(false)}>
+          <button className="lightbox-close icon-button" aria-label="Закрыть" onClick={() => setLightboxOpen(false)}>
+            <X size={22} />
+          </button>
+          <img
+            src={activeImage}
+            alt={product.name}
+            className="lightbox-img"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       <div className="detail-breadcrumbs">
         <button className="detail-back" onClick={onBack}>
           <ArrowLeft size={16} />
@@ -29,7 +51,7 @@ export function ProductDetail({
 
       <div className="detail-layout">
         <div className="detail-gallery">
-          <div className="detail-main-image">
+          <div className="detail-main-image" style={{ cursor: 'zoom-in' }} onClick={() => setLightboxOpen(true)}>
             <img
               src={activeImage}
               alt={product.name}

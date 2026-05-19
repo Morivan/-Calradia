@@ -1,24 +1,44 @@
-import { useState } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, X } from 'lucide-react';
 import { OrderModal } from './OrderModal';
-import type { ExternalLinks, Product, Review } from '../types';
+import type { ExternalLinks, Product } from '../types';
 
 export function ProductDetail({
   product,
-  reviews,
   onBack,
   links,
 }: {
   product: Product;
-  reviews: Review[];
   onBack: () => void;
   links: ExternalLinks;
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightboxOpen]);
 
   return (
     <section className="detail-page">
+      {lightboxOpen && (
+        <div className="lightbox-overlay" onClick={() => setLightboxOpen(false)}>
+          <button className="lightbox-close icon-button" aria-label="Закрыть" onClick={() => setLightboxOpen(false)}>
+            <X size={22} />
+          </button>
+          <img
+            src={activeImage}
+            alt={product.name}
+            className="lightbox-img"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       <div className="detail-breadcrumbs">
         <button className="detail-back" onClick={onBack}>
           <ArrowLeft size={16} />
@@ -31,8 +51,16 @@ export function ProductDetail({
 
       <div className="detail-layout">
         <div className="detail-gallery">
-          <div className="detail-main-image">
-            <img src={activeImage} alt={product.name} />
+          <div className="detail-main-image" style={{ cursor: 'zoom-in' }} onClick={() => setLightboxOpen(true)}>
+            <img
+              src={activeImage}
+              alt={product.name}
+              onError={(e) => {
+                const img = e.currentTarget;
+                img.onerror = null;
+                img.src = `https://placehold.co/600x450/1a1a12/c1c8bc?text=${encodeURIComponent(product.category)}`;
+              }}
+            />
             <div className="detail-overlay-tag">FIG. {Math.max(product.gallery.indexOf(activeImage) + 1, 1)}</div>
             <div className="detail-overlay-code">ARCHIVE REF: {String(product.id).toUpperCase()}</div>
           </div>
@@ -44,7 +72,15 @@ export function ProductDetail({
                 className={`detail-thumb ${activeImage === image ? 'detail-thumb-active' : ''}`}
                 onClick={() => setActiveImage(image)}
               >
-                <img src={image} alt={`${product.name} ${index + 1}`} />
+                <img
+                  src={image}
+                  alt={`${product.name} ${index + 1}`}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    img.onerror = null;
+                    img.src = `https://placehold.co/120x90/1a1a12/c1c8bc?text=${encodeURIComponent(String(index + 1))}`;
+                  }}
+                />
               </button>
             ))}
           </div>
@@ -125,28 +161,6 @@ export function ProductDetail({
             ))}
           </div>
 
-          <div className="review-section">
-            <div className="review-section-head">
-              <h2>Отзывы</h2>
-              <span>{reviews.length} шт.</span>
-            </div>
-            {reviews.length > 0 ? (
-              <div className="review-list">
-                {reviews.map((review, index) => (
-                  <article className="review-card" key={review.id ?? `${review.author}-${review.date}-${index}`}>
-                    <div className="review-meta">
-                      <strong>{review.author}</strong>
-                      <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
-                    </div>
-                    <p>{review.text}</p>
-                    <small>{review.date}</small>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="review-empty">Пока нет отзывов об этом изделии.</p>
-            )}
-          </div>
         </div>
       </div>
 

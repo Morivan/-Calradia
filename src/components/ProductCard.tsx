@@ -22,7 +22,16 @@ export function ProductCard({
       tabIndex={0}
     >
       <div className="product-image-wrap">
-        <img className="product-image" src={product.image} alt={product.name} />
+        <img
+          className="product-image"
+          src={product.image}
+          alt={product.name}
+          onError={(e) => {
+            const img = e.currentTarget;
+            img.onerror = null;
+            img.src = `https://placehold.co/400x300/1a1a12/c1c8bc?text=${encodeURIComponent(product.category)}`;
+          }}
+        />
         {product.badge ? <span className="product-badge">{product.badge}</span> : null}
       </div>
 
@@ -32,38 +41,11 @@ export function ProductCard({
           <p>{product.subtitle}</p>
         </div>
 
-        <div className="product-highlights">
-          <span>{product.category}</span>
-          <span>{product.material}</span>
-          <span>Размеры: {product.sizes.join(', ')}</span>
-        </div>
-
         <div className="product-meta">
           <span className={statusStyles[product.status]}>{product.status}</span>
           <strong>от {product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
         </div>
 
-        <dl className="product-specs">
-          <div>
-            <dt>Материал</dt>
-            <dd>{product.material}</dd>
-          </div>
-          <div>
-            <dt>Срок</dt>
-            <dd>{product.leadTime}</dd>
-          </div>
-        </dl>
-
-        <button
-          className="cta-button"
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpen(product);
-          }}
-        >
-          Подробнее
-        </button>
       </div>
     </article>
   );

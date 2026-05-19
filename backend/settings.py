@@ -141,10 +141,13 @@ if DEBUG:
     CSRF_TRUSTED_ORIGINS += ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "http://127.0.0.1:8000"]
 
 # ── Security (production only) ────────────────────────────────────────────────
+# Set USE_HTTPS=true in .env only after configuring SSL on the server.
+# Without HTTPS the Secure flag prevents cookies from being sent over HTTP.
+_use_https = os.getenv("USE_HTTPS", "false").lower() == "true"
+SESSION_COOKIE_SECURE = _use_https
+CSRF_COOKIE_SECURE = _use_https
 
 if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -178,8 +181,15 @@ VK_MESSAGES_URL = os.getenv(
 )
 VK_CALLBACK_SECRET = os.getenv("VK_CALLBACK_SECRET", "")
 VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
+VK_SERVICE_TOKEN = os.getenv("VK_SERVICE_TOKEN", "")
 
 WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN", "")
+
+YANDEX_DISK_TOKEN = os.getenv("YANDEX_DISK_TOKEN", "")
+YANDEX_ORDERS_TABLE_PATH = os.getenv("YANDEX_ORDERS_TABLE_PATH", "")
+YANDEX_CLIENTS_TABLE_PATH = os.getenv("YANDEX_CLIENTS_TABLE_PATH", "")
+YANDEX_MATERIALS_TABLE_PATH = os.getenv("YANDEX_MATERIALS_TABLE_PATH", "")
+YANDEX_COLLEAGUES_TABLE_PATH = os.getenv("YANDEX_COLLEAGUES_TABLE_PATH", "")
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { apiFetch, defaultLinks } from './api';
-import { fallbackProducts, fallbackReviews } from './data';
+import { fallbackProducts } from './data';
 import { AdminModule } from './components/AdminModule';
 import { FiltersPanel } from './components/FiltersPanel';
 import { Footer } from './components/Footer';
@@ -9,9 +9,10 @@ import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
-import { Sidebar } from './components/Sidebar';
 import { SortControl } from './components/SortControl';
-import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, SortMode, ViewMode } from './types';
+import { VKGroupFeed } from './components/VKGroupFeed';
+import { WorkshopServices } from './components/WorkshopServices';
+import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, SortMode, ViewMode } from './types';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('catalog');
@@ -28,7 +29,6 @@ export default function App() {
     sizes: [],
     statuses: [],
   });
-  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, Review[]>>(fallbackReviews);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -40,10 +40,7 @@ export default function App() {
       if (payload.products?.length) {
         setCatalogProducts(payload.products);
       }
-      if (payload.reviewsByProduct) {
-        setReviewsByProduct(payload.reviewsByProduct);
-      }
-      if (payload.links) {
+if (payload.links) {
         setExternalLinks({ ...defaultLinks, ...payload.links });
       }
     } catch (error) {
@@ -175,24 +172,18 @@ export default function App() {
         ) : selectedProduct ? (
           <ProductDetail
             product={selectedProduct}
-            reviews={reviewsByProduct[selectedProduct.id] ?? []}
             onBack={goHome}
             links={externalLinks}
           />
         ) : (
           <>
-            <section className="hero" id="catalog">
-              <div className="hero-content">
-                <p className="eyebrow">Средневековая мастерская полного цикла</p>
-                <h1>Каталог доспехов и реконструкторского снаряжения</h1>
-              </div>
-              <img className="hero-emblem" src="/club-emblem.png" alt="Эмблема клуба" />
-            </section>
-
-            <section className="catalog-layout" id="collections">
+            <section className="catalog-layout" id="catalog collections">
               <div className="catalog-side-column">
                 <div className="desktop-only catalog-side-stack">
-                  <Sidebar />
+                  <div className="catalog-side-meta">
+                    <p className="catalog-count">Изделий: {filteredProducts.length}</p>
+                    <SortControl sort={sort} onChange={setSort} />
+                  </div>
                   <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
                 </div>
 
@@ -205,11 +196,6 @@ export default function App() {
               </div>
 
               <section className="catalog-column">
-                <div className="catalog-toolbar">
-                  <p>Показано изделий: {filteredProducts.length}</p>
-                  <SortControl sort={sort} onChange={setSort} />
-                </div>
-
                 <div className="product-grid">
                   {filteredProducts.map((product) => (
                     <ProductCard key={product.id} product={product} onOpen={openProduct} />
@@ -226,7 +212,11 @@ export default function App() {
                   </div>
                 ) : null}
               </section>
+
+              <VKGroupFeed />
             </section>
+
+            <WorkshopServices />
           </>
         )}
       </main>

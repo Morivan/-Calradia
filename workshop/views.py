@@ -1,19 +1,39 @@
 from collections import defaultdict
 from uuid import uuid4
+import json
 import logging
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import get_token as _get_csrf_token
 from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.views import View
 from django.utils import timezone
 from rest_framework import status
+from django.http import QueryDict
+from rest_framework.parsers import BaseParser, FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review
+
+class _AnyFormParser(BaseParser):
+    """Accept any Content-Type and parse body as URL-encoded form data."""
+    media_type = '*/*'
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        encoding = (parser_context or {}).get('encoding', 'utf-8')
+        raw = stream.read()
+        logger.warning("_AnyFormParser raw bytes repr: %r", raw[:2000])
+        if isinstance(raw, bytes):
+            raw = raw.decode(encoding)
+        return QueryDict(raw, encoding=encoding)
+
+from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, repost_to_channel, store_update
 from .services.vk import parse_post
+from .services.yandex_disk import YandexDiskError, append_row
 
 logger = logging.getLogger(__name__)
 
@@ -190,6 +210,7 @@ class AuthView(APIView):
         if not user:
             return Response({"detail": "Неверный логин или пароль."}, status=status.HTTP_401_UNAUTHORIZED)
         login(request, user)
+        _get_csrf_token(request._request)  # ensure csrftoken cookie is set in response
         return Response({
             "id": user.id,
             "username": user.username,
@@ -223,6 +244,51 @@ def _check_webhook_token(request) -> bool:
     return request.query_params.get("token") == expected
 
 
+# Yandex Forms slug → model field mapping.
+# Add new slugs here after adding questions to the form.
+_YANDEX_SLUG_MAP = {
+    "answer_short_text_9008978398981572": "name",
+    "answer_short_text_9008978399032620": "vk_url",
+    "answer_short_text_9008978399164668": "notes",
+    "answer_date_9008978399209504": "deadline",
+    "answer_integer_9008978399247136": "total",
+    "answer_integer_9008978399259784": "advance",
+    "answer_short_text_9008978399271892": "order_notes",
+}
+
+
+def _parse_yandex_forms(raw: bytes) -> dict:
+    """
+    Yandex Forms sends each question as a JSON context object embedded in the
+    request body. Each object has shape:
+      {"id":..., "answer": {"data": {"<slug>": {"value": <answer>, ...}}}}
+    We scan the raw body for all such objects and extract slug→value pairs.
+    """
+    try:
+        text = raw.decode("utf-8") if isinstance(raw, bytes) else raw
+    except Exception:
+        return {}
+
+    result = {}
+    decoder = json.JSONDecoder()
+    pos = 0
+    while pos < len(text):
+        idx = text.find("{", pos)
+        if idx == -1:
+            break
+        try:
+            obj, end = decoder.raw_decode(text, idx)
+            if isinstance(obj, dict):
+                data = obj.get("answer", {}).get("data", {})
+                for slug, answer_data in (data or {}).items():
+                    if slug in _YANDEX_SLUG_MAP and isinstance(answer_data, dict) and "value" in answer_data:
+                        result[_YANDEX_SLUG_MAP[slug]] = answer_data["value"]
+            pos = end
+        except (json.JSONDecodeError, ValueError):
+            pos = idx + 1
+    return result
+
+
 class ClientWebhookView(APIView):
     authentication_classes = []
     permission_classes = []
@@ -236,12 +302,20 @@ class ClientWebhookView(APIView):
             status=request.data.get("status", Client.Status.POTENTIAL),
             notes=request.data.get("notes", "").strip(),
         )
+        path = getattr(settings, "YANDEX_CLIENTS_TABLE_PATH", "")
+        if path:
+            try:
+                from django.utils import timezone as tz
+                append_row(path, [client.id, client.name, client.vk_url, client.status, client.notes, tz.localtime().strftime("%d.%m.%Y")])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": client.id}, status=status.HTTP_201_CREATED)
 
 
 class ClientWithOrderWebhookView(APIView):
     authentication_classes = []
     permission_classes = []
+    parser_classes = [JSONParser, FormParser, MultiPartParser, _AnyFormParser]
 
     def post(self, request):
         if not _check_webhook_token(request):
@@ -249,24 +323,38 @@ class ClientWithOrderWebhookView(APIView):
 
         from datetime import datetime
 
+        # Parse Yandex Forms data from raw body (each question is a JSON context object)
+        raw_body = getattr(request._request, "body", b"")
+        yf_data = _parse_yandex_forms(raw_body)
+        if yf_data:
+            logger.info("Yandex Forms parsed: %s", yf_data)
+            data = yf_data
+        else:
+            # Fall back to standard DRF-parsed request.data (JSON / simple form)
+            data = request.data
+
+        def _get(key, default=""):
+            v = data.get(key, default)
+            return str(v).strip() if isinstance(v, str) else (v if v is not None else default)
+
         with transaction.atomic():
-            client_id = request.data.get("client_id")
+            client_id = _get("client_id") or None
             client = Client.objects.filter(pk=client_id).first() if client_id else None
             if not client:
                 client = Client.objects.create(
-                    name=request.data.get("name", "").strip(),
-                    vk_url=request.data.get("vk_url", "").strip(),
-                    status=request.data.get("client_status", Client.Status.ACTIVE),
-                    notes=request.data.get("notes", "").strip(),
+                    name=_get("name"),
+                    vk_url=_get("vk_url"),
+                    status=_get("client_status") or Client.Status.ACTIVE,
+                    notes=_get("notes"),
                 )
 
             result = {"ok": True, "client_id": client.id, "order_id": None}
 
-            product = request.data.get("product", "").strip()
+            product = _get("product")
             if product:
-                deadline_raw = request.data.get("deadline", "").strip()
+                deadline_raw = _get("deadline")
                 deadline = None
-                for fmt in ("%d.%m.%Y", "%Y-%m-%d"):
+                for fmt in ("%d.%m.%Y", "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"):
                     try:
                         deadline = datetime.strptime(deadline_raw, fmt).date()
                         break
@@ -276,14 +364,55 @@ class ClientWithOrderWebhookView(APIView):
                     client=client,
                     client_name=client.name,
                     product_name=product,
-                    configuration=request.data.get("configuration", "").strip(),
-                    status=request.data.get("order_status", Order.Status.NEW),
+                    configuration=_get("configuration"),
+                    status=_get("order_status") or Order.Status.NEW,
                     deadline=deadline,
-                    total=_parse_int(request.data.get("total")),
-                    advance=_parse_int(request.data.get("advance")),
-                    notes=request.data.get("order_notes", "").strip(),
+                    total=_parse_int(data.get("total")),
+                    advance=_parse_int(data.get("advance")),
+                    notes=_get("order_notes"),
                 )
                 result["order_id"] = order.id
+
+        # Append to Clients table
+        clients_path = getattr(settings, "YANDEX_CLIENTS_TABLE_PATH", "")
+        if clients_path:
+            try:
+                from django.utils import timezone as tz
+                append_row(clients_path, [
+                    result["client_id"],
+                    client.name,
+                    client.vk_url,
+                    client.status,
+                    client.notes,
+                    tz.localtime().strftime("%d.%m.%Y"),
+                ])
+            except YandexDiskError:
+                pass
+            except Exception as exc:
+                logger.error("Yandex Disk clients append error: %s", exc, exc_info=True)
+
+        # Append new order row to Yandex Disk spreadsheet if configured
+        orders_path = getattr(settings, "YANDEX_ORDERS_TABLE_PATH", "")
+        if orders_path and result.get("order_id"):
+            try:
+                from django.utils import timezone as tz
+                append_row(orders_path, [
+                    result["order_id"],
+                    result["client_id"],
+                    client.name,
+                    request.data.get("product", "").strip(),
+                    request.data.get("configuration", "").strip(),
+                    Order.Status.NEW,
+                    "",
+                    0,
+                    0,
+                    "",
+                    tz.localtime().strftime("%d.%m.%Y"),
+                ])
+            except YandexDiskError:
+                pass  # token not configured — skip silently
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
 
         return Response(result, status=status.HTTP_201_CREATED)
 
@@ -342,6 +471,16 @@ class MaterialWebhookView(APIView):
             supplier=request.data.get("supplier", "").strip(),
             notes=request.data.get("notes", "").strip(),
         )
+        path = getattr(settings, "YANDEX_MATERIALS_TABLE_PATH", "")
+        if path:
+            try:
+                append_row(path, [
+                    material.id, material.name, material.type, material.direction,
+                    material.unit, float(material.price) if material.price else "",
+                    float(material.stock), float(material.min_stock), material.supplier, material.notes,
+                ])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": material.id}, status=status.HTTP_201_CREATED)
 
 
@@ -358,6 +497,12 @@ class ColleagueWebhookView(APIView):
             specialization=request.data.get("specialization", "").strip(),
             contact=request.data.get("contact", "").strip(),
         )
+        path = getattr(settings, "YANDEX_COLLEAGUES_TABLE_PATH", "")
+        if path:
+            try:
+                append_row(path, [colleague.id, colleague.name, colleague.direction, colleague.specialization, colleague.contact])
+            except Exception as exc:
+                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
         return Response({"ok": True, "id": colleague.id}, status=status.HTTP_201_CREATED)
 
 
@@ -382,11 +527,11 @@ class VkCallbackView(APIView):
             token = settings.VK_CONFIRMATION_TOKEN
             if not token:
                 return Response({"detail": "VK_CONFIRMATION_TOKEN не настроен."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response(token, content_type="text/plain")
+            return HttpResponse(token, content_type="text/plain")
 
         # Verify secret key
         if settings.VK_CALLBACK_SECRET and data.get("secret") != settings.VK_CALLBACK_SECRET:
-            return Response({"detail": "Неверный секретный ключ."}, status=status.HTTP_403_FORBIDDEN)
+            return HttpResponse("forbidden", content_type="text/plain", status=403)
 
         event_type = data.get("type")
 
@@ -395,20 +540,53 @@ class VkCallbackView(APIView):
 
             # Skip reposts (copy_history present means it's a repost, not original)
             if post.get("copy_history"):
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             # Skip postponed posts that aren't published yet
             if post.get("post_type") == "postpone":
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
+
+            # Deduplicate by post ID using Django cache
+            from django.core.cache import cache
+            post_key = f"vk_post_{post.get('owner_id')}_{post.get('id')}"
+            if cache.get(post_key):
+                return HttpResponse("ok", content_type="text/plain")
+            cache.set(post_key, True, timeout=86400)  # 24 hours
+
+            # Save to DB
+            try:
+                import datetime
+                from django.utils.timezone import make_aware
+                photo_url = ''
+                attachments = post.get('attachments', [])
+                for att in attachments:
+                    if att.get('type') == 'photo':
+                        sizes = att['photo'].get('sizes', [])
+                        if sizes:
+                            best = max(sizes, key=lambda s: s.get('width', 0))
+                            photo_url = best.get('url', '')
+                        break
+                posted_at = make_aware(datetime.datetime.fromtimestamp(post.get('date', 0)))
+                VKPost.objects.get_or_create(
+                    post_id=post.get('id'),
+                    defaults={
+                        'owner_id': post.get('owner_id', 0),
+                        'text': post.get('text', '')[:2000],
+                        'photo_url': photo_url,
+                        'posted_at': posted_at,
+                    }
+                )
+            except Exception:
+                pass
 
             channel_id = settings.TELEGRAM_CHANNEL_ID
             if not channel_id:
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             text, photos = parse_post(post)
 
             if not text and not photos:
-                return Response("ok")
+                return HttpResponse("ok", content_type="text/plain")
 
             try:
                 repost_to_channel(channel_id, text, photos)
@@ -418,4 +596,91 @@ class VkCallbackView(APIView):
                 logger.error("VK→TG repost error: %s", exc, exc_info=True)
 
         # VK expects plain "ok" for all handled events
-        return Response("ok")
+        return HttpResponse("ok", content_type="text/plain")
+
+
+class VKPostsView(View):
+    VK_RSS = "https://vk.com/rss/wall-238824374.rss"
+
+    def get(self, request):
+        # Try RSS feed first (no token needed)
+        try:
+            data = self._fetch_rss()
+            if data:
+                return JsonResponse({'posts': data})
+        except Exception:
+            pass
+        # Fallback: DB (posts captured via callback)
+        posts = VKPost.objects.all()[:10]
+        data = [
+            {
+                'id': p.post_id,
+                'text': p.text,
+                'photo_url': p.photo_url,
+                'posted_at': p.posted_at.isoformat(),
+            }
+            for p in posts
+        ]
+        return JsonResponse({'posts': data})
+
+    def _fetch_rss(self):
+        import xml.etree.ElementTree as ET
+        import requests as _req
+        resp = _req.get(self.VK_RSS, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        root = ET.fromstring(resp.content)
+        ns = {'media': 'http://search.yahoo.com/mrss/'}
+        items = root.findall('.//item')
+        posts = []
+        for i, item in enumerate(items[:10]):
+            title = (item.findtext('title') or '').strip()
+            description = (item.findtext('description') or '').strip()
+            text = description if description else title
+            # strip HTML tags simply
+            import re
+            text = re.sub(r'<[^>]+>', '', text).strip()
+            pub_date = item.findtext('pubDate') or ''
+            photo_url = ''
+            enc = item.find('enclosure')
+            if enc is not None:
+                photo_url = enc.get('url', '')
+            thumb = item.find('media:thumbnail', ns)
+            if not photo_url and thumb is not None:
+                photo_url = thumb.get('url', '')
+            link = item.findtext('link') or ''
+            post_id = i
+            try:
+                post_id = int(link.rstrip('/').split('_')[-1])
+            except (ValueError, IndexError):
+                pass
+            posts.append({
+                'id': post_id,
+                'text': text[:500],
+                'photo_url': photo_url,
+                'posted_at': pub_date,
+            })
+        return posts
+
+
+class NewsPostCreateView(View):
+    def post(self, request):
+        if not request.user.is_staff:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        import json
+        body = json.loads(request.body)
+        post = VKPost.objects.create(
+            post_id=int(timezone.now().timestamp()),
+            owner_id=0,
+            text=body.get('text', '')[:2000],
+            photo_url=body.get('photo_url', ''),
+            posted_at=timezone.now(),
+        )
+        return JsonResponse({'id': post.post_id, 'text': post.text, 'photo_url': post.photo_url, 'posted_at': post.posted_at.isoformat()}, status=201)
+
+
+class NewsPostDeleteView(View):
+    def delete(self, request, post_id):
+        if not request.user.is_staff:
+            return JsonResponse({'error': 'forbidden'}, status=403)
+        VKPost.objects.filter(post_id=post_id).delete()
+        return JsonResponse({'ok': True})

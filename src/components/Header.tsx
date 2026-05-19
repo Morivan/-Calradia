@@ -30,6 +30,7 @@ export function Header({
       <div className="shell topbar-inner">
         <div className="topbar-left">
           <button className="brand brand-button" onClick={onHome}>
+            <img src="/club-emblem.png" alt="" className="topbar-emblem" />
             <span>
               <strong>Кузница</strong>
               <small>Кальрадия</small>
@@ -49,6 +50,7 @@ export function Header({
             ) : null}
           </div>
           <div className="topnav-secondary">
+            <a href="#services">Услуги мастерской</a>
             <a href="#contacts">Контакты</a>
           </div>
         </nav>

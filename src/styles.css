@@ -1587,3 +1587,166 @@ h1 {
   text-align: center;
   margin-top: 4px;
 }
+
+/* ── Workshop Panel ──────────────────────────────────────────────────────────── */
+
+.ws-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0;
+  overflow-x: auto;
+}
+
+.ws-tab {
+  padding: 10px 22px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.ws-tab:hover {
+  color: var(--text-main);
+}
+
+.ws-tab--active {
+  color: var(--text-main);
+  border-bottom-color: var(--accent);
+}
+
+/* Kanban */
+.ws-kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.ws-kanban-col {
+  background: var(--bg-panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ws-kanban-col-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ws-kanban-cnt {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+.ws-kanban-cards {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+  max-height: 68vh;
+  overflow-y: auto;
+}
+
+.ws-kanban-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.ws-kanban-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.ws-status-btns {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.ws-kanban-card:hover .ws-status-btns {
+  display: flex;
+}
+
+.ws-status-btn {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  opacity: 0.9;
+  transition: opacity 0.1s;
+}
+
+.ws-status-btn:hover {
+  opacity: 1;
+}
+
+/* Modal */
+.ws-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ws-modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.ws-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1000px) {
+  .ws-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .ws-kanban {
+    grid-template-columns: 1fr;
+  }
+  .ws-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}

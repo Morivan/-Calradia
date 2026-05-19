@@ -1,43 +1,104 @@
 # Кузница Кальрадия
 
-Веб-сайт-витрина кузнечной мастерской: публичный каталог доспехов с формой заказа
-и административной панелью управления каталогом.
-
-**Стек:** React 19 + Vite (TypeScript) · Django 5.2 + DRF · SQLite · WhiteNoise
+Веб-приложение для онлайн-каталога средневековых доспехов и реконструкторского снаряжения с административной панелью управления, приёмом заявок через Яндекс.Формы и интеграциями с ВКонтакте и Telegram.
 
 ## Архитектура
 
+**Тип:** Клиент-серверное SPA (Single Page Application)
+
+| Слой | Технология |
+|------|-----------|
+| Фронтенд | React 18 + TypeScript, Vite, Lucide Icons |
+| Бэкенд | Python 3.12, Django 5.x, Django REST Framework |
+| База данных | PostgreSQL |
+| Веб-сервер | Nginx + Gunicorn |
+| Развёртывание | Timeweb Cloud VPS (Ubuntu 24.04) |
+
 ```
 ┌──────────────────────────────────────────────────────┐
-│                    Браузер                           │
-│  React SPA (каталог, карточка товара, форма заказа)  │
-└──────────┬──────────────────────────────┬────────────┘
-           │ /api/*                       │ Яндекс Формы
-           ▼                              ▼   (iframe)
-┌─────────────────────┐         ┌───────────────────┐
-│  Django + DRF       │         │  Яндекс Таблицы   │
-│  (каталог, авторизация,│        │  (заказы клиентов)│
-│   вебхуки)          │         └───────────────────┘
+│                      Браузер                         │
+│  React SPA (каталог, карточка товара, админ-панель)  │
+└──────────┬───────────────────────────┬───────────────┘
+           │ /api/*                    │ webhook
+           ▼                           ▼
+┌─────────────────────┐     ┌─────────────────────┐
+│   Django + DRF      │     │   Яндекс.Формы      │
+│  (каталог, авторизация,   │  (заявки клиентов)  │
+│   вебхуки, новости) │     └─────────────────────┘
 └──────────┬──────────┘
            │
     ┌──────┴──────┐
     ▼             ▼
-┌────────┐  ┌──────────┐
-│   VK   │  │ Telegram │
-│ группа │→ │  канал   │
-│(посты) │  │(репосты) │
+┌────────┐  ┌──────────┐   ┌─────────────────┐
+│   VK   │  │ Telegram │   │  Яндекс.Диск    │
+│ группа │→ │  канал   │   │ (таблицы xlsx)  │
+│(посты) │  │(репосты) │   └─────────────────┘
 └────────┘  └──────────┘
 ```
 
-### Ключевые компоненты
+## Функциональные модули
 
-| Модуль | Описание |
-|--------|----------|
-| Каталог | Фильтрация, поиск, сортировка, карточка товара с галереей и отзывами |
-| Форма заказа | Яндекс Форма в модальном окне (iframe), ответы → Яндекс Таблицы |
-| Управление каталогом | CRUD товаров через Django-сессию (доступен сотрудникам) |
-| VK → Telegram | VK Callback API принимает `wall_post_new` и пересылает в Telegram-канал |
-| Telegram webhook | Эндпоинт для входящих обновлений от бота |
+### 1. Каталог товаров
+- Фильтрация по категории, материалу, эпохе, размеру, статусу и цене
+- Полнотекстовый поиск по названию
+- Сортировка по цене и популярности
+- Детальная карточка: галерея, историческая справка, характеристики, лайтбокс для просмотра фото
+
+### 2. Панель администратора
+- Авторизация через встроенную форму (сессионная аутентификация Django)
+- Добавление, редактирование, удаление товаров
+- Отображается только авторизованным сотрудникам (`is_staff`)
+
+### 3. Приём заявок
+- Интеграция с Яндекс.Формами через webhook (`/api/webhook/client-order/`)
+- Автоматическое создание записей клиентов и заказов в БД
+- Параллельная запись данных в таблицы на Яндекс.Диске (xlsx)
+
+### 4. Новости клуба
+- Отображение публикаций ВКонтакте через Callback API VK
+- Автоматическое сохранение новых постов в модель `VKPost` при публикации
+- Ручное создание постов через Django-админку
+
+### 5. Интеграции
+- **Telegram**: пересылка уведомлений о новых публикациях ВКонтакте
+- **ВКонтакте**: приём событий через Callback API (`wall_post_new`)
+- **Яндекс.Формы**: webhook для сбора данных клиентов и заказов
+- **Яндекс.Диск**: хранение таблиц клиентов и заказов
+
+## Модели данных
+
+| Модель | Назначение |
+|--------|-----------|
+| `Product` | Товар каталога |
+| `Review` | Отзыв на товар |
+| `Client` | Клиент мастерской |
+| `Order` | Заказ |
+| `VKPost` | Пост из ВКонтакте |
+| `Colleague` | Сотрудник мастерской |
+| `Material` | Материал (справочник) |
+| `IntegrationLink` | Внешние ссылки (VK, Telegram, Яндекс.Форма) |
+
+## API
+
+| Метод | URL | Описание |
+|-------|-----|----------|
+| `GET` | `/api/bootstrap/` | Начальная загрузка данных сайта |
+| `GET` | `/api/catalog/products/` | Список товаров |
+| `POST` | `/api/catalog/products/` | Создать товар (требует авторизации) |
+| `GET` | `/api/catalog/products/{id}/` | Карточка товара |
+| `PATCH` | `/api/catalog/products/{id}/` | Обновить товар (требует авторизации) |
+| `DELETE` | `/api/catalog/products/{id}/` | Удалить товар (требует авторизации) |
+| `POST` | `/api/catalog/products/{id}/reviews/` | Оставить отзыв |
+| `POST` | `/api/auth/login/` | Вход |
+| `POST` | `/api/auth/logout/` | Выход |
+| `GET` | `/api/auth/me/` | Текущий пользователь |
+| `GET` | `/api/vk-posts/` | Список постов ВКонтакте |
+| `POST` | `/api/integrations/telegram/webhook/` | Вебхук Telegram-бота |
+| `POST` | `/api/integrations/vk/callback/` | Callback API ВКонтакте |
+| `POST` | `/api/webhook/client-order/?token=TOKEN` | Яндекс.Форма: клиент + заказ |
+| `POST` | `/api/webhook/client/?token=TOKEN` | Яндекс.Форма: только клиент |
+| `POST` | `/api/webhook/material/?token=TOKEN` | Яндекс.Форма: новый материал |
+| `POST` | `/api/webhook/colleague/?token=TOKEN` | Яндекс.Форма: новый сотрудник |
 
 ## Локальная разработка
 
@@ -51,7 +112,7 @@
 **1. Backend:**
 
 ```bash
-python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # заполнить при необходимости
 python manage.py migrate
@@ -77,121 +138,70 @@ API-запросы проксируются на Django автоматическ
 python manage.py test workshop
 ```
 
-39 тестов (unit + integration), все проходят.
-
-## Продакшн-деплой
+## Продакшн-деплой (Nginx + Gunicorn)
 
 ```bash
-# 1. Сгенерировать секретный ключ
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-
-# 2. Заполнить .env (см. .env.example)
-
-# 3. Собрать фронтенд и статику
+# 1. Собрать фронтенд
 npm run build
+
+# 2. Собрать статику Django
+source venv/bin/activate
 python manage.py collectstatic --noinput
 
-# 4. Применить миграции
+# 3. Применить миграции
 python manage.py migrate
 
-# 5. Запустить приложение
-gunicorn backend.wsgi --bind 0.0.0.0:8000
-# или
-uvicorn backend.asgi:application --host 0.0.0.0 --port 8000
+# 4. Перезапустить сервис
+systemctl restart calradia
 ```
-
-WhiteNoise раздаёт статику (Django admin + собранный React) напрямую из Django.
-За nginx-прокси `SECURE_SSL_REDIRECT` оставить `false` — редирект на HTTPS делает прокси.
 
 ## Переменные окружения
 
 Скопируйте `.env.example` в `.env` и заполните значения.
 
-| Переменная | Обязательна | Описание |
-|---|:---:|---|
-| `DJANGO_SECRET_KEY` | В prod | Секретный ключ Django |
-| `DJANGO_DEBUG` | — | `true` для dev, `false` для prod (по умолчанию `false`) |
-| `DJANGO_ALLOWED_HOSTS` | В prod | Домены через запятую: `example.com,www.example.com` |
-| `CSRF_TRUSTED_ORIGINS` | В prod | Полные URL через запятую: `https://example.com` |
-| `CORS_ALLOWED_ORIGINS` | В prod | Полные URL через запятую: `https://example.com` |
-| `TELEGRAM_BOT_TOKEN` | Для TG | Токен бота из @BotFather |
-| `TELEGRAM_CHANNEL_ID` | Для TG | ID канала для репостов из VK, напр. `@your_channel` |
-| `TELEGRAM_PUBLIC_URL` | — | Публичная ссылка на Telegram-канал |
-| `VK_CALLBACK_SECRET` | Для VK | Секретный ключ Callback API (настройки группы ВК) |
-| `VK_CONFIRMATION_TOKEN` | Для VK | Строка подтверждения от ВКонтакте |
-| `VK_COMMUNITY_URL` | — | Ссылка на сообщество ВКонтакте |
-| `VK_MESSAGES_URL` | — | Ссылка на диалоги сообщества ВКонтакте |
-| `WEBHOOK_TOKEN` | Для вебхуков | Токен защиты webhook-эндпоинтов Яндекс Форм. Генерируется командой: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
+| Переменная | Описание |
+|---|---|
+| `DJANGO_SECRET_KEY` | Секретный ключ Django (обязателен в prod) |
+| `DJANGO_DEBUG` | `true` для dev, `false` для prod |
+| `DJANGO_ALLOWED_HOSTS` | Домены через запятую: `example.com` |
+| `CSRF_TRUSTED_ORIGINS` | Полные URL через запятую: `https://example.com` |
+| `DATABASE_URL` | Строка подключения к PostgreSQL |
+| `USE_HTTPS` | `true` если настроен SSL (включает `Secure` на cookies) |
+| `TELEGRAM_BOT_TOKEN` | Токен бота из @BotFather |
+| `TELEGRAM_CHANNEL_ID` | ID канала для репостов из VK |
+| `VK_CALLBACK_SECRET` | Секретный ключ Callback API ВКонтакте |
+| `VK_CONFIRMATION_TOKEN` | Строка подтверждения от ВКонтакте |
+| `WEBHOOK_TOKEN` | Токен защиты webhook-эндпоинтов Яндекс.Форм |
+| `YANDEX_DISK_TOKEN` | OAuth-токен Яндекс.Диска |
+| `YANDEX_ORDERS_TABLE_PATH` | Путь к файлу заказов на Яндекс.Диске |
+| `YANDEX_CLIENTS_TABLE_PATH` | Путь к файлу клиентов на Яндекс.Диске |
 
 ## Настройка интеграций
 
-### VK → Telegram
+### ВКонтакте → Telegram
 
 1. Создать бота в @BotFather, добавить в Telegram-канал с правом публиковать.
 2. Прописать `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHANNEL_ID`.
 3. В настройках группы ВК → **Работа с API → Callback API** добавить сервер:
    - URL: `https://your-domain.com/api/integrations/vk/callback/`
    - Тип событий: `Новая запись на стене`
-4. Прописать `VK_CONFIRMATION_TOKEN` (выдаётся ВКонтакте при добавлении сервера).
-5. Опционально: установить `VK_CALLBACK_SECRET` в настройках группы ВК и в `.env`.
+4. Прописать `VK_CONFIRMATION_TOKEN` и `VK_CALLBACK_SECRET`.
 
-### Яндекс Форма для заказов
+### Яндекс.Формы → заявки
 
-1. Создать форму в [Яндекс Формах](https://forms.yandex.ru), связать с Яндекс Таблицей.
-2. В Django-админке (`/admin/`) создать объект **Integration link**:
-   - Key: `yandex_form`
-   - URL: `https://forms.yandex.ru/cloud/FORM_ID/?iframe=1`
-3. Форма появится в модальном окне на странице каждого товара.
+1. Создать форму в [Яндекс.Формах](https://forms.yandex.ru).
+2. Настроить **Интеграции → HTTP-запрос** (метод `POST`):
+   - URL: `https://your-domain.com/api/webhook/client-order/?token=TOKEN`
+3. Данные из формы автоматически попадут в БД (модели `Client` и `Order`).
 
-### Яндекс Формы → вебхуки (клиенты, заказы, материалы, коллеги)
+### Ссылки на внешние сервисы
 
-1. Сгенерировать `WEBHOOK_TOKEN` и прописать в `.env` на сервере:
-   ```bash
-   python -c "import secrets; print(secrets.token_urlsafe(32))"
-   ```
-2. Создать нужные формы в [Яндекс Формах](https://forms.yandex.ru).
-3. В каждой форме настроить **Интеграции → HTTP-запрос** (метод `POST`) на соответствующий URL:
-
-   | Форма | URL |
-   |-------|-----|
-   | Новый клиент | `https://your-domain.com/api/webhook/client/?token=TOKEN` |
-   | Клиент + заказ | `https://your-domain.com/api/webhook/client-order/?token=TOKEN` |
-   | Новый материал | `https://your-domain.com/api/webhook/material/?token=TOKEN` |
-   | Новый коллега | `https://your-domain.com/api/webhook/colleague/?token=TOKEN` |
-
-4. Передавать поля формы в теле запроса (JSON). Ответы при этом продолжают сохраняться в Яндекс Таблицы как обычно.
-
-### Ссылки на VK и Telegram
-
-Все внешние ссылки настраиваются через **Integration links** в Django-админке
-(или через переменные окружения как дефолты).
+Настраиваются через Django-админку (`/admin/`) в разделе **Integration links**:
 
 | Key | Описание |
 |-----|----------|
+| `yandex_form` | URL Яндекс.Формы для заказа (с `?iframe=1`) |
 | `telegram_order` | Ссылка для связи при заказе |
 | `telegram_public` | Публичный Telegram-канал |
-| `vk_community` | Страница сообщества ВК |
-| `vk_messages` | Диалоги сообщества ВК |
-| `yandex_form` | URL Яндекс Формы (с `?iframe=1`) |
-
-## API
-
-| Метод | URL | Описание |
-|-------|-----|----------|
-| `GET` | `/api/bootstrap/` | Продукты, отзывы и ссылки одним запросом |
-| `GET` | `/api/catalog/products/` | Список товаров |
-| `POST` | `/api/catalog/products/` | Создать товар (требует авторизации) |
-| `GET` | `/api/catalog/products/{id}/` | Карточка товара |
-| `PATCH` | `/api/catalog/products/{id}/` | Обновить товар (требует авторизации) |
-| `DELETE` | `/api/catalog/products/{id}/` | Удалить товар (требует авторизации) |
-| `POST` | `/api/catalog/products/{id}/reviews/` | Оставить отзыв |
-| `POST` | `/api/auth/login/` | Вход |
-| `POST` | `/api/auth/logout/` | Выход |
-| `GET` | `/api/auth/me/` | Текущий пользователь |
-| `GET` | `/api/csrf/` | Установить CSRF-куку |
-| `POST` | `/api/integrations/telegram/webhook/` | Вебхук Telegram-бота |
-| `POST` | `/api/integrations/vk/callback/` | Callback API ВКонтакте |
-| `POST` | `/api/webhook/client/?token=TOKEN` | Яндекс Форма: новый клиент |
-| `POST` | `/api/webhook/client-order/?token=TOKEN` | Яндекс Форма: клиент + заказ (либо заказ к существующему клиенту через `client_id`) |
-| `POST` | `/api/webhook/material/?token=TOKEN` | Яндекс Форма: новый материал |
-| `POST` | `/api/webhook/colleague/?token=TOKEN` | Яндекс Форма: новый коллега |
+| `vk_community` | Страница сообщества ВКонтакте |
+| `vk_messages` | Диалоги сообщества ВКонтакте |

@@ -1,6 +1,14 @@
 from django.urls import path
 
-from .views import AuthView, BootstrapView, ClientWebhookView, ClientWithOrderWebhookView, ColleagueWebhookView, LogoutView, MaterialWebhookView, MeView, NewsPostCreateView, NewsPostDeleteView, OrderWebhookView, ProductDetailView, ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView, VKPostsView
+from .views import (
+    AuthView, BootstrapView, ClientWebhookView, ClientWithOrderWebhookView,
+    ColleagueWebhookView, LogoutView, MaterialWebhookView, MeView,
+    NewsPostCreateView, NewsPostDeleteView, OrderWebhookView, ProductDetailView,
+    ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView,
+    VKPostsView, WorkshopDashboardView, WorkshopOrdersView, WorkshopOrderDetailView,
+    WorkshopClientsView, WorkshopClientDetailView, WorkshopMaterialsView,
+    WorkshopMaterialDetailView, WorkshopUsersView,
+)
 
 urlpatterns = [
     path("bootstrap/", BootstrapView.as_view(), name="bootstrap"),
@@ -20,4 +28,12 @@ urlpatterns = [
     path("vk-posts/", VKPostsView.as_view(), name="vk-posts"),
     path("news/", NewsPostCreateView.as_view(), name="news-create"),
     path("news/<int:post_id>/", NewsPostDeleteView.as_view(), name="news-delete"),
+    path("workshop/dashboard/", WorkshopDashboardView.as_view(), name="workshop-dashboard"),
+    path("workshop/orders/", WorkshopOrdersView.as_view(), name="workshop-orders"),
+    path("workshop/orders/<int:order_id>/", WorkshopOrderDetailView.as_view(), name="workshop-order-detail"),
+    path("workshop/clients/", WorkshopClientsView.as_view(), name="workshop-clients"),
+    path("workshop/clients/<int:client_id>/", WorkshopClientDetailView.as_view(), name="workshop-client-detail"),
+    path("workshop/materials/", WorkshopMaterialsView.as_view(), name="workshop-materials"),
+    path("workshop/materials/<int:material_id>/", WorkshopMaterialDetailView.as_view(), name="workshop-material-detail"),
+    path("workshop/users/", WorkshopUsersView.as_view(), name="workshop-users"),
 ]

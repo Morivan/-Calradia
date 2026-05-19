@@ -2,6 +2,7 @@ from collections import defaultdict
 from uuid import uuid4
 import json
 import logging
+import datetime as _dt
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +11,8 @@ from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
+from django.db.models import Count as _Count, F as _F
+from django.contrib.auth.models import User as _User
 from rest_framework import status
 from django.http import QueryDict
 from rest_framework.parsers import BaseParser, FormParser, JSONParser, MultiPartParser
@@ -684,3 +687,273 @@ class NewsPostDeleteView(View):
             return JsonResponse({'error': 'forbidden'}, status=403)
         VKPost.objects.filter(post_id=post_id).delete()
         return JsonResponse({'ok': True})
+
+
+# ── Workshop API (staff only) ──────────────────────────────────────────────────
+
+def _is_staff(request) -> bool:
+    return request.user.is_authenticated and request.user.is_staff
+
+
+def _parse_deadline(raw) -> '_dt.date | None':
+    if not raw:
+        return None
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
+        try:
+            return _dt.datetime.strptime(str(raw), fmt).date()
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+def _order_to_dict(order) -> dict:
+    return {
+        'id': order.id,
+        'client_id': order.client_id,
+        'client_name': order.client_name,
+        'product_name': order.product_name,
+        'configuration': order.configuration,
+        'status': order.status,
+        'deadline': order.deadline.isoformat() if order.deadline else None,
+        'total': order.total or 0,
+        'advance': order.advance or 0,
+        'balance': (order.total or 0) - (order.advance or 0),
+        'notes': order.notes,
+        'assigned_to_id': order.assigned_to_id,
+        'assigned_to_name': (
+            order.assigned_to.get_full_name() or order.assigned_to.username
+        ) if order.assigned_to else None,
+        'created_at': order.created_at.strftime('%d.%m.%Y'),
+    }
+
+
+def _client_to_dict(client) -> dict:
+    return {
+        'id': client.id,
+        'name': client.name,
+        'vk_url': client.vk_url,
+        'status': client.status,
+        'notes': client.notes,
+        'order_count': client.orders.count(),
+        'created_at': client.created_at.strftime('%d.%m.%Y'),
+    }
+
+
+def _material_to_dict(mat) -> dict:
+    return {
+        'id': mat.id,
+        'name': mat.name,
+        'type': mat.type,
+        'direction': mat.direction,
+        'unit': mat.unit,
+        'price': float(mat.price) if mat.price is not None else None,
+        'stock': float(mat.stock),
+        'min_stock': float(mat.min_stock),
+        'supplier': mat.supplier,
+        'notes': mat.notes,
+        'low_stock': mat.stock <= mat.min_stock,
+    }
+
+
+class WorkshopDashboardView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        today = timezone.localdate()
+        active_statuses = [Order.Status.NEW, Order.Status.IN_PROGRESS]
+
+        status_counts = {s: 0 for s in [Order.Status.NEW, Order.Status.IN_PROGRESS, Order.Status.DONE, Order.Status.CANCELLED]}
+        for row in Order.objects.values('status').annotate(n=_Count('id')):
+            if row['status'] in status_counts:
+                status_counts[row['status']] = row['n']
+
+        upcoming = []
+        for order in (
+            Order.objects.filter(
+                status__in=active_statuses,
+                deadline__gte=today,
+                deadline__lte=today + _dt.timedelta(days=14),
+            )
+            .select_related('assigned_to')
+            .order_by('deadline')
+        ):
+            upcoming.append({
+                'id': order.id,
+                'client_name': order.client_name,
+                'product_name': order.product_name,
+                'deadline': order.deadline.isoformat(),
+                'days_left': (order.deadline - today).days,
+                'status': order.status,
+                'assigned_to_name': (
+                    order.assigned_to.get_full_name() or order.assigned_to.username
+                ) if order.assigned_to else None,
+            })
+
+        low_stock = []
+        for mat in Material.objects.filter(stock__lte=_F('min_stock')).order_by('direction', 'name'):
+            low_stock.append({
+                'id': mat.id,
+                'name': mat.name,
+                'direction': mat.direction,
+                'stock': float(mat.stock),
+                'min_stock': float(mat.min_stock),
+                'unit': mat.unit,
+            })
+
+        my_active = (
+            Order.objects.filter(status__in=active_statuses, assigned_to=request.user).count()
+        )
+
+        return Response({
+            'status_counts': status_counts,
+            'upcoming_deadlines': upcoming,
+            'low_stock': low_stock,
+            'my_active_count': my_active,
+        })
+
+
+class WorkshopOrdersView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        qs = Order.objects.select_related('assigned_to').order_by('-created_at')
+        if request.query_params.get('status'):
+            qs = qs.filter(status=request.query_params['status'])
+        if request.query_params.get('mine') == '1':
+            qs = qs.filter(assigned_to=request.user)
+        return Response([_order_to_dict(o) for o in qs])
+
+    def post(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        client_name = (request.data.get('client_name') or '').strip()
+        if not client_name:
+            return Response({"detail": "Укажите имя клиента."}, status=status.HTTP_400_BAD_REQUEST)
+        assigned_id = request.data.get('assigned_to_id') or None
+        assigned_user = (
+            _User.objects.filter(pk=assigned_id, is_staff=True).first()
+            if assigned_id else None
+        ) or request.user
+        order = Order.objects.create(
+            client_name=client_name,
+            product_name=(request.data.get('product_name') or '').strip(),
+            configuration=(request.data.get('configuration') or '').strip(),
+            status=request.data.get('status') or Order.Status.NEW,
+            deadline=_parse_deadline(request.data.get('deadline')),
+            total=_parse_int(request.data.get('total')),
+            advance=_parse_int(request.data.get('advance')),
+            notes=(request.data.get('notes') or '').strip(),
+            assigned_to=assigned_user,
+        )
+        return Response(_order_to_dict(order), status=status.HTTP_201_CREATED)
+
+
+class WorkshopOrderDetailView(APIView):
+    def patch(self, request, order_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        order = Order.objects.select_related('assigned_to').filter(pk=order_id).first()
+        if not order:
+            return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
+        if not request.user.is_superuser and order.assigned_to_id and order.assigned_to_id != request.user.id:
+            return Response({"detail": "Можно редактировать только свои заказы."}, status=status.HTTP_403_FORBIDDEN)
+        for field in ('client_name', 'product_name', 'configuration', 'status', 'notes'):
+            if field in request.data:
+                setattr(order, field, request.data[field])
+        if 'total' in request.data:
+            order.total = _parse_int(request.data['total'])
+        if 'advance' in request.data:
+            order.advance = _parse_int(request.data['advance'])
+        if 'deadline' in request.data:
+            order.deadline = _parse_deadline(request.data['deadline'])
+        if 'assigned_to_id' in request.data and request.user.is_superuser:
+            uid = request.data['assigned_to_id']
+            order.assigned_to = _User.objects.filter(pk=uid).first() if uid else None
+        order.save()
+        return Response(_order_to_dict(order))
+
+    def delete(self, request, order_id):
+        if not request.user.is_authenticated or not request.user.is_superuser:
+            return Response({"detail": "Только администратор может удалять заказы."}, status=status.HTTP_403_FORBIDDEN)
+        order = Order.objects.filter(pk=order_id).first()
+        if not order:
+            return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
+        order.delete()
+        return Response({"ok": True})
+
+
+class WorkshopClientsView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        q = (request.query_params.get('q') or '').strip()
+        qs = Client.objects.prefetch_related('orders').order_by('-created_at')
+        if q:
+            qs = qs.filter(name__icontains=q)
+        return Response([_client_to_dict(c) for c in qs])
+
+    def post(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        name = (request.data.get('name') or '').strip()
+        if not name:
+            return Response({"detail": "Укажите имя клиента."}, status=status.HTTP_400_BAD_REQUEST)
+        client = Client.objects.create(
+            name=name,
+            vk_url=(request.data.get('vk_url') or '').strip(),
+            status=request.data.get('status') or Client.Status.POTENTIAL,
+            notes=(request.data.get('notes') or '').strip(),
+        )
+        return Response(_client_to_dict(client), status=status.HTTP_201_CREATED)
+
+
+class WorkshopClientDetailView(APIView):
+    def patch(self, request, client_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        client = Client.objects.prefetch_related('orders').filter(pk=client_id).first()
+        if not client:
+            return Response({"detail": "Клиент не найден."}, status=status.HTTP_404_NOT_FOUND)
+        for field in ('name', 'vk_url', 'status', 'notes'):
+            if field in request.data:
+                setattr(client, field, request.data[field])
+        client.save()
+        return Response(_client_to_dict(client))
+
+
+class WorkshopMaterialsView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response([_material_to_dict(m) for m in Material.objects.order_by('direction', 'name')])
+
+
+class WorkshopMaterialDetailView(APIView):
+    def patch(self, request, material_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        mat = Material.objects.filter(pk=material_id).first()
+        if not mat:
+            return Response({"detail": "Материал не найден."}, status=status.HTTP_404_NOT_FOUND)
+        if 'stock' in request.data:
+            try:
+                mat.stock = float(request.data['stock'])
+            except (ValueError, TypeError):
+                return Response({"detail": "Некорректное значение остатка."}, status=status.HTTP_400_BAD_REQUEST)
+        for field in ('name', 'type', 'direction', 'unit', 'supplier', 'notes', 'min_stock', 'price'):
+            if field in request.data:
+                setattr(mat, field, request.data[field])
+        mat.save()
+        return Response(_material_to_dict(mat))
+
+
+class WorkshopUsersView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        users = _User.objects.filter(is_staff=True, is_active=True).order_by('first_name', 'username')
+        return Response([
+            {'id': u.id, 'username': u.username, 'fullName': u.get_full_name() or u.username}
+            for u in users
+        ])

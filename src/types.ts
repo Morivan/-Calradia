@@ -4,7 +4,7 @@ export type Era = 'XIII век' | 'XIV век' | 'XV век' | 'XVI век';
 export type Material = 'Сталь' | 'Кожа' | 'Комбинированный' | 'Латунь и сталь' | 'Шерсть и лён' | 'Дерево';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 export type SortMode = 'default' | 'newest' | 'popular' | 'duration';
-export type ViewMode = 'catalog' | 'admin' | 'login';
+export type ViewMode = 'home' | 'catalog' | 'services' | 'reviews' | 'admin' | 'login';
 
 export interface Review {
   id?: number;

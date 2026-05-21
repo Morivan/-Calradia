@@ -8,6 +8,9 @@ export function Header({
   detailOpen,
   currentView,
   onHome,
+  onOpenCatalog,
+  onOpenServices,
+  onOpenReviews,
   onOpenAdmin,
   onOpenLogin,
   onLogout,
@@ -18,6 +21,9 @@ export function Header({
   detailOpen: boolean;
   currentView: ViewMode;
   onHome: () => void;
+  onOpenCatalog: () => void;
+  onOpenServices: () => void;
+  onOpenReviews: () => void;
   onOpenAdmin: () => void;
   onOpenLogin: () => void;
   onLogout: () => void;
@@ -40,18 +46,23 @@ export function Header({
 
         <nav className="topnav">
           <div className="topnav-primary">
-            <button className={`nav-button ${currentView === 'catalog' ? 'nav-button-active' : ''}`} onClick={onHome}>
+            <button className={`nav-button ${currentView === 'home' ? 'nav-button-active' : ''}`} onClick={onHome}>
+              Главная
+            </button>
+            <button className={`nav-button ${currentView === 'catalog' ? 'nav-button-active' : ''}`} onClick={onOpenCatalog}>
               Каталог
+            </button>
+            <button className={`nav-button ${currentView === 'services' ? 'nav-button-active' : ''}`} onClick={onOpenServices}>
+              Услуги
+            </button>
+            <button className={`nav-button ${currentView === 'reviews' ? 'nav-button-active' : ''}`} onClick={onOpenReviews}>
+              Отзывы
             </button>
             {user?.isStaff ? (
               <button className={`nav-button ${currentView === 'admin' ? 'nav-button-active' : ''}`} onClick={onOpenAdmin}>
-                Управление каталогом
+                Мастерская
               </button>
             ) : null}
-          </div>
-          <div className="topnav-secondary">
-            <a href="#services">Услуги мастерской</a>
-            <a href="#contacts">Контакты</a>
           </div>
         </nav>
 
@@ -91,9 +102,11 @@ export function Header({
 
       {menuOpen ? (
         <div className="mobile-nav shell">
-          <button onClick={onHome}>Каталог</button>
-          {user?.isStaff ? <button onClick={onOpenAdmin}>Управление каталогом</button> : null}
-          <a href="#collections">Коллекции</a>
+          <button onClick={() => { onHome(); setMenuOpen(false); }}>Главная</button>
+          <button onClick={() => { onOpenCatalog(); setMenuOpen(false); }}>Каталог</button>
+          <button onClick={() => { onOpenServices(); setMenuOpen(false); }}>Услуги</button>
+          <button onClick={() => { onOpenReviews(); setMenuOpen(false); }}>Отзывы</button>
+          {user?.isStaff ? <button onClick={() => { onOpenAdmin(); setMenuOpen(false); }}>Мастерская</button> : null}
           <a href="#contacts">Контакты</a>
         </div>
       ) : null}

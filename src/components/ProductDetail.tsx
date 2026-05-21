@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, Hammer, Scale, X } from 'lucide-react';
-import { OrderModal } from './OrderModal';
+import { ArrowLeft, Clock3, Hammer, Scale, X } from 'lucide-react';
 import type { ExternalLinks, Product } from '../types';
 
 export function ProductDetail({
@@ -14,8 +13,6 @@ export function ProductDetail({
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [orderModalOpen, setOrderModalOpen] = useState(false);
-
   useEffect(() => {
     if (!lightboxOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
@@ -128,28 +125,13 @@ export function ProductDetail({
               <strong>{product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
             </div>
             <div className="detail-actions">
-              {links.yandexForm ? (
-                <button className="cta-button detail-cta" onClick={() => setOrderModalOpen(true)}>
-                  Оформить заказ
-                </button>
-              ) : (
-                <a className="cta-button detail-cta" href={links.telegramOrder} target="_blank" rel="noreferrer">
-                  Связаться для заказа
-                </a>
-              )}
-              {links.vkMessages ? (
-                <a className="ghost-button detail-secondary" href={links.vkMessages} target="_blank" rel="noreferrer">
-                  Написать в ВКонтакте
-                </a>
-              ) : null}
               <a
-                className="icon-button detail-icon-button"
-                href={links.vkCommunity || links.telegramPublic}
+                className="cta-button detail-cta"
+                href={links.vkMessages || links.vkCommunity}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Перейти в сообщество"
               >
-                <ExternalLink size={18} />
+                Связаться для заказа
               </a>
             </div>
           </div>
@@ -163,10 +145,6 @@ export function ProductDetail({
 
         </div>
       </div>
-
-      {orderModalOpen && links.yandexForm ? (
-        <OrderModal yandexFormUrl={links.yandexForm} onClose={() => setOrderModalOpen(false)} />
-      ) : null}
 
     </section>
   );

@@ -1051,6 +1051,8 @@ function ApprovalsTab() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -1059,6 +1061,7 @@ function ApprovalsTab() {
     ]).then(([a, p]) => {
       setApprovals(a);
       setProducts(p);
+      if (a.length > 0) setSelectedId(a[0].user_id);
       setLoading(false);
     });
   }, []);
@@ -1091,45 +1094,132 @@ function ApprovalsTab() {
 
   if (loading) return <p style={{ color: 'var(--text-muted)', padding: 32 }}>Загрузка...</p>;
 
+  const entry = approvals.find(a => a.user_id === selectedId) ?? null;
+  const approvedIds = new Set(entry?.approved_product_ids ?? []);
+
+  const q = search.trim().toLowerCase();
+  const searchResults = q
+    ? products.filter(p => p.name.toLowerCase().includes(q) && !approvedIds.has(p.id as unknown as number))
+    : [];
+  const approvedProducts = products.filter(p => approvedIds.has(p.id as unknown as number));
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>
-        Управление допусками мастеров к изготовлению предметов. Мастер увидит задачу в стеке только если у него есть допуск к данному предмету.
-      </p>
-      {approvals.map(entry => (
-        <div key={entry.user_id} className="secondary-card" style={{ padding: '16px 20px' }}>
-          <h3 style={{ margin: '0 0 14px', fontSize: 15 }}>{entry.fullName}</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {products.map(p => {
-              const approved = entry.approved_product_ids.includes(p.id as unknown as number);
-              const key = `${entry.user_id}-${p.id}`;
-              const busy = saving === key;
-              return (
-                <button
-                  key={p.id}
-                  disabled={busy}
-                  onClick={() => toggle(entry.user_id, p.id as unknown as number, approved)}
-                  style={{
-                    padding: '5px 12px', fontSize: 12, fontWeight: 600, borderRadius: 20,
-                    border: `1px solid ${approved ? 'rgba(74,222,128,0.5)' : 'var(--border)'}`,
-                    background: approved ? 'rgba(74,222,128,0.18)' : 'var(--bg-panel-soft)',
-                    color: approved ? '#86efac' : 'var(--text-muted)',
-                    cursor: busy ? 'wait' : 'pointer',
-                    opacity: busy ? 0.7 : 1,
-                  }}
-                >
-                  {approved ? '✓ ' : ''}{p.name}
-                </button>
-              );
-            })}
-            {products.length === 0 && (
-              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Нет предметов в каталоге</span>
-            )}
+    <div style={{ display: 'flex', gap: 20, minHeight: 400 }}>
+
+      {/* ── Left: master list ── */}
+      <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>Мастера</p>
+        {approvals.map(a => (
+          <button
+            key={a.user_id}
+            onClick={() => { setSelectedId(a.user_id); setSearch(''); }}
+            style={{
+              textAlign: 'left', padding: '10px 14px', borderRadius: 8, border: 'none',
+              background: a.user_id === selectedId ? 'var(--accent)' : 'var(--bg-panel-soft)',
+              color: a.user_id === selectedId ? '#fff' : 'var(--text-main)',
+              cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            }}
+          >
+            <div>{a.fullName}</div>
+            <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 400, marginTop: 2 }}>
+              {a.approved_product_ids.length} допусков
+            </div>
+          </button>
+        ))}
+        {approvals.length === 0 && (
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Нет сотрудников</p>
+        )}
+      </div>
+
+      {/* ── Right: approvals panel ── */}
+      {entry && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Search */}
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Найти предмет и добавить допуск..."
+              style={{
+                width: '100%', padding: '9px 12px 9px 34px', borderRadius: 8,
+                border: '1px solid var(--border)', background: 'var(--bg-panel-soft)',
+                color: 'var(--text-main)', fontSize: 13, boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Search results — products not yet approved */}
+          {q && (
+            <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
+              {searchResults.length === 0
+                ? <p style={{ padding: '12px 16px', margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>
+                    {products.filter(p => p.name.toLowerCase().includes(q)).length === 0
+                      ? 'Предмет не найден'
+                      : 'Все найденные предметы уже добавлены'}
+                  </p>
+                : searchResults.map(p => {
+                    const key = `${entry.user_id}-${p.id}`;
+                    const busy = saving === key;
+                    return (
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+                        <div>
+                          <span style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>{p.category}</span>
+                        </div>
+                        <button
+                          disabled={busy}
+                          onClick={() => toggle(entry.user_id, p.id as unknown as number, false)}
+                          style={{
+                            padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 20,
+                            border: '1px solid rgba(74,222,128,0.4)', background: 'rgba(74,222,128,0.12)',
+                            color: '#86efac', cursor: busy ? 'wait' : 'pointer', flexShrink: 0,
+                          }}
+                        >
+                          {busy ? '...' : '+ Добавить'}
+                        </button>
+                      </div>
+                    );
+                  })
+              }
+            </div>
+          )}
+
+          {/* Approved products */}
+          <div>
+            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Допущен к {approvedProducts.length} предметам
+            </p>
+            {approvedProducts.length === 0
+              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Нет допусков — мастер не увидит задач в стеке</p>
+              : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {approvedProducts.map(p => {
+                    const key = `${entry.user_id}-${p.id}`;
+                    const busy = saving === key;
+                    return (
+                      <button
+                        key={p.id}
+                        disabled={busy}
+                        onClick={() => toggle(entry.user_id, p.id as unknown as number, true)}
+                        title="Нажмите, чтобы убрать допуск"
+                        style={{
+                          padding: '5px 10px 5px 12px', fontSize: 12, fontWeight: 600, borderRadius: 20,
+                          border: '1px solid rgba(74,222,128,0.4)', background: 'rgba(74,222,128,0.12)',
+                          color: '#86efac', cursor: busy ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                        }}
+                      >
+                        {p.name}
+                        <X size={11} style={{ opacity: 0.7 }} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )
+            }
           </div>
         </div>
-      ))}
-      {approvals.length === 0 && (
-        <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Нет сотрудников</p>
       )}
     </div>
   );

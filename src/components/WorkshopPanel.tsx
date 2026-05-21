@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle, Clock, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { CheckCircle, Clock, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { apiFetch } from '../api';
 import { statusStyles } from '../data';
 import { ProductFormModal } from './ProductFormModal';
@@ -50,14 +50,6 @@ type DashboardData = {
     days_left: number;
     status: string;
     assigned_to_name: string | null;
-  }>;
-  low_stock: Array<{
-    id: number;
-    name: string;
-    direction: string;
-    stock: number;
-    min_stock: number;
-    unit: string;
   }>;
   my_active_count: number;
 };
@@ -695,29 +687,6 @@ function DashboardTab({ me: _me }: { me: Me }) {
           }
         </div>
 
-        <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertTriangle size={14} /> Мало на складе
-          </div>
-          {data.low_stock.length === 0
-            ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>Все запасы в норме</p>
-            : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <tbody>
-                  {data.low_stock.map(m => (
-                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '10px 18px' }}>
-                        <strong style={{ color: '#fb923c' }}>{m.name}</strong>
-                        <br /><span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{m.direction}</span>
-                      </td>
-                      <td style={{ padding: '10px 18px', whiteSpace: 'nowrap' as const, color: '#fca5a5', fontWeight: 700 }}>
-                        {m.stock} / {m.min_stock} {m.unit}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-          }
-        </div>
       </div>
     </div>
   );

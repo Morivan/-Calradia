@@ -11,7 +11,7 @@ from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
-from django.db.models import Count as _Count, F as _F
+from django.db.models import Count as _Count
 from django.contrib.auth.models import User as _User
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -516,17 +516,6 @@ class WorkshopDashboardView(APIView):
                 ) if order.assigned_to else None,
             })
 
-        low_stock = []
-        for mat in Material.objects.filter(stock__lte=_F('min_stock')).order_by('direction', 'name'):
-            low_stock.append({
-                'id': mat.id,
-                'name': mat.name,
-                'direction': mat.direction,
-                'stock': float(mat.stock),
-                'min_stock': float(mat.min_stock),
-                'unit': mat.unit,
-            })
-
         my_active = (
             Order.objects.filter(status__in=active_statuses, assigned_to=request.user).count()
         )
@@ -534,7 +523,6 @@ class WorkshopDashboardView(APIView):
         return Response({
             'status_counts': status_counts,
             'upcoming_deadlines': upcoming,
-            'low_stock': low_stock,
             'my_active_count': my_active,
         })
 

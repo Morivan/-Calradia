@@ -173,6 +173,7 @@ class ProductSet(TimestampedModel):
     image = models.URLField(max_length=1000, blank=True)
     gallery = models.JSONField(default=list)
     products = models.ManyToManyField(Product, blank=True, related_name='product_sets')
+    price_from = models.PositiveIntegerField(null=True, blank=True)
     badge = models.CharField(max_length=64, blank=True)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
     updated_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
@@ -182,8 +183,11 @@ class ProductSet(TimestampedModel):
         verbose_name = 'Комплект'
         verbose_name_plural = 'Комплекты'
 
-    def price_from_total(self):
+    def price_individual(self):
         return sum(p.price_from for p in self.products.all())
+
+    def price_from_total(self):
+        return self.price_from if self.price_from else self.price_individual()
 
     def __str__(self):
         return self.name

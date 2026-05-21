@@ -73,6 +73,8 @@ type ProductSet = {
   image: string;
   badge: string;
   price_from: number;
+  price_individual: number;
+  discount: number;
   products: Array<{ id: number; name: string; slug: string; price_from: number; image: string }>;
 };
 
@@ -179,6 +181,7 @@ function NewOrderModal({
     client_vk: '',
     product_name: '',
     total: '',
+    advance: '',
     deadline: '',
     notes: '',
     assigned_to_id: String(currentUserId),
@@ -194,21 +197,27 @@ function NewOrderModal({
     }
   }, [orderType]);
 
-  const advance = Math.floor((parseInt(form.total) || 0) / 2);
-
   const set = (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-      setForm(f => ({ ...f, [k]: e.target.value }));
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const val = e.target.value;
+      setForm(f => {
+        const next = { ...f, [k]: val };
+        if (k === 'total') next.advance = String(Math.floor((parseInt(val) || 0) / 2));
+        return next;
+      });
+    };
 
   const handleSelectProduct = (p: Product) => {
     setSelectedProduct(p);
-    setForm(f => ({ ...f, total: String(p.priceFrom) }));
+    const total = p.priceFrom;
+    setForm(f => ({ ...f, total: String(total), advance: String(Math.floor(total / 2)) }));
     setProductSearch('');
   };
 
   const handleSelectSet = (s: ProductSet) => {
     setSelectedSet(s);
-    setForm(f => ({ ...f, total: String(s.price_from) }));
+    const total = s.price_from;
+    setForm(f => ({ ...f, total: String(total), advance: String(Math.floor(total / 2)) }));
     setSetSearch('');
   };
 
@@ -222,6 +231,7 @@ function NewOrderModal({
         client_name: form.client_name,
         client_vk: form.client_vk,
         total: parseInt(form.total) || 0,
+        advance_override: form.advance ? parseInt(form.advance) : null,
         deadline: form.deadline || null,
         notes: form.notes,
         assigned_to_id: form.assigned_to_id ? parseInt(form.assigned_to_id) : null,
@@ -346,7 +356,8 @@ function NewOrderModal({
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <strong>{s.name}</strong>
-                          <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{s.price_from.toLocaleString('ru-RU')} ₽</span>
+                          <span style={{ marginLeft: 8, color: '#166534', fontWeight: 600 }}>{s.price_from.toLocaleString('ru-RU')} ₽</span>
+                          {s.discount > 0 && <span style={{ marginLeft: 6, color: 'var(--text-muted)', fontSize: 11, textDecoration: 'line-through' }}>{s.price_individual.toLocaleString('ru-RU')} ₽</span>}
                         </div>
                       ))}
                     </div>
@@ -375,14 +386,23 @@ function NewOrderModal({
             </label>
           </div>
 
+          {selectedSet && selectedSet.discount > 0 && (
+            <div style={{ padding: '8px 12px', borderRadius: 8, background: '#dcfce7', color: '#166534', fontSize: 13, fontWeight: 600 }}>
+              Скидка комплекта: {selectedSet.discount.toLocaleString('ru-RU')} ₽
+              <span style={{ fontWeight: 400, marginLeft: 8 }}>
+                (по отдельности {selectedSet.price_individual.toLocaleString('ru-RU')} ₽)
+              </span>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
             <label className="product-form-field">
               <span>Сумма, ₽</span>
-              <input type="number" min="0" value={form.total} onChange={set('total')} />
+              <input type="number" min="0" value={form.total} onChange={set('total')} placeholder="Авто" />
             </label>
             <label className="product-form-field">
-              <span>Аванс (50%)</span>
-              <input type="number" value={advance} readOnly style={{ opacity: 0.7 }} />
+              <span>Аванс, ₽ <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 11 }}>(50% авто)</span></span>
+              <input type="number" min="0" value={form.advance} onChange={set('advance')} placeholder="Авто" />
             </label>
             <label className="product-form-field">
               <span>Дедлайн</span>

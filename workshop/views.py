@@ -969,6 +969,8 @@ class WorkshopUsersView(APIView):
 
 def _set_to_dict(ps) -> dict:
     products = list(ps.products.all())
+    price_individual = sum(p.price_from for p in products)
+    price_set = ps.price_from if ps.price_from else price_individual
     return {
         'id': ps.id,
         'slug': ps.slug,
@@ -978,7 +980,9 @@ def _set_to_dict(ps) -> dict:
         'image': ps.image,
         'gallery': ps.gallery,
         'badge': ps.badge,
-        'price_from': sum(p.price_from for p in products),
+        'price_from': price_set,
+        'price_individual': price_individual,
+        'discount': price_individual - price_set,
         'products': [{'id': p.id, 'name': p.name, 'slug': p.slug, 'price_from': p.price_from, 'image': p.image} for p in products],
     }
 
@@ -994,6 +998,7 @@ class WorkshopSetsView(APIView):
         name = (request.data.get('name') or '').strip()
         if not name:
             return Response({"detail": "Укажите название комплекта."}, status=status.HTTP_400_BAD_REQUEST)
+        price_raw = request.data.get('price_from')
         ps = ProductSet.objects.create(
             slug=_unique_slug(name),
             name=name,
@@ -1002,6 +1007,7 @@ class WorkshopSetsView(APIView):
             image=(request.data.get('image') or '').strip(),
             gallery=request.data.get('gallery') or [],
             badge=(request.data.get('badge') or '').strip(),
+            price_from=int(price_raw) if price_raw else None,
             created_by=request.user,
             updated_by=request.user,
         )
@@ -1027,6 +1033,9 @@ class WorkshopSetDetailView(APIView):
         for field in ('name', 'subtitle', 'description', 'image', 'gallery', 'badge'):
             if field in request.data:
                 setattr(ps, field, request.data[field])
+        if 'price_from' in request.data:
+            v = request.data['price_from']
+            ps.price_from = int(v) if v else None
         if 'product_ids' in request.data:
             ps.products.set(Product.objects.filter(pk__in=request.data['product_ids']))
         ps.updated_by = request.user
@@ -1213,7 +1222,8 @@ class WorkshopOrderCreateView(APIView):
         elif order_type == 'service':
             total = _parse_int(data.get('total'))
 
-        advance = total // 2
+        advance_override = data.get('advance_override')
+        advance = int(advance_override) if advance_override is not None else total // 2
 
         assigned_id = data.get('assigned_to_id') or None
         assigned_user = (

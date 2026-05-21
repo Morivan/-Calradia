@@ -106,22 +106,22 @@ const ORDER_STATUSES = ['Новый', 'В работе', 'Выполнен', 'О
 const CLIENT_STATUSES = ['Потенциальный', 'Действующий', 'Завершён'] as const;
 
 const ORDER_STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  'Новый':    { bg: '#dbeafe', fg: '#1a6fc4' },
-  'В работе': { bg: '#fef9c3', fg: '#854d0e' },
-  'Выполнен': { bg: '#dcfce7', fg: '#166534' },
-  'Отменён':  { bg: '#fee2e2', fg: '#991b1b' },
+  'Новый':    { bg: 'rgba(59,130,246,0.18)',  fg: '#93c5fd' },
+  'В работе': { bg: 'rgba(245,158,11,0.18)',  fg: '#fcd34d' },
+  'Выполнен': { bg: 'rgba(74,222,128,0.18)',  fg: '#86efac' },
+  'Отменён':  { bg: 'rgba(239,68,68,0.18)',   fg: '#fca5a5' },
 };
 
 const CLIENT_STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-  'Потенциальный': { bg: '#f3f4f6', fg: '#374151' },
-  'Действующий':   { bg: '#dbeafe', fg: '#1a6fc4' },
-  'Завершён':      { bg: '#dcfce7', fg: '#166534' },
+  'Потенциальный': { bg: 'rgba(107,114,128,0.18)', fg: '#9ca3af' },
+  'Действующий':   { bg: 'rgba(59,130,246,0.18)',  fg: '#93c5fd' },
+  'Завершён':      { bg: 'rgba(74,222,128,0.18)',  fg: '#86efac' },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function Badge({ text, colors }: { text: string; colors: Record<string, { bg: string; fg: string }> }) {
-  const c = colors[text] ?? { bg: '#f3f4f6', fg: '#374151' };
+  const c = colors[text] ?? { bg: 'rgba(107,114,128,0.18)', fg: '#9ca3af' };
   return (
     <span style={{
       background: c.bg, color: c.fg,
@@ -150,7 +150,7 @@ function fmtDate(iso: string | null) {
 function DeadlinePill({ deadline }: { deadline: string | null }) {
   const days = daysLeft(deadline);
   if (days === null) return null;
-  const color = days < 0 ? '#991b1b' : days <= 3 ? '#dc5a00' : days <= 7 ? '#854d0e' : '#166534';
+  const color = days < 0 ? '#fca5a5' : days <= 3 ? '#fb923c' : days <= 7 ? '#fcd34d' : '#86efac';
   const label = days < 0 ? `просрочен ${-days}д` : days === 0 ? 'сегодня' : `${days}д`;
   return (
     <span style={{ fontSize: 11, fontWeight: 700, color }}>
@@ -356,7 +356,7 @@ function NewOrderModal({
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <strong>{s.name}</strong>
-                          <span style={{ marginLeft: 8, color: '#166534', fontWeight: 600 }}>{s.price_from.toLocaleString('ru-RU')} ₽</span>
+                          <span style={{ marginLeft: 8, color: '#86efac', fontWeight: 600 }}>{s.price_from.toLocaleString('ru-RU')} ₽</span>
                           {s.discount > 0 && <span style={{ marginLeft: 6, color: 'var(--text-muted)', fontSize: 11, textDecoration: 'line-through' }}>{s.price_individual.toLocaleString('ru-RU')} ₽</span>}
                         </div>
                       ))}
@@ -387,7 +387,7 @@ function NewOrderModal({
           </div>
 
           {selectedSet && selectedSet.discount > 0 && (
-            <div style={{ padding: '8px 12px', borderRadius: 8, background: '#dcfce7', color: '#166534', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(74,222,128,0.15)', color: '#86efac', fontSize: 13, fontWeight: 600 }}>
               Скидка комплекта: {selectedSet.discount.toLocaleString('ru-RU')} ₽
               <span style={{ fontWeight: 400, marginLeft: 8 }}>
                 (по отдельности {selectedSet.price_individual.toLocaleString('ru-RU')} ₽)
@@ -651,10 +651,10 @@ function DashboardTab({ me: _me }: { me: Me }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 14 }}>
         {[
-          { label: 'Новых',     key: 'Новый',    fg: '#1a6fc4' },
-          { label: 'В работе',  key: 'В работе', fg: '#854d0e' },
-          { label: 'Выполнено', key: 'Выполнен', fg: '#166534' },
-          { label: 'Отменено',  key: 'Отменён',  fg: '#6b7280' },
+          { label: 'Новых',     key: 'Новый',    fg: '#93c5fd' },
+          { label: 'В работе',  key: 'В работе', fg: '#fcd34d' },
+          { label: 'Выполнено', key: 'Выполнен', fg: '#86efac' },
+          { label: 'Отменено',  key: 'Отменён',  fg: '#9ca3af' },
         ].map(({ label, key, fg }) => (
           <div key={key} className="secondary-card" style={{ padding: '16px 20px' }}>
             <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>{label}</p>
@@ -706,10 +706,10 @@ function DashboardTab({ me: _me }: { me: Me }) {
                   {data.low_stock.map(m => (
                     <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '10px 18px' }}>
-                        <strong style={{ color: '#dc5a00' }}>{m.name}</strong>
+                        <strong style={{ color: '#fb923c' }}>{m.name}</strong>
                         <br /><span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{m.direction}</span>
                       </td>
-                      <td style={{ padding: '10px 18px', whiteSpace: 'nowrap' as const, color: '#991b1b', fontWeight: 700 }}>
+                      <td style={{ padding: '10px 18px', whiteSpace: 'nowrap' as const, color: '#fca5a5', fontWeight: 700 }}>
                         {m.stock} / {m.min_stock} {m.unit}
                       </td>
                     </tr>
@@ -915,7 +915,7 @@ function ClientsTab() {
                 </td>
                 <td style={{ padding: '12px 16px' }}>
                   {c.vk_url
-                    ? <a href={c.vk_url} target="_blank" rel="noopener noreferrer" style={{ color: '#4d7cfe', fontSize: 13 }}>VK ↗</a>
+                    ? <a href={c.vk_url} target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', fontSize: 13 }}>VK ↗</a>
                     : '—'}
                 </td>
                 <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{c.order_count}</td>
@@ -974,9 +974,9 @@ function TasksTab({ me }: { me: Me }) {
   };
 
   const TASK_STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
-    pending: { bg: '#f3f4f6', fg: '#374151' },
-    taken:   { bg: '#fef9c3', fg: '#854d0e' },
-    done:    { bg: '#dcfce7', fg: '#166534' },
+    pending: { bg: 'rgba(107,114,128,0.18)', fg: '#9ca3af' },
+    taken:   { bg: 'rgba(245,158,11,0.18)',  fg: '#fcd34d' },
+    done:    { bg: 'rgba(74,222,128,0.18)',  fg: '#86efac' },
   };
   const TASK_STATUS_LABELS: Record<string, string> = {
     pending: 'Ожидает', taken: 'Взята', done: 'Выполнена',
@@ -1051,7 +1051,7 @@ function TasksTab({ me }: { me: Me }) {
                 {view === 'mine' && task.status === 'taken' && (
                   <button
                     className="cta-button"
-                    style={{ fontSize: 13, padding: '7px 14px', whiteSpace: 'nowrap', background: '#166534', display: 'flex', alignItems: 'center', gap: 6 }}
+                    style={{ fontSize: 13, padding: '7px 14px', whiteSpace: 'nowrap', background: 'rgba(74,222,128,0.2)', color: '#86efac', display: 'flex', alignItems: 'center', gap: 6 }}
                     onClick={() => patchTask(task.id, 'done')}
                   >
                     <CheckCircle size={14} /> Выполнено
@@ -1142,9 +1142,9 @@ function ApprovalsTab() {
                   onClick={() => toggle(entry.user_id, p.id as unknown as number, approved)}
                   style={{
                     padding: '5px 12px', fontSize: 12, fontWeight: 600, borderRadius: 20,
-                    border: `1px solid ${approved ? '#166534' : 'var(--border)'}`,
-                    background: approved ? '#dcfce7' : 'var(--bg-panel-soft)',
-                    color: approved ? '#166534' : 'var(--text-muted)',
+                    border: `1px solid ${approved ? 'rgba(74,222,128,0.5)' : 'var(--border)'}`,
+                    background: approved ? 'rgba(74,222,128,0.18)' : 'var(--bg-panel-soft)',
+                    color: approved ? '#86efac' : 'var(--text-muted)',
                     cursor: busy ? 'wait' : 'pointer',
                     opacity: busy ? 0.7 : 1,
                   }}

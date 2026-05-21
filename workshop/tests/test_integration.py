@@ -50,7 +50,7 @@ class BootstrapIntegrationTests(TestCase):
     def test_bootstrap_links_contains_expected_keys(self):
         response = self.api.get("/api/bootstrap/")
         links = response.json()["links"]
-        for key in ("telegramOrder", "telegramPublic", "vkCommunity", "vkMessages", "yandexForm"):
+        for key in ("telegramOrder", "telegramPublic", "vkCommunity", "vkMessages"):
             self.assertIn(key, links)
 
     def test_bootstrap_uses_db_link_over_settings_default(self):

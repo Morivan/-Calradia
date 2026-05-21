@@ -222,7 +222,6 @@ crontab -e
 | `TELEGRAM_CHANNEL_ID` | ID канала для репостов из VK |
 | `VK_CALLBACK_SECRET` | Секретный ключ Callback API ВКонтакте |
 | `VK_CONFIRMATION_TOKEN` | Строка подтверждения от ВКонтакте |
-| `WEBHOOK_TOKEN` | Токен защиты webhook-эндпоинтов Яндекс.Форм |
 | `EMAIL_HOST` | SMTP-сервер (`smtp.yandex.ru`, `smtp.gmail.com` и др.) |
 | `EMAIL_PORT` | Порт SMTP (обычно `465` для SSL) |
 | `EMAIL_USE_SSL` | `true` для SSL (порт 465) |
@@ -242,13 +241,6 @@ crontab -e
    - Тип событий: `Новая запись на стене`
 4. Прописать `VK_CONFIRMATION_TOKEN` и `VK_CALLBACK_SECRET`.
 
-### Яндекс.Формы → заявки
-
-1. Создать форму в [Яндекс.Формах](https://forms.yandex.ru).
-2. Настроить **Интеграции → HTTP-запрос** (метод `POST`):
-   - URL: `https://your-domain.com/api/webhook/client-order/?token=TOKEN`
-3. Данные из формы автоматически попадут в БД (модели `Client` и `Order`).
-
 ### Допуски мастеров
 
 1. Войти в панель управления под суперадмином.
@@ -262,7 +254,6 @@ crontab -e
 
 | Key | Описание |
 |-----|----------|
-| `yandex_form` | URL Яндекс.Формы для заказа (с `?iframe=1`) |
 | `telegram_order` | Ссылка для связи при заказе |
 | `telegram_public` | Публичный Telegram-канал |
 | `vk_community` | Страница сообщества ВКонтакте |

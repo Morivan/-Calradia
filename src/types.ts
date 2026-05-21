@@ -53,7 +53,6 @@ export interface ExternalLinks {
   telegramPublic: string;
   vkCommunity: string;
   vkMessages: string;
-  yandexForm: string;
 }
 
 export interface BootstrapPayload {

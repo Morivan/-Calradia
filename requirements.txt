@@ -3,4 +3,3 @@ djangorestframework==3.16.0
 django-cors-headers==4.7.0
 requests==2.32.5
 whitenoise[brotli]==6.9.0
-openpyxl==3.1.5

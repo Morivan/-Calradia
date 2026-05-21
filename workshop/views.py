@@ -952,9 +952,15 @@ class WorkshopMaterialDetailView(APIView):
                 mat.stock = float(request.data['stock'])
             except (ValueError, TypeError):
                 return Response({"detail": "Некорректное значение остатка."}, status=status.HTTP_400_BAD_REQUEST)
-        for field in ('name', 'type', 'direction', 'unit', 'supplier', 'notes', 'min_stock', 'price'):
+        for field in ('name', 'type', 'direction', 'unit', 'supplier', 'notes'):
             if field in request.data:
                 setattr(mat, field, request.data[field])
+        for field in ('min_stock', 'price'):
+            if field in request.data:
+                try:
+                    setattr(mat, field, float(request.data[field]) if request.data[field] not in (None, '') else None)
+                except (ValueError, TypeError):
+                    return Response({"detail": f"Некорректное значение поля {field}."}, status=status.HTTP_400_BAD_REQUEST)
         mat.save()
         return Response(_material_to_dict(mat))
 
@@ -1004,6 +1010,10 @@ class WorkshopSetsView(APIView):
         if not name:
             return Response({"detail": "Укажите название комплекта."}, status=status.HTTP_400_BAD_REQUEST)
         price_raw = request.data.get('price_from')
+        try:
+            price_from = int(price_raw) if price_raw else None
+        except (ValueError, TypeError):
+            return Response({"detail": "Некорректное значение цены."}, status=status.HTTP_400_BAD_REQUEST)
         ps = ProductSet.objects.create(
             slug=_unique_slug(name),
             name=name,
@@ -1012,7 +1022,7 @@ class WorkshopSetsView(APIView):
             image=(request.data.get('image') or '').strip(),
             gallery=request.data.get('gallery') or [],
             badge=(request.data.get('badge') or '').strip(),
-            price_from=int(price_raw) if price_raw else None,
+            price_from=price_from,
             created_by=request.user,
             updated_by=request.user,
         )
@@ -1040,7 +1050,10 @@ class WorkshopSetDetailView(APIView):
                 setattr(ps, field, request.data[field])
         if 'price_from' in request.data:
             v = request.data['price_from']
-            ps.price_from = int(v) if v else None
+            try:
+                ps.price_from = int(v) if v else None
+            except (ValueError, TypeError):
+                return Response({"detail": "Некорректное значение цены."}, status=status.HTTP_400_BAD_REQUEST)
         if 'product_ids' in request.data:
             ps.products.set(Product.objects.filter(pk__in=request.data['product_ids']))
         ps.updated_by = request.user
@@ -1228,7 +1241,7 @@ class WorkshopOrderCreateView(APIView):
             total = _parse_int(data.get('total'))
 
         advance_override = data.get('advance_override')
-        advance = int(advance_override) if advance_override is not None else total // 2
+        advance = _parse_int(advance_override, total // 2) if advance_override is not None else total // 2
 
         assigned_id = data.get('assigned_to_id') or None
         assigned_user = (

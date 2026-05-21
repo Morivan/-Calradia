@@ -32,7 +32,7 @@ class _AnyFormParser(BaseParser):
             raw = raw.decode(encoding)
         return QueryDict(raw, encoding=encoding)
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
+from .models import Client, Colleague, IntegrationLink, Material, MasterApproval, Order, Product, ProductSet, Review, Task, VKPost
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, repost_to_channel, store_update
 from .services.vk import parse_post
@@ -219,6 +219,7 @@ class AuthView(APIView):
             "username": user.username,
             "fullName": user.get_full_name() or user.username,
             "isStaff": user.is_staff,
+            "isSuperuser": user.is_superuser,
         })
 
 
@@ -237,6 +238,7 @@ class MeView(APIView):
             "username": request.user.username,
             "fullName": request.user.get_full_name() or request.user.username,
             "isStaff": request.user.is_staff,
+            "isSuperuser": request.user.is_superuser,
         })
 
 
@@ -724,6 +726,10 @@ def _order_to_dict(order) -> dict:
             order.assigned_to.get_full_name() or order.assigned_to.username
         ) if order.assigned_to else None,
         'created_at': order.created_at.strftime('%d.%m.%Y'),
+        'order_type': order.order_type if hasattr(order, 'order_type') else 'product',
+        'client_vk': order.client_vk if hasattr(order, 'client_vk') else '',
+        'set_id': order.product_set_id if hasattr(order, 'product_set_id') else None,
+        'set_name': order.product_set.name if hasattr(order, 'product_set') and order.product_set else None,
     }
 
 
@@ -817,7 +823,7 @@ class WorkshopOrdersView(APIView):
     def get(self, request):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
-        qs = Order.objects.select_related('assigned_to').order_by('-created_at')
+        qs = Order.objects.select_related('assigned_to', 'product_set').order_by('-created_at')
         if request.query_params.get('status'):
             qs = qs.filter(status=request.query_params['status'])
         if request.query_params.get('mine') == '1':
@@ -853,7 +859,7 @@ class WorkshopOrderDetailView(APIView):
     def patch(self, request, order_id):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
-        order = Order.objects.select_related('assigned_to').filter(pk=order_id).first()
+        order = Order.objects.select_related('assigned_to', 'product_set').filter(pk=order_id).first()
         if not order:
             return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
         if not request.user.is_superuser and order.assigned_to_id and order.assigned_to_id != request.user.id:
@@ -957,3 +963,278 @@ class WorkshopUsersView(APIView):
             {'id': u.id, 'username': u.username, 'fullName': u.get_full_name() or u.username}
             for u in users
         ])
+
+
+# ── Sets ──────────────────────────────────────────────────────────────────────
+
+def _set_to_dict(ps) -> dict:
+    products = list(ps.products.all())
+    return {
+        'id': ps.id,
+        'slug': ps.slug,
+        'name': ps.name,
+        'subtitle': ps.subtitle,
+        'description': ps.description,
+        'image': ps.image,
+        'gallery': ps.gallery,
+        'badge': ps.badge,
+        'price_from': sum(p.price_from for p in products),
+        'products': [{'id': p.id, 'name': p.name, 'slug': p.slug, 'price_from': p.price_from, 'image': p.image} for p in products],
+    }
+
+
+class WorkshopSetsView(APIView):
+    def get(self, request):
+        sets = ProductSet.objects.prefetch_related('products').all()
+        return Response([_set_to_dict(s) for s in sets])
+
+    def post(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        name = (request.data.get('name') or '').strip()
+        if not name:
+            return Response({"detail": "Укажите название комплекта."}, status=status.HTTP_400_BAD_REQUEST)
+        ps = ProductSet.objects.create(
+            slug=_unique_slug(name),
+            name=name,
+            subtitle=(request.data.get('subtitle') or '').strip(),
+            description=(request.data.get('description') or '').strip(),
+            image=(request.data.get('image') or '').strip(),
+            gallery=request.data.get('gallery') or [],
+            badge=(request.data.get('badge') or '').strip(),
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        product_ids = request.data.get('product_ids') or []
+        if product_ids:
+            ps.products.set(Product.objects.filter(pk__in=product_ids))
+        return Response(_set_to_dict(ps), status=status.HTTP_201_CREATED)
+
+
+class WorkshopSetDetailView(APIView):
+    def get(self, request, set_id):
+        ps = ProductSet.objects.prefetch_related('products').filter(pk=set_id).first()
+        if not ps:
+            return Response({"detail": "Комплект не найден."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(_set_to_dict(ps))
+
+    def patch(self, request, set_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        ps = ProductSet.objects.prefetch_related('products').filter(pk=set_id).first()
+        if not ps:
+            return Response({"detail": "Комплект не найден."}, status=status.HTTP_404_NOT_FOUND)
+        for field in ('name', 'subtitle', 'description', 'image', 'gallery', 'badge'):
+            if field in request.data:
+                setattr(ps, field, request.data[field])
+        if 'product_ids' in request.data:
+            ps.products.set(Product.objects.filter(pk__in=request.data['product_ids']))
+        ps.updated_by = request.user
+        ps.save()
+        return Response(_set_to_dict(ps))
+
+    def delete(self, request, set_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        ps = ProductSet.objects.filter(pk=set_id).first()
+        if not ps:
+            return Response({"detail": "Комплект не найден."}, status=status.HTTP_404_NOT_FOUND)
+        ps.delete()
+        return Response({"ok": True})
+
+
+# ── Tasks ─────────────────────────────────────────────────────────────────────
+
+def _task_to_dict(task) -> dict:
+    return {
+        'id': task.id,
+        'order_id': task.order_id,
+        'order_client': task.order.client_name,
+        'order_deadline': task.order.deadline.isoformat() if task.order.deadline else None,
+        'product_id': task.product_id,
+        'product_name': task.product_name or (task.product.name if task.product else '—'),
+        'product_image': task.product.image if task.product else '',
+        'status': task.status,
+        'assigned_to_id': task.assigned_to_id,
+        'assigned_to_name': (task.assigned_to.get_full_name() or task.assigned_to.username) if task.assigned_to else None,
+        'notes': task.notes,
+        'created_at': task.created_at.strftime('%d.%m.%Y'),
+    }
+
+
+def _create_tasks_for_order(order: Order):
+    if order.order_type == 'set' and order.product_set_id:
+        ps = ProductSet.objects.prefetch_related('products').filter(pk=order.product_set_id).first()
+        if ps:
+            for product in ps.products.all():
+                Task.objects.create(
+                    order=order,
+                    product=product,
+                    product_name=product.name,
+                )
+    elif order.order_type == 'product' and order.product_id:
+        product = order.product
+        Task.objects.create(
+            order=order,
+            product=product,
+            product_name=product.name if product else order.product_name,
+        )
+    elif order.order_type == 'service' or order.product_name:
+        Task.objects.create(
+            order=order,
+            product=None,
+            product_name=order.product_name,
+        )
+
+
+class WorkshopTasksView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        view = request.query_params.get('view', 'stack')
+        qs = Task.objects.select_related('order', 'product', 'assigned_to')
+        if view == 'stack':
+            qs = qs.filter(status=Task.Status.PENDING)
+            approved_product_ids = list(
+                MasterApproval.objects.filter(master=request.user).values_list('product_id', flat=True)
+            )
+            qs = qs.filter(product_id__in=approved_product_ids)
+        elif view == 'mine':
+            qs = qs.filter(assigned_to=request.user).exclude(status=Task.Status.DONE)
+        elif view == 'all' and request.user.is_superuser:
+            pass
+        else:
+            qs = qs.filter(assigned_to=request.user)
+        return Response([_task_to_dict(t) for t in qs])
+
+
+class WorkshopTaskDetailView(APIView):
+    def patch(self, request, task_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        task = Task.objects.select_related('order', 'product', 'assigned_to').filter(pk=task_id).first()
+        if not task:
+            return Response({"detail": "Задача не найдена."}, status=status.HTTP_404_NOT_FOUND)
+        action = request.data.get('action')
+        if action == 'take':
+            if task.status != Task.Status.PENDING:
+                return Response({"detail": "Задача уже взята."}, status=status.HTTP_400_BAD_REQUEST)
+            approved = MasterApproval.objects.filter(master=request.user, product=task.product).exists()
+            if not approved and not request.user.is_superuser:
+                return Response({"detail": "Нет допуска к этому предмету."}, status=status.HTTP_403_FORBIDDEN)
+            task.status = Task.Status.TAKEN
+            task.assigned_to = request.user
+            task.save()
+        elif action == 'done':
+            if task.assigned_to != request.user and not request.user.is_superuser:
+                return Response({"detail": "Нельзя закрыть чужую задачу."}, status=status.HTTP_403_FORBIDDEN)
+            task.status = Task.Status.DONE
+            task.save()
+        elif action == 'release':
+            if task.assigned_to == request.user or request.user.is_superuser:
+                task.status = Task.Status.PENDING
+                task.assigned_to = None
+                task.save()
+        else:
+            if 'notes' in request.data:
+                task.notes = request.data['notes']
+                task.save()
+        return Response(_task_to_dict(task))
+
+
+# ── Approvals ─────────────────────────────────────────────────────────────────
+
+class WorkshopApprovalsView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        staff = _User.objects.filter(is_staff=True, is_active=True).order_by('first_name', 'username')
+        result = []
+        for user in staff:
+            approved_ids = list(MasterApproval.objects.filter(master=user).values_list('product_id', flat=True))
+            result.append({
+                'user_id': user.id,
+                'username': user.username,
+                'fullName': user.get_full_name() or user.username,
+                'approved_product_ids': approved_ids,
+            })
+        return Response(result)
+
+    def post(self, request):
+        if not request.user.is_superuser:
+            return Response({"detail": "Только администратор."}, status=status.HTTP_403_FORBIDDEN)
+        master_id = request.data.get('master_id')
+        product_id = request.data.get('product_id')
+        action = request.data.get('action', 'add')
+        master = _User.objects.filter(pk=master_id, is_staff=True).first()
+        product = Product.objects.filter(pk=product_id).first()
+        if not master or not product:
+            return Response({"detail": "Мастер или предмет не найден."}, status=status.HTTP_404_NOT_FOUND)
+        if action == 'add':
+            MasterApproval.objects.get_or_create(master=master, product=product)
+        elif action == 'remove':
+            MasterApproval.objects.filter(master=master, product=product).delete()
+        return Response({"ok": True})
+
+
+# ── Updated Order creation (with task auto-creation) ──────────────────────────
+
+class WorkshopOrderCreateView(APIView):
+    def post(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        order_type = data.get('order_type', 'product')
+        client_name = (data.get('client_name') or '').strip()
+        if not client_name:
+            return Response({"detail": "Укажите имя клиента."}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = None
+        product_set = None
+        product_name = (data.get('product_name') or '').strip()
+        total = _parse_int(data.get('total'))
+
+        if order_type == 'product':
+            pid = data.get('product_id')
+            if pid:
+                product = Product.objects.filter(pk=pid).first()
+                if product:
+                    product_name = product.name
+                    if not total:
+                        total = product.price_from
+        elif order_type == 'set':
+            sid = data.get('set_id')
+            if sid:
+                product_set = ProductSet.objects.prefetch_related('products').filter(pk=sid).first()
+                if product_set:
+                    product_name = product_set.name
+                    if not total:
+                        total = product_set.price_from_total()
+        elif order_type == 'service':
+            total = _parse_int(data.get('total'))
+
+        advance = total // 2
+
+        assigned_id = data.get('assigned_to_id') or None
+        assigned_user = (
+            _User.objects.filter(pk=assigned_id, is_staff=True).first()
+            if assigned_id else None
+        ) or request.user
+
+        order = Order.objects.create(
+            client_name=client_name,
+            client_vk=(data.get('client_vk') or '').strip(),
+            order_type=order_type,
+            product=product,
+            product_set=product_set,
+            product_name=product_name,
+            configuration=(data.get('configuration') or '').strip(),
+            status=Order.Status.NEW,
+            deadline=_parse_deadline(data.get('deadline')),
+            total=total,
+            advance=advance,
+            notes=(data.get('notes') or '').strip(),
+            assigned_to=assigned_user,
+        )
+        _create_tasks_for_order(order)
+        return Response(_order_to_dict(order), status=status.HTTP_201_CREATED)

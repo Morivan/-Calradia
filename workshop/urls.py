@@ -8,6 +8,8 @@ from .views import (
     VKPostsView, WorkshopDashboardView, WorkshopOrdersView, WorkshopOrderDetailView,
     WorkshopClientsView, WorkshopClientDetailView, WorkshopMaterialsView,
     WorkshopMaterialDetailView, WorkshopUsersView,
+    WorkshopSetsView, WorkshopSetDetailView, WorkshopTasksView, WorkshopTaskDetailView,
+    WorkshopApprovalsView, WorkshopOrderCreateView,
 )
 
 urlpatterns = [
@@ -36,4 +38,10 @@ urlpatterns = [
     path("workshop/materials/", WorkshopMaterialsView.as_view(), name="workshop-materials"),
     path("workshop/materials/<int:material_id>/", WorkshopMaterialDetailView.as_view(), name="workshop-material-detail"),
     path("workshop/users/", WorkshopUsersView.as_view(), name="workshop-users"),
+    path("workshop/sets/", WorkshopSetsView.as_view(), name="workshop-sets"),
+    path("workshop/sets/<int:set_id>/", WorkshopSetDetailView.as_view(), name="workshop-set-detail"),
+    path("workshop/tasks/", WorkshopTasksView.as_view(), name="workshop-tasks"),
+    path("workshop/tasks/<int:task_id>/", WorkshopTaskDetailView.as_view(), name="workshop-task-detail"),
+    path("workshop/approvals/", WorkshopApprovalsView.as_view(), name="workshop-approvals"),
+    path("workshop/orders/create/", WorkshopOrderCreateView.as_view(), name="workshop-order-create"),
 ]

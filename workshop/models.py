@@ -99,6 +99,16 @@ class Order(TimestampedModel):
     total = models.PositiveIntegerField(default=0)
     advance = models.PositiveIntegerField(default=0)
     notes = models.TextField(blank=True)
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_orders')
+    client_vk = models.CharField(max_length=255, blank=True)
+    order_type = models.CharField(
+        max_length=16,
+        choices=[('product', 'Предмет'), ('set', 'Комплект'), ('service', 'Услуга')],
+        default='product',
+    )
+    product_set = models.ForeignKey(
+        'ProductSet', null=True, blank=True, on_delete=models.SET_NULL, related_name='orders'
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -153,6 +163,66 @@ class Colleague(TimestampedModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class ProductSet(TimestampedModel):
+    slug = models.SlugField(unique=True)
+    name = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    image = models.URLField(max_length=1000, blank=True)
+    gallery = models.JSONField(default=list)
+    products = models.ManyToManyField(Product, blank=True, related_name='product_sets')
+    badge = models.CharField(max_length=64, blank=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    updated_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Комплект'
+        verbose_name_plural = 'Комплекты'
+
+    def price_from_total(self):
+        return sum(p.price_from for p in self.products.all())
+
+    def __str__(self):
+        return self.name
+
+
+class MasterApproval(models.Model):
+    master = models.ForeignKey(User, on_delete=models.CASCADE, related_name='approvals')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='approved_masters')
+
+    class Meta:
+        unique_together = ('master', 'product')
+        verbose_name = 'Допуск мастера'
+        verbose_name_plural = 'Допуски мастеров'
+
+    def __str__(self):
+        return f"{self.master} → {self.product}"
+
+
+class Task(TimestampedModel):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Ожидает'
+        TAKEN = 'taken', 'Взята'
+        DONE = 'done', 'Выполнена'
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tasks')
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
+    product_name = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Задача'
+        verbose_name_plural = 'Задачи'
+
+    def __str__(self):
+        name = self.product_name or (self.product.name if self.product else '—')
+        return f"#{self.id}: {name}"
 
 
 class VKPost(models.Model):

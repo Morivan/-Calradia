@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review
+from .models import Client, Colleague, IntegrationLink, MasterApproval, Material, Order, Product, ProductSet, Review, Task
 
 
 @admin.register(Product)
@@ -69,3 +69,22 @@ class ColleagueAdmin(admin.ModelAdmin):
     list_filter = ("direction",)
     search_fields = ("name", "specialization")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(ProductSet)
+class ProductSetAdmin(admin.ModelAdmin):
+    list_display = ('name', 'subtitle', 'badge')
+    search_fields = ('name',)
+    filter_horizontal = ('products',)
+
+
+@admin.register(MasterApproval)
+class MasterApprovalAdmin(admin.ModelAdmin):
+    list_display = ('master', 'product')
+    list_filter = ('master',)
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'order', 'status', 'assigned_to', 'created_at')
+    list_filter = ('status', 'assigned_to')

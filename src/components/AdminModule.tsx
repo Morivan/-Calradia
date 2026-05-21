@@ -3,7 +3,7 @@ import { apiFetch } from '../api';
 import type { Product } from '../types';
 import { WorkshopPanel } from './WorkshopPanel';
 
-type Me = { id: number; username: string; fullName: string; isStaff: boolean } | null;
+type Me = { id: number; username: string; fullName: string; isStaff: boolean; isSuperuser?: boolean } | null;
 
 function LoginForm({ onLogin }: { onLogin: (me: Me) => void }) {
   const [username, setUsername] = useState('');

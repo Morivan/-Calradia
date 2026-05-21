@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Clock, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { AlertTriangle, CheckCircle, Clock, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { apiFetch } from '../api';
 import { statusStyles } from '../data';
 import { ProductFormModal } from './ProductFormModal';
@@ -22,6 +22,10 @@ type OrderRecord = {
   assigned_to_id: number | null;
   assigned_to_name: string | null;
   created_at: string;
+  order_type: string;
+  client_vk: string;
+  set_id: number | null;
+  set_name: string | null;
 };
 
 type ClientRecord = {
@@ -32,20 +36,6 @@ type ClientRecord = {
   notes: string;
   order_count: number;
   created_at: string;
-};
-
-type MaterialRecord = {
-  id: number;
-  name: string;
-  type: string;
-  direction: string;
-  unit: string;
-  price: number | null;
-  stock: number;
-  min_stock: number;
-  supplier: string;
-  notes: string;
-  low_stock: boolean;
 };
 
 type StaffUser = { id: number; username: string; fullName: string };
@@ -72,13 +62,46 @@ type DashboardData = {
   my_active_count: number;
 };
 
-type Me = { id: number; username: string; fullName: string; isStaff: boolean };
+type Me = { id: number; username: string; fullName: string; isStaff: boolean; isSuperuser?: boolean };
+
+type ProductSet = {
+  id: number;
+  slug: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  badge: string;
+  price_from: number;
+  products: Array<{ id: number; name: string; slug: string; price_from: number; image: string }>;
+};
+
+type TaskRecord = {
+  id: number;
+  order_id: number;
+  order_client: string;
+  order_deadline: string | null;
+  product_id: number | null;
+  product_name: string;
+  product_image: string;
+  status: string;
+  assigned_to_id: number | null;
+  assigned_to_name: string | null;
+  notes: string;
+  created_at: string;
+};
+
+type ApprovalEntry = {
+  user_id: number;
+  username: string;
+  fullName: string;
+  approved_product_ids: number[];
+};
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ORDER_STATUSES = ['Новый', 'В работе', 'Выполнен', 'Отменён'] as const;
 const CLIENT_STATUSES = ['Потенциальный', 'Действующий', 'Завершён'] as const;
-const DIRECTIONS = ['Дерево', 'Плечи', 'Железо', 'Броня'] as const;
 
 const ORDER_STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   'Новый':    { bg: '#dbeafe', fg: '#1a6fc4' },
@@ -134,18 +157,276 @@ function DeadlinePill({ deadline }: { deadline: string | null }) {
   );
 }
 
-// ── Order Form Modal ──────────────────────────────────────────────────────────
+// ── New Order Modal ───────────────────────────────────────────────────────────
 
-function OrderFormModal({
-  order, staffUsers, currentUserId, onClose, onSaved,
+function NewOrderModal({
+  staffUsers, currentUserId, onClose, onSaved,
 }: {
-  order: Partial<OrderRecord> | null;
   staffUsers: StaffUser[];
   currentUserId: number;
   onClose: () => void;
   onSaved: (o: OrderRecord) => void;
 }) {
-  const isNew = !order?.id;
+  const [orderType, setOrderType] = useState<'product' | 'set' | 'service'>('product');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sets, setSets] = useState<ProductSet[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [setSearch, setSetSearch] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedSet, setSelectedSet] = useState<ProductSet | null>(null);
+  const [form, setForm] = useState({
+    client_name: '',
+    client_vk: '',
+    product_name: '',
+    total: '',
+    deadline: '',
+    notes: '',
+    assigned_to_id: String(currentUserId),
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (orderType === 'product') {
+      apiFetch('/api/catalog/products/').then(r => r.ok ? r.json() : []).then(setProducts);
+    } else if (orderType === 'set') {
+      apiFetch('/api/workshop/sets/').then(r => r.ok ? r.json() : []).then(setSets);
+    }
+  }, [orderType]);
+
+  const advance = Math.floor((parseInt(form.total) || 0) / 2);
+
+  const set = (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSelectProduct = (p: Product) => {
+    setSelectedProduct(p);
+    setForm(f => ({ ...f, total: String(p.priceFrom) }));
+    setProductSearch('');
+  };
+
+  const handleSelectSet = (s: ProductSet) => {
+    setSelectedSet(s);
+    setForm(f => ({ ...f, total: String(s.price_from) }));
+    setSetSearch('');
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const body: Record<string, unknown> = {
+        order_type: orderType,
+        client_name: form.client_name,
+        client_vk: form.client_vk,
+        total: parseInt(form.total) || 0,
+        deadline: form.deadline || null,
+        notes: form.notes,
+        assigned_to_id: form.assigned_to_id ? parseInt(form.assigned_to_id) : null,
+      };
+      if (orderType === 'product' && selectedProduct) {
+        body.product_id = selectedProduct.id;
+      } else if (orderType === 'set' && selectedSet) {
+        body.set_id = selectedSet.id;
+      } else if (orderType === 'service') {
+        body.product_name = form.product_name;
+      }
+      const resp = await apiFetch('/api/workshop/orders/create/', {
+        method: 'POST', body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { setError(data.detail ?? 'Ошибка сохранения.'); return; }
+      onSaved(data as OrderRecord);
+    } catch {
+      setError('Нет связи с сервером.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
+  const filteredSets = sets.filter(s =>
+    s.name.toLowerCase().includes(setSearch.toLowerCase())
+  );
+
+  return (
+    <div className="ws-modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="ws-modal-box" style={{ maxWidth: 560 }}>
+        <div className="ws-modal-header">
+          <h2 style={{ margin: 0, fontSize: 18 }}>Новый заказ</h2>
+          <button className="icon-button" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Order type selector */}
+          <div>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Тип заказа</span>
+            <div style={{ display: 'flex', gap: 0, background: 'var(--bg-panel-soft)', borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden' }}>
+              {(['product', 'set', 'service'] as const).map((t, i) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setOrderType(t); setSelectedProduct(null); setSelectedSet(null); setForm(f => ({ ...f, total: '' })); }}
+                  style={{
+                    flex: 1, padding: '8px 0', fontSize: 13, fontWeight: 600,
+                    background: orderType === t ? 'var(--accent)' : 'transparent',
+                    color: orderType === t ? '#fff' : 'var(--text-muted)',
+                    cursor: 'pointer', border: 'none',
+                    borderLeft: i > 0 ? '1px solid var(--border)' : 'none',
+                  }}
+                >
+                  {t === 'product' ? 'Предмет' : t === 'set' ? 'Комплект' : 'Услуга'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product selector */}
+          {orderType === 'product' && (
+            <div>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Предмет</span>
+              {selectedProduct ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <span style={{ flex: 1, fontSize: 14 }}>{selectedProduct.name}</span>
+                  <button type="button" className="icon-button" onClick={() => { setSelectedProduct(null); setForm(f => ({ ...f, total: '' })); }}><X size={14} /></button>
+                </div>
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <input
+                    placeholder="Поиск предмета..."
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-main)', outline: 'none' }}
+                  />
+                  {productSearch && filteredProducts.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 200, overflowY: 'auto', marginTop: 2 }}>
+                      {filteredProducts.slice(0, 10).map(p => (
+                        <div key={p.id} onClick={() => handleSelectProduct(p)}
+                          style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--border)' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-panel-soft)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <strong>{p.name}</strong>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{p.priceFrom.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Set selector */}
+          {orderType === 'set' && (
+            <div>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Комплект</span>
+              {selectedSet ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <span style={{ flex: 1, fontSize: 14 }}>{selectedSet.name}</span>
+                  <button type="button" className="icon-button" onClick={() => { setSelectedSet(null); setForm(f => ({ ...f, total: '' })); }}><X size={14} /></button>
+                </div>
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <input
+                    placeholder="Поиск комплекта..."
+                    value={setSearch}
+                    onChange={e => setSetSearch(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-main)', outline: 'none' }}
+                  />
+                  {setSearch && filteredSets.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 200, overflowY: 'auto', marginTop: 2 }}>
+                      {filteredSets.slice(0, 10).map(s => (
+                        <div key={s.id} onClick={() => handleSelectSet(s)}
+                          style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--border)' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-panel-soft)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <strong>{s.name}</strong>
+                          <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{s.price_from.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Service name */}
+          {orderType === 'service' && (
+            <label className="product-form-field">
+              <span>Название услуги</span>
+              <input value={form.product_name} onChange={set('product_name')} placeholder="Опишите услугу..." />
+            </label>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <label className="product-form-field">
+              <span>Клиент *</span>
+              <input value={form.client_name} onChange={set('client_name')} required />
+            </label>
+            <label className="product-form-field">
+              <span>ВКонтакте клиента</span>
+              <input value={form.client_vk} onChange={set('client_vk')} placeholder="https://vk.com/..." />
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+            <label className="product-form-field">
+              <span>Сумма, ₽</span>
+              <input type="number" min="0" value={form.total} onChange={set('total')} />
+            </label>
+            <label className="product-form-field">
+              <span>Аванс (50%)</span>
+              <input type="number" value={advance} readOnly style={{ opacity: 0.7 }} />
+            </label>
+            <label className="product-form-field">
+              <span>Дедлайн</span>
+              <input type="date" value={form.deadline} onChange={set('deadline')} />
+            </label>
+          </div>
+
+          <label className="product-form-field">
+            <span>Ответственный</span>
+            <select value={form.assigned_to_id} onChange={set('assigned_to_id')}>
+              <option value="">—</option>
+              {staffUsers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+            </select>
+          </label>
+
+          <label className="product-form-field">
+            <span>Примечания</span>
+            <textarea value={form.notes} onChange={set('notes')} rows={2} />
+          </label>
+
+          {error && <p className="form-error">{error}</p>}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button type="button" className="icon-button" style={{ padding: '8px 20px' }} onClick={onClose}>Отмена</button>
+            <button type="submit" className="cta-button" disabled={loading}>
+              {loading ? 'Сохранение...' : 'Создать заказ'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Order Form Modal (edit only) ──────────────────────────────────────────────
+
+function OrderFormModal({
+  order, staffUsers, currentUserId, onClose, onSaved,
+}: {
+  order: Partial<OrderRecord>;
+  staffUsers: StaffUser[];
+  currentUserId: number;
+  onClose: () => void;
+  onSaved: (o: OrderRecord) => void;
+}) {
   const [form, setForm] = useState({
     client_name: order?.client_name ?? '',
     product_name: order?.product_name ?? '',
@@ -175,8 +456,7 @@ function OrderFormModal({
         advance: parseInt(form.advance) || 0,
         assigned_to_id: form.assigned_to_id ? parseInt(form.assigned_to_id) : null,
       };
-      const url = isNew ? '/api/workshop/orders/' : `/api/workshop/orders/${order!.id}/`;
-      const resp = await apiFetch(url, { method: isNew ? 'POST' : 'PATCH', body: JSON.stringify(body) });
+      const resp = await apiFetch(`/api/workshop/orders/${order!.id}/`, { method: 'PATCH', body: JSON.stringify(body) });
       const data = await resp.json();
       if (!resp.ok) { setError(data.detail ?? 'Ошибка сохранения.'); return; }
       onSaved(data as OrderRecord);
@@ -191,7 +471,7 @@ function OrderFormModal({
     <div className="ws-modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="ws-modal-box">
         <div className="ws-modal-header">
-          <h2 style={{ margin: 0, fontSize: 18 }}>{isNew ? 'Новый заказ' : 'Редактировать заказ'}</h2>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Редактировать заказ</h2>
           <button className="icon-button" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -430,7 +710,8 @@ function OrdersTab({ me }: { me: Me }) {
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [mine, setMine] = useState(false);
-  const [editOrder, setEditOrder] = useState<Partial<OrderRecord> | 'new' | undefined>(undefined);
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [editOrder, setEditOrder] = useState<OrderRecord | undefined>(undefined);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -453,6 +734,7 @@ function OrdersTab({ me }: { me: Me }) {
       if (idx >= 0) { const next = [...prev]; next[idx] = o; return next; }
       return [o, ...prev];
     });
+    setShowNewModal(false);
     setEditOrder(undefined);
   };
 
@@ -468,9 +750,17 @@ function OrdersTab({ me }: { me: Me }) {
 
   return (
     <div>
+      {showNewModal && (
+        <NewOrderModal
+          staffUsers={staffUsers}
+          currentUserId={me.id}
+          onClose={() => setShowNewModal(false)}
+          onSaved={handleSaved}
+        />
+      )}
       {editOrder !== undefined && (
         <OrderFormModal
-          order={editOrder === 'new' ? {} : editOrder}
+          order={editOrder}
           staffUsers={staffUsers}
           currentUserId={me.id}
           onClose={() => setEditOrder(undefined)}
@@ -488,7 +778,7 @@ function OrdersTab({ me }: { me: Me }) {
             onClick={() => setMine(true)}>Мои</button>
         </div>
         <button className="cta-button" style={{ marginLeft: 'auto', padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
-          onClick={() => setEditOrder('new')}>
+          onClick={() => setShowNewModal(true)}>
           <Plus size={15} /> Новый заказ
         </button>
       </div>
@@ -627,108 +917,231 @@ function ClientsTab() {
   );
 }
 
-// ── Materials Tab ─────────────────────────────────────────────────────────────
+// ── Tasks Tab ─────────────────────────────────────────────────────────────────
 
-function MaterialsTab() {
-  const [materials, setMaterials] = useState<MaterialRecord[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [stockValue, setStockValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+function TasksTab({ me }: { me: Me }) {
+  const [view, setView] = useState<'stack' | 'mine'>('stack');
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    apiFetch('/api/workshop/materials/').then(r => r.ok ? r.json() : []).then(setMaterials);
-  }, []);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await apiFetch(`/api/workshop/tasks/?view=${view}`);
+      if (r.ok) setTasks(await r.json());
+    } finally {
+      setLoading(false);
+    }
+  }, [view]);
 
-  useEffect(() => {
-    if (editingId !== null) inputRef.current?.focus();
-  }, [editingId]);
+  useEffect(() => { load(); }, [load]);
 
-  const startEdit = (mat: MaterialRecord) => {
-    setEditingId(mat.id);
-    setStockValue(String(mat.stock));
-  };
-
-  const saveStock = async (id: number) => {
-    const val = parseFloat(stockValue);
-    if (!isNaN(val)) {
-      const r = await apiFetch(`/api/workshop/materials/${id}/`, {
-        method: 'PATCH', body: JSON.stringify({ stock: val }),
-      });
-      if (r.ok) {
-        const updated = await r.json() as MaterialRecord;
-        setMaterials(prev => prev.map(m => m.id === id ? updated : m));
+  const patchTask = async (id: number, action: string) => {
+    const r = await apiFetch(`/api/workshop/tasks/${id}/`, {
+      method: 'PATCH', body: JSON.stringify({ action }),
+    });
+    if (r.ok) {
+      const updated = await r.json() as TaskRecord;
+      if (action === 'take') {
+        // remove from stack view after taking
+        setTasks(prev => prev.filter(t => t.id !== updated.id));
+      } else if (action === 'done') {
+        setTasks(prev => prev.filter(t => t.id !== updated.id));
+      } else {
+        setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
       }
     }
-    setEditingId(null);
   };
 
-  const byDir: Record<string, MaterialRecord[]> = {};
-  for (const m of materials) { (byDir[m.direction] ??= []).push(m); }
+  const TASK_STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
+    pending: { bg: '#f3f4f6', fg: '#374151' },
+    taken:   { bg: '#fef9c3', fg: '#854d0e' },
+    done:    { bg: '#dcfce7', fg: '#166534' },
+  };
+  const TASK_STATUS_LABELS: Record<string, string> = {
+    pending: 'Ожидает', taken: 'Взята', done: 'Выполнена',
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', background: 'var(--bg-panel-soft)', borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden' }}>
+          <button
+            style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, background: view === 'stack' ? 'var(--accent)' : 'transparent', color: view === 'stack' ? '#fff' : 'var(--text-muted)', cursor: 'pointer', border: 'none' }}
+            onClick={() => setView('stack')}>Стек задач</button>
+          <button
+            style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, background: view === 'mine' ? 'var(--accent)' : 'transparent', color: view === 'mine' ? '#fff' : 'var(--text-muted)', cursor: 'pointer', border: 'none' }}
+            onClick={() => setView('mine')}>Мои задачи</button>
+        </div>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>
+          {me.fullName}
+        </span>
+      </div>
+
+      {loading && <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '16px 0' }}>Загрузка...</p>}
+
+      {!loading && tasks.length === 0 && (
+        <div className="secondary-card" style={{ padding: '32px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          {view === 'stack'
+            ? 'Нет доступных задач. Обратитесь к администратору для получения допуска к предметам.'
+            : 'У вас нет активных задач.'}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {tasks.map(task => {
+          const sc = TASK_STATUS_COLORS[task.status] ?? TASK_STATUS_COLORS.pending;
+          return (
+            <div key={task.id} className="secondary-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+              {task.product_image && (
+                <img src={task.product_image} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <strong style={{ fontSize: 15 }}>{task.product_name}</strong>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: sc.bg, color: sc.fg }}>
+                    {TASK_STATUS_LABELS[task.status]}
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
+                  Клиент: <strong style={{ color: 'var(--text-main)' }}>{task.order_client}</strong>
+                </div>
+                <DeadlinePill deadline={task.order_deadline} />
+                {task.assigned_to_name && view === 'stack' && (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Исполнитель: {task.assigned_to_name}
+                  </div>
+                )}
+                {task.notes && (
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontStyle: 'italic' }}>
+                    {task.notes}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                {view === 'stack' && task.status === 'pending' && (
+                  <button
+                    className="cta-button"
+                    style={{ fontSize: 13, padding: '7px 14px', whiteSpace: 'nowrap' }}
+                    onClick={() => patchTask(task.id, 'take')}
+                  >
+                    Взять задачу
+                  </button>
+                )}
+                {view === 'mine' && task.status === 'taken' && (
+                  <button
+                    className="cta-button"
+                    style={{ fontSize: 13, padding: '7px 14px', whiteSpace: 'nowrap', background: '#166534', display: 'flex', alignItems: 'center', gap: 6 }}
+                    onClick={() => patchTask(task.id, 'done')}
+                  >
+                    <CheckCircle size={14} /> Выполнено
+                  </button>
+                )}
+                {view === 'mine' && task.status === 'taken' && (
+                  <button
+                    className="icon-button"
+                    style={{ fontSize: 12, padding: '5px 10px' }}
+                    onClick={() => patchTask(task.id, 'release')}
+                  >
+                    Вернуть
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Approvals Tab ─────────────────────────────────────────────────────────────
+
+function ApprovalsTab() {
+  const [approvals, setApprovals] = useState<ApprovalEntry[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      apiFetch('/api/workshop/approvals/').then(r => r.ok ? r.json() : []),
+      apiFetch('/api/catalog/products/').then(r => r.ok ? r.json() : []),
+    ]).then(([a, p]) => {
+      setApprovals(a);
+      setProducts(p);
+      setLoading(false);
+    });
+  }, []);
+
+  const toggle = async (masterId: number, productId: number, currentlyApproved: boolean) => {
+    const key = `${masterId}-${productId}`;
+    setSaving(key);
+    try {
+      const r = await apiFetch('/api/workshop/approvals/', {
+        method: 'POST',
+        body: JSON.stringify({
+          master_id: masterId,
+          product_id: productId,
+          action: currentlyApproved ? 'remove' : 'add',
+        }),
+      });
+      if (r.ok) {
+        setApprovals(prev => prev.map(entry => {
+          if (entry.user_id !== masterId) return entry;
+          const ids = currentlyApproved
+            ? entry.approved_product_ids.filter(id => id !== productId)
+            : [...entry.approved_product_ids, productId];
+          return { ...entry, approved_product_ids: ids };
+        }));
+      }
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  if (loading) return <p style={{ color: 'var(--text-muted)', padding: 32 }}>Загрузка...</p>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {DIRECTIONS.filter(d => byDir[d]?.length).map(dir => (
-        <div key={dir} className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>{dir}</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Наименование', 'Тип', 'Ед.', 'Цена', 'Остаток', 'Мин.', 'Поставщик'].map(h => (
-                  <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {byDir[dir].map(mat => (
-                <tr key={mat.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '10px 16px', fontWeight: 500 }}>{mat.name}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--text-muted)' }}>{mat.type}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--text-muted)' }}>{mat.unit}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--text-muted)' }}>
-                    {mat.price != null ? `${mat.price} ₽` : '—'}
-                  </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    {editingId === mat.id ? (
-                      <input
-                        ref={inputRef}
-                        type="number"
-                        step="0.1"
-                        value={stockValue}
-                        onChange={e => setStockValue(e.target.value)}
-                        onBlur={() => saveStock(mat.id)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') saveStock(mat.id);
-                          if (e.key === 'Escape') setEditingId(null);
-                        }}
-                        style={{ width: 80, padding: '4px 8px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-main)', outline: 'none' }}
-                      />
-                    ) : (
-                      <span
-                        title="Нажмите для редактирования"
-                        onClick={() => startEdit(mat)}
-                        style={{
-                          cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                          display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-                          background: mat.low_stock ? '#fee2e2' : '#dcfce7',
-                          color: mat.low_stock ? '#991b1b' : '#166534',
-                        }}
-                      >{mat.stock}</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 16px', color: 'var(--text-muted)' }}>{mat.min_stock}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--text-muted)', fontSize: 12 }}>{mat.supplier || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>
+        Управление допусками мастеров к изготовлению предметов. Мастер увидит задачу в стеке только если у него есть допуск к данному предмету.
+      </p>
+      {approvals.map(entry => (
+        <div key={entry.user_id} className="secondary-card" style={{ padding: '16px 20px' }}>
+          <h3 style={{ margin: '0 0 14px', fontSize: 15 }}>{entry.fullName}</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {products.map(p => {
+              const approved = entry.approved_product_ids.includes(p.id as unknown as number);
+              const key = `${entry.user_id}-${p.id}`;
+              const busy = saving === key;
+              return (
+                <button
+                  key={p.id}
+                  disabled={busy}
+                  onClick={() => toggle(entry.user_id, p.id as unknown as number, approved)}
+                  style={{
+                    padding: '5px 12px', fontSize: 12, fontWeight: 600, borderRadius: 20,
+                    border: `1px solid ${approved ? '#166534' : 'var(--border)'}`,
+                    background: approved ? '#dcfce7' : 'var(--bg-panel-soft)',
+                    color: approved ? '#166534' : 'var(--text-muted)',
+                    cursor: busy ? 'wait' : 'pointer',
+                    opacity: busy ? 0.7 : 1,
+                  }}
+                >
+                  {approved ? '✓ ' : ''}{p.name}
+                </button>
+              );
+            })}
+            {products.length === 0 && (
+              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Нет предметов в каталоге</span>
+            )}
+          </div>
         </div>
       ))}
-      {materials.length === 0 && (
-        <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 32 }}>Материалов нет. Добавьте через Django Admin.</p>
+      {approvals.length === 0 && (
+        <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Нет сотрудников</p>
       )}
-      <p style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', marginTop: 0 }}>
-        Нажмите на остаток для быстрого редактирования
-      </p>
     </div>
   );
 }
@@ -805,15 +1218,7 @@ function CatalogTab({ products, onRefresh }: { products: Product[]; onRefresh: (
 
 // ── WorkshopPanel (root export) ───────────────────────────────────────────────
 
-type TabId = 'dashboard' | 'orders' | 'clients' | 'materials' | 'catalog';
-
-const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'dashboard', label: 'Сводка' },
-  { id: 'orders',    label: 'Заказы' },
-  { id: 'clients',   label: 'Клиенты' },
-  { id: 'materials', label: 'Материалы' },
-  { id: 'catalog',   label: 'Каталог' },
-];
+type TabId = 'dashboard' | 'orders' | 'clients' | 'tasks' | 'approvals' | 'catalog';
 
 export function WorkshopPanel({
   me, products, onRefresh,
@@ -823,6 +1228,15 @@ export function WorkshopPanel({
   onRefresh: () => void;
 }) {
   const [tab, setTab] = useState<TabId>('dashboard');
+
+  const tabs: Array<{ id: TabId; label: string }> = ([
+    { id: 'dashboard' as TabId, label: 'Сводка' },
+    { id: 'orders' as TabId,    label: 'Заказы' },
+    { id: 'clients' as TabId,   label: 'Клиенты' },
+    { id: 'tasks' as TabId,     label: 'Задачи' },
+    ...(me.isSuperuser ? [{ id: 'approvals' as TabId, label: 'Допуски' }] : []),
+    { id: 'catalog' as TabId,   label: 'Каталог' },
+  ]);
 
   return (
     <section className="admin-page">
@@ -834,7 +1248,7 @@ export function WorkshopPanel({
       </div>
 
       <div className="ws-tabs">
-        {TABS.map(t => (
+        {tabs.map(t => (
           <button
             key={t.id}
             className={`ws-tab${tab === t.id ? ' ws-tab--active' : ''}`}
@@ -847,7 +1261,8 @@ export function WorkshopPanel({
         {tab === 'dashboard' && <DashboardTab me={me} />}
         {tab === 'orders'    && <OrdersTab me={me} />}
         {tab === 'clients'   && <ClientsTab />}
-        {tab === 'materials' && <MaterialsTab />}
+        {tab === 'tasks'     && <TasksTab me={me} />}
+        {tab === 'approvals' && me.isSuperuser && <ApprovalsTab />}
         {tab === 'catalog'   && <CatalogTab products={products} onRefresh={onRefresh} />}
       </div>
     </section>

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (
-    AuthView, BootstrapView, LogoutView, MeView,
+    ApprovalsMeView, AuthView, BootstrapView, LogoutView, MeView,
     NewsPostCreateView, NewsPostDeleteView, ProductDetailView,
     ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView,
     VKPostsView, WorkshopDashboardView, WorkshopOrdersView, WorkshopOrderDetailView,
@@ -36,6 +36,7 @@ urlpatterns = [
     path("workshop/sets/<int:set_id>/", WorkshopSetDetailView.as_view(), name="workshop-set-detail"),
     path("workshop/tasks/", WorkshopTasksView.as_view(), name="workshop-tasks"),
     path("workshop/tasks/<int:task_id>/", WorkshopTaskDetailView.as_view(), name="workshop-task-detail"),
+    path("workshop/approvals/me/", ApprovalsMeView.as_view(), name="workshop-approvals-me"),
     path("workshop/approvals/", WorkshopApprovalsView.as_view(), name="workshop-approvals"),
     path("workshop/orders/create/", WorkshopOrderCreateView.as_view(), name="workshop-order-create"),
 ]

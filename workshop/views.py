@@ -433,6 +433,7 @@ def _order_to_dict(order) -> dict:
         'id': order.id,
         'client_id': order.client_id,
         'client_name': order.client_name,
+        'client_vk': order.client_vk if hasattr(order, 'client_vk') else '',
         'product_name': order.product_name,
         'configuration': order.configuration,
         'status': order.status,
@@ -447,9 +448,18 @@ def _order_to_dict(order) -> dict:
         ) if order.assigned_to else None,
         'created_at': order.created_at.strftime('%d.%m.%Y'),
         'order_type': order.order_type if hasattr(order, 'order_type') else 'product',
-        'client_vk': order.client_vk if hasattr(order, 'client_vk') else '',
         'set_id': order.product_set_id if hasattr(order, 'product_set_id') else None,
         'set_name': order.product_set.name if hasattr(order, 'product_set') and order.product_set else None,
+        'tasks': [
+            {
+                'id': t.id,
+                'product_id': t.product_id,
+                'product_name': t.product_name or '',
+                'status': t.status,
+                'assigned_to_id': t.assigned_to_id,
+            }
+            for t in order.tasks.all()
+        ],
     }
 
 
@@ -531,7 +541,7 @@ class WorkshopOrdersView(APIView):
     def get(self, request):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
-        qs = Order.objects.select_related('assigned_to', 'product_set').order_by('-created_at')
+        qs = Order.objects.select_related('assigned_to', 'product_set').prefetch_related('tasks').order_by('-created_at')
         if request.query_params.get('status'):
             qs = qs.filter(status=request.query_params['status'])
         if request.query_params.get('mine') == '1':
@@ -564,10 +574,18 @@ class WorkshopOrdersView(APIView):
 
 
 class WorkshopOrderDetailView(APIView):
+    def get(self, request, order_id):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        order = Order.objects.select_related('assigned_to', 'product_set').prefetch_related('tasks').filter(pk=order_id).first()
+        if not order:
+            return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(_order_to_dict(order))
+
     def patch(self, request, order_id):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
-        order = Order.objects.select_related('assigned_to', 'product_set').filter(pk=order_id).first()
+        order = Order.objects.select_related('assigned_to', 'product_set').prefetch_related('tasks').filter(pk=order_id).first()
         if not order:
             return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
         if not request.user.is_superuser and order.assigned_to_id and order.assigned_to_id != request.user.id:
@@ -590,7 +608,7 @@ class WorkshopOrderDetailView(APIView):
     def delete(self, request, order_id):
         if not request.user.is_authenticated or not request.user.is_superuser:
             return Response({"detail": "Только администратор может удалять заказы."}, status=status.HTTP_403_FORBIDDEN)
-        order = Order.objects.filter(pk=order_id).first()
+        order = Order.objects.prefetch_related('tasks').filter(pk=order_id).first()
         if not order:
             return Response({"detail": "Заказ не найден."}, status=status.HTTP_404_NOT_FOUND)
         order.delete()
@@ -905,6 +923,14 @@ class WorkshopApprovalsView(APIView):
         elif action == 'remove':
             MasterApproval.objects.filter(master=master, product=product).delete()
         return Response({"ok": True})
+
+
+class ApprovalsMeView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        ids = list(MasterApproval.objects.filter(master=request.user).values_list('product_id', flat=True))
+        return Response({'approved_product_ids': ids})
 
 
 # ── Updated Order creation (with task auto-creation) ──────────────────────────

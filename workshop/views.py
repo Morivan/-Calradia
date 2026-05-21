@@ -148,7 +148,7 @@ class ProductListCreateView(APIView):
         return Response(ProductSerializer(Product.objects.all(), many=True).data)
 
     def post(self, request):
-        if not request.user.is_authenticated:
+        if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
         kwargs = _product_kwargs(request.data)
@@ -177,7 +177,7 @@ class ProductDetailView(APIView):
         return Response(ProductSerializer(product).data)
 
     def patch(self, request, product_id: int):
-        if not request.user.is_authenticated:
+        if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
         product = self.get_product(product_id)
@@ -192,7 +192,7 @@ class ProductDetailView(APIView):
         return Response(ProductSerializer(product).data)
 
     def delete(self, request, product_id: int):
-        if not request.user.is_authenticated:
+        if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
 
         product = self.get_product(product_id)
@@ -516,6 +516,11 @@ class TelegramWebhookView(APIView):
     permission_classes = []
 
     def post(self, request):
+        secret = settings.TELEGRAM_BOT_TOKEN
+        if secret:
+            header = request.META.get("HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN", "")
+            if header and header != secret:
+                return Response({"ok": False}, status=status.HTTP_403_FORBIDDEN)
         client = store_update(request.data)
         return Response({"ok": True, "client": client.id if client else None})
 

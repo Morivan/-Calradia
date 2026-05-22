@@ -1068,7 +1068,6 @@ h1 {
   gap: 12px;
 }
 
-.hero-copy,
 .site-footer {
   border-top: 1px solid rgba(117, 133, 108, 0.25);
   background: rgba(12, 12, 12, 0.88);
@@ -1076,14 +1075,16 @@ h1 {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   padding: 36px 0 48px;
 }
 
 .site-footer h4 {
   margin: 0 0 12px;
-  font-size: 1.7rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .site-footer p,
@@ -1216,6 +1217,7 @@ h1 {
   .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
+    padding: 28px 0 36px;
   }
 
   .topbar-inner {
@@ -1401,8 +1403,9 @@ h1 {
 
 .service-card {
   border-radius: 22px;
-  border: 1px solid rgba(117, 133, 108, 0.25);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(117, 133, 108, 0.3);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;

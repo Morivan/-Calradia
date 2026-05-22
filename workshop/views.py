@@ -29,7 +29,7 @@ class _AnyFormParser(BaseParser):
             raw = raw.decode(encoding)
         return QueryDict(raw, encoding=encoding)
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
+from .models import Client, Colleague, IntegrationLink, Order, Product, Review, VKPost
 from .serializers import IntegrationLinkSerializer, ProductSerializer, ReviewSerializer
 from .services.telegram import TelegramConfigError, repost_to_channel, store_update
 from .services.vk import parse_post
@@ -411,36 +411,6 @@ class OrderWebhookView(APIView):
         )
         return Response({"ok": True, "id": order.id}, status=status.HTTP_201_CREATED)
 
-
-class MaterialWebhookView(APIView):
-    authentication_classes = []
-    permission_classes = []
-
-    def post(self, request):
-        if not _check_webhook_token(request):
-            return Response({"detail": "Неверный токен."}, status=status.HTTP_403_FORBIDDEN)
-        material = Material.objects.create(
-            name=request.data.get("name", "").strip(),
-            type=request.data.get("type", Material.Type.MATERIAL),
-            direction=request.data.get("direction", Material.Direction.IRON),
-            unit=request.data.get("unit", "шт").strip(),
-            price=request.data.get("price") or None,
-            stock=request.data.get("stock", 0) or 0,
-            min_stock=request.data.get("min_stock", 0) or 0,
-            supplier=request.data.get("supplier", "").strip(),
-            notes=request.data.get("notes", "").strip(),
-        )
-        path = getattr(settings, "YANDEX_MATERIALS_TABLE_PATH", "")
-        if path:
-            try:
-                append_row(path, [
-                    material.id, material.name, material.type, material.direction,
-                    material.unit, float(material.price) if material.price else "",
-                    float(material.stock), float(material.min_stock), material.supplier, material.notes,
-                ])
-            except Exception as exc:
-                logger.error("Yandex Disk append error: %s", exc, exc_info=True)
-        return Response({"ok": True, "id": material.id}, status=status.HTTP_201_CREATED)
 
 
 class ColleagueWebhookView(APIView):

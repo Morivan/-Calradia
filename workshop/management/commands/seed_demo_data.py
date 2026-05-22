@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from workshop.models import Client, Colleague, IntegrationLink, Material, Order, Product, Review
+from workshop.models import Client, Colleague, IntegrationLink, Order, Product, Review
 
 
 PRODUCTS = [
@@ -1284,7 +1284,6 @@ class Command(BaseCommand):
             Client.objects.all().delete()
             Product.objects.all().delete()
             IntegrationLink.objects.all().delete()
-            Material.objects.all().delete()
             Colleague.objects.all().delete()
             self.stdout.write("Данные очищены.")
 
@@ -1338,24 +1337,6 @@ class Command(BaseCommand):
                 orders_created += 1
 
         self.stdout.write(f"Заказы: {orders_created} создано.")
-
-        materials_data = [
-            {"name": "Листовая сталь 2 мм", "type": Material.Type.MATERIAL, "direction": Material.Direction.IRON, "unit": "кг", "price": 600, "stock": 40, "min_stock": 10},
-            {"name": "Листовая сталь 1.5 мм", "type": Material.Type.MATERIAL, "direction": Material.Direction.ARMOR, "unit": "кг", "price": 580, "stock": 55, "min_stock": 15},
-            {"name": "Кожа натуральная", "type": Material.Type.MATERIAL, "direction": Material.Direction.ARMOR, "unit": "м²", "price": 800, "stock": 12, "min_stock": 4},
-            {"name": "Кольчужные кольца 8 мм", "type": Material.Type.MATERIAL, "direction": Material.Direction.IRON, "unit": "кг", "price": 1200, "stock": 18, "min_stock": 5},
-            {"name": "Заклёпки стальные 4 мм", "type": Material.Type.CONSUMABLE, "direction": Material.Direction.IRON, "unit": "шт", "price": 3, "stock": 2000, "min_stock": 500},
-            {"name": "Заклёпки латунные 4 мм", "type": Material.Type.CONSUMABLE, "direction": Material.Direction.ARMOR, "unit": "шт", "price": 5, "stock": 1500, "min_stock": 300},
-            {"name": "Полировочная паста", "type": Material.Type.CONSUMABLE, "direction": Material.Direction.ARMOR, "unit": "шт", "price": 350, "stock": 8, "min_stock": 2},
-            {"name": "Воронение (раствор)", "type": Material.Type.CONSUMABLE, "direction": Material.Direction.IRON, "unit": "л", "price": 900, "stock": 3, "min_stock": 1},
-        ]
-        mat_created = 0
-        for data in materials_data:
-            _, was_created = Material.objects.get_or_create(name=data["name"], defaults=data)
-            if was_created:
-                mat_created += 1
-
-        self.stdout.write(f"Материалы: {mat_created} создано.")
 
         colleagues_data = [
             {"name": "Алексей Кузнецов", "direction": Colleague.Direction.IRON, "specialization": "Шлемы и кирасы", "contact": "vk.com/kuznetsov_forge"},

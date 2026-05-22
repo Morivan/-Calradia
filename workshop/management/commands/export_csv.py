@@ -4,7 +4,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from django.core.management.base import BaseCommand
 
-from workshop.models import Client, Colleague, Material, Order, Product
+from workshop.models import Client, Colleague, Order, Product
 
 HEADER_FILL = PatternFill("solid", fgColor="2C2C1E")
 HEADER_FONT = Font(bold=True, color="D1B68C")
@@ -19,7 +19,6 @@ class Command(BaseCommand):
 
         self._export_clients(out_dir)
         self._export_orders(out_dir)
-        self._export_materials(out_dir)
         self._export_colleagues(out_dir)
         self._export_products(out_dir)
 
@@ -74,16 +73,6 @@ class Command(BaseCommand):
             for o in Order.objects.select_related("client", "product").order_by("-created_at")
         ]
         self._write(out_dir / "Заказы.xlsx", headers, rows)
-
-    def _export_materials(self, out_dir: Path) -> None:
-        headers = ["ID", "Название", "Тип", "Направление", "Единица", "Цена",
-                   "Остаток", "Мин. остаток", "Поставщик", "Заметки"]
-        rows = [
-            [m.id, m.name, m.type, m.direction, m.unit,
-             float(m.price) if m.price else "", float(m.stock), float(m.min_stock), m.supplier, m.notes]
-            for m in Material.objects.order_by("direction", "name")
-        ]
-        self._write(out_dir / "Материалы.xlsx", headers, rows)
 
     def _export_colleagues(self, out_dir: Path) -> None:
         headers = ["ID", "Имя", "Направление", "Специализация", "Контакт"]

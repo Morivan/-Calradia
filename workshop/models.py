@@ -112,33 +112,6 @@ class Order(TimestampedModel):
         return f"{self.client_name} — {product_display}"
 
 
-class Material(TimestampedModel):
-    class Type(models.TextChoices):
-        MATERIAL = "Материал", "Материал"
-        CONSUMABLE = "Расходник", "Расходник"
-
-    class Direction(models.TextChoices):
-        WOOD = "Дерево", "Дерево"
-        LIMBS = "Плечи", "Плечи"
-        IRON = "Железо", "Железо"
-        ARMOR = "Броня", "Броня"
-
-    name = models.CharField(max_length=255)
-    type = models.CharField(max_length=32, choices=Type.choices)
-    direction = models.CharField(max_length=32, choices=Direction.choices)
-    unit = models.CharField(max_length=32)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    min_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    supplier = models.CharField(max_length=255, blank=True)
-    notes = models.TextField(blank=True)
-
-    class Meta:
-        ordering = ["direction", "name"]
-
-    def __str__(self) -> str:
-        return self.name
-
 
 class Colleague(TimestampedModel):
     class Direction(models.TextChoices):

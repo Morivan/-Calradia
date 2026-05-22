@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Client, Colleague, IntegrationLink, Material, Order, Product, Review, VKPost
+from .models import Client, Colleague, IntegrationLink, Order, Product, Review, VKPost
 
 
 # ── helpers ────────────────────────────────────────────────────────────────────
@@ -183,21 +183,6 @@ class OrderAdmin(admin.ModelAdmin):
             color,
             f"{balance:,}".replace(",", " "),
         )
-
-
-# ── Material ───────────────────────────────────────────────────────────────────
-
-@admin.register(Material)
-class MaterialAdmin(admin.ModelAdmin):
-    list_display = ("name", "type", "direction", "unit", "price", "stock_display", "min_stock", "supplier")
-    list_filter = ("type", "direction")
-    search_fields = ("name", "supplier", "notes")
-    readonly_fields = ("created_at", "updated_at")
-
-    @admin.display(description="Остаток")
-    def stock_display(self, obj):
-        color = "#991b1b" if obj.stock <= obj.min_stock else "#166534"
-        return format_html('<span style="color:{};font-weight:600">{}</span>', color, obj.stock)
 
 
 # ── Colleague ──────────────────────────────────────────────────────────────────

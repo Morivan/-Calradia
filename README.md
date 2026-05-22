@@ -69,7 +69,6 @@
 | `Order` | Заказ |
 | `VKPost` | Пост из ВКонтакте |
 | `Colleague` | Сотрудник мастерской |
-| `Material` | Материал (справочник) |
 | `IntegrationLink` | Внешние ссылки (VK, Telegram, Яндекс.Форма) |
 
 ## API
@@ -91,7 +90,6 @@
 | `POST` | `/api/integrations/vk/callback/` | Callback API ВКонтакте |
 | `POST` | `/api/webhook/client-order/?token=TOKEN` | Яндекс.Форма: клиент + заказ |
 | `POST` | `/api/webhook/client/?token=TOKEN` | Яндекс.Форма: только клиент |
-| `POST` | `/api/webhook/material/?token=TOKEN` | Яндекс.Форма: новый материал |
 | `POST` | `/api/webhook/colleague/?token=TOKEN` | Яндекс.Форма: новый сотрудник |
 
 ## Локальная разработка

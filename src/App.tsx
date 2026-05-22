@@ -34,7 +34,7 @@ export default function App() {
   });
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, Review[]>>({});
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   const loadBootstrap = async () => {
     try {
@@ -47,8 +47,8 @@ export default function App() {
       if (payload.links) {
         setExternalLinks({ ...defaultLinks, ...payload.links });
       }
-      if (payload.reviewsByProduct) {
-        setReviewsByProduct(payload.reviewsByProduct);
+      if (payload.reviews) {
+        setReviews(payload.reviews);
       }
     } catch (error) {
       console.error('Не удалось загрузить bootstrap-данные', error);
@@ -204,7 +204,7 @@ export default function App() {
         ) : currentView === 'services' ? (
           <ServicesPage onBack={goHome} links={externalLinks} />
         ) : currentView === 'reviews' ? (
-          <ReviewsPage reviewsByProduct={reviewsByProduct} products={catalogProducts} onBack={goHome} />
+          <ReviewsPage reviews={reviews} onBack={goHome} />
         ) : currentView === 'home' && !selectedProduct ? (
           <HomePage onOpenCatalog={goCatalog} onOpenServices={openServices} onOpenReviews={openReviews} />
         ) : selectedProduct ? (

@@ -10,8 +10,9 @@ export interface Review {
   id?: number;
   author: string;
   text: string;
-  rating: number;
   date: string;
+  vk_url?: string;
+  photo_url?: string;
 }
 
 export interface Product {
@@ -57,7 +58,7 @@ export interface ExternalLinks {
 
 export interface BootstrapPayload {
   products: Product[];
-  reviewsByProduct: Record<string, Review[]>;
+  reviews: Review[];
   links: ExternalLinks;
 }
 

@@ -1,4 +1,3 @@
-from collections import defaultdict
 from uuid import uuid4
 import json
 import logging
@@ -75,10 +74,6 @@ class BootstrapView(APIView):
         products_qs = all_products[offset:offset + page_size]
         product_ids = [p.id for p in products_qs]
 
-        reviews_by_product = defaultdict(list)
-        for review in Review.objects.filter(product_id__in=product_ids).select_related("product"):
-            reviews_by_product[str(review.product_id)].append(ReviewSerializer(review).data)
-
         links = {
             item["key"]: item["url"]
             for item in IntegrationLinkSerializer(IntegrationLink.objects.all(), many=True).data
@@ -89,7 +84,7 @@ class BootstrapView(APIView):
             "total": total,
             "page": page,
             "hasNext": (offset + page_size) < total,
-            "reviewsByProduct": reviews_by_product,
+            "reviews": ReviewSerializer(Review.objects.all(), many=True).data,
             "links": {
                 "telegramOrder": links.get("telegram_order", settings.TELEGRAM_PUBLIC_URL),
                 "telegramPublic": links.get("telegram_public", settings.TELEGRAM_PUBLIC_URL),
@@ -105,26 +100,61 @@ class ReviewCreateView(APIView):
         product = Product.objects.filter(pk=product_id).first()
         if not product:
             return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
-
         author = request.data.get("author", "").strip()
         if not author:
             return Response({"detail": "Поле author обязательно."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            rating = int(request.data.get("rating", 5))
-        except (ValueError, TypeError):
-            rating = 5
-        if not (1 <= rating <= 5):
-            return Response({"detail": "Рейтинг должен быть от 1 до 5."}, status=status.HTTP_400_BAD_REQUEST)
-
         review = Review.objects.create(
             product=product,
             author=author,
             text=request.data.get("text", "").strip(),
-            rating=rating,
             review_date=request.data.get("date") or timezone.localtime().strftime("%d.%m.%Y"),
         )
         return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+
+
+class WorkshopReviewsView(APIView):
+    def get(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(ReviewSerializer(Review.objects.all(), many=True).data)
+
+    def post(self, request):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        author = request.data.get("author", "").strip()
+        if not author:
+            return Response({"detail": "Поле author обязательно."}, status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=author,
+            text=request.data.get("text", "").strip(),
+            review_date=request.data.get("review_date", "") or timezone.localtime().strftime("%d.%m.%Y"),
+            vk_url=request.data.get("vk_url", "").strip(),
+            photo_url=request.data.get("photo_url", "").strip(),
+        )
+        return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+
+
+class WorkshopReviewDetailView(APIView):
+    def patch(self, request, review_id: int):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        review = Review.objects.filter(pk=review_id).first()
+        if not review:
+            return Response({"detail": "Отзыв не найден."}, status=status.HTTP_404_NOT_FOUND)
+        for field in ("author", "text", "review_date", "vk_url", "photo_url"):
+            if field in request.data:
+                setattr(review, field, request.data[field])
+        review.save()
+        return Response(ReviewSerializer(review).data)
+
+    def delete(self, request, review_id: int):
+        if not _is_staff(request):
+            return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
+        review = Review.objects.filter(pk=review_id).first()
+        if not review:
+            return Response({"detail": "Отзыв не найден."}, status=status.HTTP_404_NOT_FOUND)
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductListCreateView(APIView):

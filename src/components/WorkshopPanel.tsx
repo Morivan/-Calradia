@@ -1326,9 +1326,187 @@ function CatalogTab({ products, onRefresh }: { products: Product[]; onRefresh: (
   );
 }
 
+// ── Reviews Manage Tab ────────────────────────────────────────────────────────
+
+type ReviewRecord = { id: number; author: string; text: string; date: string; vk_url: string; photo_url: string };
+
+function ReviewsManageTab() {
+  const [reviews, setReviews] = useState<ReviewRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formTarget, setFormTarget] = useState<ReviewRecord | 'new' | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await apiFetch('/api/workshop/reviews/');
+      if (r.ok) setReviews(await r.json());
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Удалить отзыв?')) return;
+    const r = await apiFetch(`/api/workshop/reviews/${id}/`, { method: 'DELETE' });
+    if (r.ok || r.status === 204) setReviews(prev => prev.filter(rv => rv.id !== id));
+  };
+
+  return (
+    <div>
+      {formTarget !== null && (
+        <ReviewFormModal
+          review={formTarget === 'new' ? null : formTarget}
+          onClose={() => setFormTarget(null)}
+          onSaved={(saved) => {
+            if (formTarget === 'new') {
+              setReviews(prev => [saved, ...prev]);
+            } else {
+              setReviews(prev => prev.map(rv => rv.id === saved.id ? saved : rv));
+            }
+            setFormTarget(null);
+          }}
+        />
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+        <button className="cta-button" style={{ padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+          onClick={() => setFormTarget('new')}>
+          <Plus size={15} /> Добавить отзыв
+        </button>
+      </div>
+
+      {loading && <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {reviews.map(rv => (
+          <div key={rv.id} className="secondary-card" style={{ padding: '16px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            {rv.photo_url ? (
+              <img src={rv.photo_url} alt={rv.author} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, background: 'rgba(161,51,51,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--accent)' }}>
+                {rv.author.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+                <strong style={{ fontSize: 14 }}>{rv.author}</strong>
+                {rv.vk_url && (
+                  <a href={rv.vk_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    ВКонтакте ↗
+                  </a>
+                )}
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 'auto' }}>{rv.date}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{rv.text}</p>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button className="icon-button" style={{ padding: '5px 8px' }} onClick={() => setFormTarget(rv)} title="Редактировать">
+                <Pencil size={13} />
+              </button>
+              <button className="icon-button" style={{ padding: '5px 8px', color: '#f87171' }} onClick={() => handleDelete(rv.id)} title="Удалить">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!loading && reviews.length === 0 && (
+        <div className="secondary-card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Отзывов пока нет — добавьте первый.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReviewFormModal({ review, onClose, onSaved }: {
+  review: ReviewRecord | null;
+  onClose: () => void;
+  onSaved: (r: ReviewRecord) => void;
+}) {
+  const [author, setAuthor] = useState(review?.author ?? '');
+  const [text, setText] = useState(review?.text ?? '');
+  const [date, setDate] = useState(review?.date ?? '');
+  const [vkUrl, setVkUrl] = useState(review?.vk_url ?? '');
+  const [photoUrl, setPhotoUrl] = useState(review?.photo_url ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    if (!author.trim()) { setError('Имя клиента обязательно'); return; }
+    setSaving(true);
+    setError('');
+    const body = { author: author.trim(), text: text.trim(), review_date: date.trim(), vk_url: vkUrl.trim(), photo_url: photoUrl.trim() };
+    const r = review
+      ? await apiFetch(`/api/workshop/reviews/${review.id}/`, { method: 'PATCH', body: JSON.stringify(body) })
+      : await apiFetch('/api/workshop/reviews/', { method: 'POST', body: JSON.stringify(body) });
+    setSaving(false);
+    if (r.ok) {
+      onSaved(await r.json());
+    } else {
+      const d = await r.json().catch(() => ({}));
+      setError(d.detail ?? 'Ошибка сохранения');
+    }
+  };
+
+  const fieldStyle: React.CSSProperties = {
+    width: '100%', padding: '9px 12px', borderRadius: 8,
+    border: '1px solid var(--border)', background: 'var(--bg-panel-soft)',
+    color: 'var(--text-main)', fontSize: 13, boxSizing: 'border-box',
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div className="secondary-card" style={{ width: '100%', maxWidth: 520, padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>{review ? 'Редактировать отзыв' : 'Новый отзыв'}</h3>
+          <button className="icon-button" onClick={onClose}><X size={16} /></button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Имя клиента *
+            <input value={author} onChange={e => setAuthor(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="Иван Петров" />
+          </label>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Текст отзыва *
+            <textarea value={text} onChange={e => setText(e.target.value)}
+              style={{ ...fieldStyle, marginTop: 4, minHeight: 100, resize: 'vertical' as const }}
+              placeholder="Слова клиента..." />
+          </label>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Дата (необязательно)
+            <input value={date} onChange={e => setDate(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="01.01.2025" />
+          </label>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Ссылка ВКонтакте (необязательно)
+            <input value={vkUrl} onChange={e => setVkUrl(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="https://vk.com/id..." />
+          </label>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            URL фото (необязательно)
+            <input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="https://..." />
+          </label>
+        </div>
+
+        {error && <p style={{ margin: 0, color: '#f87171', fontSize: 13 }}>{error}</p>}
+
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="icon-button" onClick={onClose}>Отмена</button>
+          <button className="cta-button" onClick={handleSave} disabled={saving}>
+            {saving ? 'Сохранение...' : 'Сохранить'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── WorkshopPanel (root export) ───────────────────────────────────────────────
 
-type TabId = 'dashboard' | 'orders' | 'clients' | 'approvals' | 'catalog';
+type TabId = 'dashboard' | 'orders' | 'clients' | 'approvals' | 'catalog' | 'reviews';
 
 export function WorkshopPanel({
   me, products, onRefresh,
@@ -1352,6 +1530,7 @@ export function WorkshopPanel({
     { id: 'clients' as TabId,   label: 'Клиенты' },
     ...(me.isSuperuser ? [{ id: 'approvals' as TabId, label: 'Допуски' }] : []),
     { id: 'catalog' as TabId,   label: 'Каталог' },
+    { id: 'reviews' as TabId,   label: 'Отзывы' },
   ]);
 
   return (
@@ -1379,6 +1558,7 @@ export function WorkshopPanel({
         {tab === 'clients'   && <ClientsTab />}
         {tab === 'approvals' && me.isSuperuser && <ApprovalsTab />}
         {tab === 'catalog'   && <CatalogTab products={products} onRefresh={onRefresh} />}
+        {tab === 'reviews'   && <ReviewsManageTab />}
       </div>
     </section>
   );

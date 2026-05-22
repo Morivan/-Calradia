@@ -9,6 +9,7 @@ from .views import (
     WorkshopMaterialDetailView, WorkshopUsersView,
     WorkshopSetsView, WorkshopSetDetailView, WorkshopTasksView, WorkshopTaskDetailView,
     WorkshopApprovalsView, WorkshopOrderCreateView,
+    WorkshopReviewsView, WorkshopReviewDetailView,
 )
 
 urlpatterns = [
@@ -39,4 +40,6 @@ urlpatterns = [
     path("workshop/approvals/me/", ApprovalsMeView.as_view(), name="workshop-approvals-me"),
     path("workshop/approvals/", WorkshopApprovalsView.as_view(), name="workshop-approvals"),
     path("workshop/orders/create/", WorkshopOrderCreateView.as_view(), name="workshop-order-create"),
+    path("workshop/reviews/", WorkshopReviewsView.as_view(), name="workshop-reviews"),
+    path("workshop/reviews/<int:review_id>/", WorkshopReviewDetailView.as_view(), name="workshop-review-detail"),
 ]

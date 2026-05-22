@@ -45,11 +45,12 @@ class Product(TimestampedModel):
 
 
 class Review(TimestampedModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
     author = models.CharField(max_length=128)
     text = models.TextField()
-    rating = models.PositiveSmallIntegerField(default=5)
     review_date = models.CharField(max_length=64, blank=True)
+    vk_url = models.CharField(max_length=512, blank=True)
+    photo_url = models.CharField(max_length=1024, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

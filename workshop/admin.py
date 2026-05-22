@@ -13,8 +13,8 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("product", "author", "rating", "review_date")
-    search_fields = ("author", "text", "product__name")
+    list_display = ("author", "review_date", "vk_url")
+    search_fields = ("author", "text")
 
 
 @admin.register(IntegrationLink)

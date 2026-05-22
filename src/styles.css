@@ -504,6 +504,10 @@ h1 {
   font-size: 1.1rem;
 }
 
+.filters > .cta-button {
+  margin-top: 20px;
+}
+
 .text-link {
   width: auto;
   padding: 0;

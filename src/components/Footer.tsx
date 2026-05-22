@@ -1,4 +1,4 @@
-export function Footer() {
+export function Footer({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
   return (
     <footer className="site-footer" id="contacts">
       <div className="shell footer-grid">
@@ -18,6 +18,15 @@ export function Footer() {
         <div>
           <h4>Новости мастерской</h4>
           <p>Следите за обновлениями в нашем <a href="https://vk.com/calradia_band" target="_blank" rel="noreferrer">ВКонтакте</a> и <a href="https://t.me/kalradiaWarBand" target="_blank" rel="noreferrer">Telegram</a>.</p>
+        </div>
+        <div>
+          <h4>Документы</h4>
+          <button
+            onClick={onOpenPrivacy}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit', fontSize: 'inherit', textAlign: 'left', display: 'block', marginBottom: 10 }}
+          >
+            Политика конфиденциальности
+          </button>
         </div>
       </div>
     </footer>

@@ -8,6 +8,7 @@ import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
 import { LoginPage } from './components/LoginPage';
+import { PrivacyPage } from './components/PrivacyPage';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
 import { ReviewsPage } from './components/ReviewsPage';
@@ -152,6 +153,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openPrivacy = () => {
+    setCurrentView('privacy');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const openReviews = () => {
     setCurrentView('reviews');
     setSelectedProduct(null);
@@ -201,6 +209,8 @@ export default function App() {
       <main className="shell page-content">
         {currentView === 'admin' && user?.isStaff ? (
           <AdminModule products={catalogProducts} onRefresh={loadBootstrap} />
+        ) : currentView === 'privacy' ? (
+          <PrivacyPage onBack={goHome} />
         ) : currentView === 'services' ? (
           <ServicesPage onBack={goHome} links={externalLinks} />
         ) : currentView === 'reviews' ? (
@@ -269,7 +279,7 @@ export default function App() {
         </div>
       ) : null}
 
-      <Footer />
+      <Footer onOpenPrivacy={openPrivacy} />
     </div>
   );
 }

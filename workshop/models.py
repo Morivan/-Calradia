@@ -46,7 +46,7 @@ class Product(TimestampedModel):
 
 class Review(TimestampedModel):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
-    author = models.CharField(max_length=128)
+    author = models.CharField(max_length=128, blank=True, default='')
     text = models.TextField()
     review_date = models.CharField(max_length=64, blank=True)
     vk_url = models.CharField(max_length=512, blank=True)

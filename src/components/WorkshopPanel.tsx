@@ -149,10 +149,8 @@ function DeadlinePill({ deadline }: { deadline: string | null }) {
 // ── New Order Modal ───────────────────────────────────────────────────────────
 
 function NewOrderModal({
-  staffUsers, currentUserId, onClose, onSaved,
+  onClose, onSaved,
 }: {
-  staffUsers: StaffUser[];
-  currentUserId: number;
   onClose: () => void;
   onSaved: (o: OrderRecord) => void;
 }) {
@@ -171,7 +169,6 @@ function NewOrderModal({
     advance: '',
     deadline: '',
     notes: '',
-    assigned_to_id: String(currentUserId),
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -221,7 +218,6 @@ function NewOrderModal({
         advance_override: form.advance ? parseInt(form.advance) : null,
         deadline: form.deadline || null,
         notes: form.notes,
-        assigned_to_id: form.assigned_to_id ? parseInt(form.assigned_to_id) : null,
       };
       if (orderType === 'product' && selectedProduct) {
         body.product_id = selectedProduct.id;
@@ -398,14 +394,6 @@ function NewOrderModal({
           </div>
 
           <label className="product-form-field">
-            <span>Ответственный</span>
-            <select value={form.assigned_to_id} onChange={set('assigned_to_id')}>
-              <option value="">—</option>
-              {staffUsers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-            </select>
-          </label>
-
-          <label className="product-form-field">
             <span>Примечания</span>
             <textarea value={form.notes} onChange={set('notes')} rows={2} />
           </label>
@@ -426,11 +414,12 @@ function NewOrderModal({
 // ── Order Form Modal (edit only) ──────────────────────────────────────────────
 
 function OrderFormModal({
-  order, staffUsers, currentUserId, onClose, onSaved,
+  order, staffUsers, currentUserId, isSuperuser, onClose, onSaved,
 }: {
   order: Partial<OrderRecord>;
   staffUsers: StaffUser[];
   currentUserId: number;
+  isSuperuser: boolean;
   onClose: () => void;
   onSaved: (o: OrderRecord) => void;
 }) {
@@ -496,7 +485,7 @@ function OrderFormModal({
             <span>Конфигурация</span>
             <textarea value={form.configuration} onChange={set('configuration')} rows={2} />
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isSuperuser ? '1fr 1fr 1fr' : '1fr 1fr', gap: 14 }}>
             <label className="product-form-field">
               <span>Статус</span>
               <select value={form.status} onChange={set('status')}>
@@ -507,13 +496,15 @@ function OrderFormModal({
               <span>Дедлайн</span>
               <input type="date" value={form.deadline} onChange={set('deadline')} />
             </label>
-            <label className="product-form-field">
-              <span>Ответственный</span>
-              <select value={form.assigned_to_id} onChange={set('assigned_to_id')}>
-                <option value="">—</option>
-                {staffUsers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-              </select>
-            </label>
+            {isSuperuser && (
+              <label className="product-form-field">
+                <span>Ответственный</span>
+                <select value={form.assigned_to_id} onChange={set('assigned_to_id')}>
+                  <option value="">—</option>
+                  {staffUsers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+                </select>
+              </label>
+            )}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label className="product-form-field">
@@ -893,8 +884,6 @@ function OrdersTab({ me, approvedProductIds }: { me: Me; approvedProductIds: num
     <div>
       {showNewModal && (
         <NewOrderModal
-          staffUsers={staffUsers}
-          currentUserId={me.id}
           onClose={() => setShowNewModal(false)}
           onSaved={handleSaved}
         />
@@ -904,6 +893,7 @@ function OrdersTab({ me, approvedProductIds }: { me: Me; approvedProductIds: num
           order={editOrder}
           staffUsers={staffUsers}
           currentUserId={me.id}
+          isSuperuser={!!me.isSuperuser}
           onClose={() => setEditOrder(undefined)}
           onSaved={handleSaved}
         />
@@ -1328,7 +1318,7 @@ function CatalogTab({ products, onRefresh }: { products: Product[]; onRefresh: (
 
 // ── Reviews Manage Tab ────────────────────────────────────────────────────────
 
-type ReviewRecord = { id: number; author: string; text: string; date: string; vk_url: string; photo_url: string };
+type ReviewRecord = { id: number; text: string; date: string; review_date: string; vk_url: string; photo_url: string };
 
 function ReviewsManageTab() {
   const [reviews, setReviews] = useState<ReviewRecord[]>([]);
@@ -1382,18 +1372,13 @@ function ReviewsManageTab() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {reviews.map(rv => (
           <div key={rv.id} className="secondary-card" style={{ padding: '16px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            {rv.photo_url ? (
-              <img src={rv.photo_url} alt={rv.author} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, background: 'rgba(161,51,51,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--accent)' }}>
-                {rv.author.charAt(0).toUpperCase()}
-              </div>
+            {rv.photo_url && (
+              <img src={rv.photo_url} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-                <strong style={{ fontSize: 14 }}>{rv.author}</strong>
                 {rv.vk_url && (
-                  <a href={rv.vk_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  <a href={rv.vk_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#4a9eda' }}>
                     ВКонтакте ↗
                   </a>
                 )}
@@ -1427,19 +1412,18 @@ function ReviewFormModal({ review, onClose, onSaved }: {
   onClose: () => void;
   onSaved: (r: ReviewRecord) => void;
 }) {
-  const [author, setAuthor] = useState(review?.author ?? '');
   const [text, setText] = useState(review?.text ?? '');
-  const [date, setDate] = useState(review?.date ?? '');
+  const [date, setDate] = useState(review?.review_date ?? review?.date ?? '');
   const [vkUrl, setVkUrl] = useState(review?.vk_url ?? '');
   const [photoUrl, setPhotoUrl] = useState(review?.photo_url ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handleSave = async () => {
-    if (!author.trim()) { setError('Имя клиента обязательно'); return; }
+    if (!text.trim()) { setError('Введите текст отзыва'); return; }
     setSaving(true);
     setError('');
-    const body = { author: author.trim(), text: text.trim(), review_date: date.trim(), vk_url: vkUrl.trim(), photo_url: photoUrl.trim() };
+    const body = { text: text.trim(), review_date: date.trim(), vk_url: vkUrl.trim(), photo_url: photoUrl.trim() };
     const r = review
       ? await apiFetch(`/api/workshop/reviews/${review.id}/`, { method: 'PATCH', body: JSON.stringify(body) })
       : await apiFetch('/api/workshop/reviews/', { method: 'POST', body: JSON.stringify(body) });
@@ -1467,10 +1451,6 @@ function ReviewFormModal({ review, onClose, onSaved }: {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            Имя клиента *
-            <input value={author} onChange={e => setAuthor(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="Иван Петров" />
-          </label>
           <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             Текст отзыва *
             <textarea value={text} onChange={e => setText(e.target.value)}

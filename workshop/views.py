@@ -100,12 +100,8 @@ class ReviewCreateView(APIView):
         product = Product.objects.filter(pk=product_id).first()
         if not product:
             return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
-        author = request.data.get("author", "").strip()
-        if not author:
-            return Response({"detail": "Поле author обязательно."}, status=status.HTTP_400_BAD_REQUEST)
         review = Review.objects.create(
             product=product,
-            author=author,
             text=request.data.get("text", "").strip(),
             review_date=request.data.get("date") or timezone.localtime().strftime("%d.%m.%Y"),
         )
@@ -121,11 +117,7 @@ class WorkshopReviewsView(APIView):
     def post(self, request):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
-        author = request.data.get("author", "").strip()
-        if not author:
-            return Response({"detail": "Поле author обязательно."}, status=status.HTTP_400_BAD_REQUEST)
         review = Review.objects.create(
-            author=author,
             text=request.data.get("text", "").strip(),
             review_date=request.data.get("review_date", "") or timezone.localtime().strftime("%d.%m.%Y"),
             vk_url=request.data.get("vk_url", "").strip(),
@@ -141,7 +133,7 @@ class WorkshopReviewDetailView(APIView):
         review = Review.objects.filter(pk=review_id).first()
         if not review:
             return Response({"detail": "Отзыв не найден."}, status=status.HTTP_404_NOT_FOUND)
-        for field in ("author", "text", "review_date", "vk_url", "photo_url"):
+        for field in ("text", "review_date", "vk_url", "photo_url"):
             if field in request.data:
                 setattr(review, field, request.data[field])
         review.save()

@@ -13,6 +13,7 @@ import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
 import { ReviewsPage } from './components/ReviewsPage';
 import { ServicesPage } from './components/ServicesPage';
+import { SetsPage } from './components/SetsPage';
 import { SortControl } from './components/SortControl';
 import { VKGroupFeed } from './components/VKGroupFeed';
 import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, SortMode, ViewMode } from './types';
@@ -160,6 +161,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openSets = () => {
+    setCurrentView('sets');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const openReviews = () => {
     setCurrentView('reviews');
     setSelectedProduct(null);
@@ -194,6 +202,7 @@ export default function App() {
         currentView={currentView}
         onHome={goHome}
         onOpenCatalog={goCatalog}
+        onOpenSets={openSets}
         onOpenServices={openServices}
         onOpenReviews={openReviews}
         onOpenAdmin={openAdmin}
@@ -213,10 +222,12 @@ export default function App() {
           <PrivacyPage onBack={goHome} />
         ) : currentView === 'services' ? (
           <ServicesPage onBack={goHome} links={externalLinks} />
+        ) : currentView === 'sets' ? (
+          <SetsPage onBack={goHome} links={externalLinks} />
         ) : currentView === 'reviews' ? (
           <ReviewsPage reviews={reviews} onBack={goHome} />
         ) : currentView === 'home' && !selectedProduct ? (
-          <HomePage onOpenCatalog={goCatalog} onOpenServices={openServices} onOpenReviews={openReviews} />
+          <HomePage onOpenCatalog={goCatalog} onOpenSets={openSets} onOpenServices={openServices} onOpenReviews={openReviews} />
         ) : selectedProduct ? (
           <ProductDetail
             product={selectedProduct}

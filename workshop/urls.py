@@ -3,7 +3,8 @@ from django.urls import path
 from .views import (
     ApprovalsMeView, AuthView, BootstrapView, LogoutView, MeView,
     NewsPostCreateView, NewsPostDeleteView, ProductDetailView,
-    ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView,
+    ProductListCreateView, PublicSetsView, PublicSetDetailView,
+    ReviewCreateView, TelegramWebhookView, VkCallbackView,
     VKPostsView, WorkshopDashboardView, WorkshopOrdersView, WorkshopOrderDetailView,
     WorkshopClientsView, WorkshopClientDetailView, WorkshopUsersView,
     WorkshopSetsView, WorkshopSetDetailView, WorkshopTasksView, WorkshopTaskDetailView,
@@ -16,6 +17,8 @@ urlpatterns = [
     path("catalog/products/", ProductListCreateView.as_view(), name="product-list-create"),
     path("catalog/products/<int:product_id>/", ProductDetailView.as_view(), name="product-detail"),
     path("catalog/products/<int:product_id>/reviews/", ReviewCreateView.as_view(), name="product-review-create"),
+    path("catalog/sets/", PublicSetsView.as_view(), name="catalog-sets"),
+    path("catalog/sets/<slug:slug>/", PublicSetDetailView.as_view(), name="catalog-set-detail"),
     path("auth/login/", AuthView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", MeView.as_view(), name="auth-me"),

@@ -1,11 +1,13 @@
-import { Shield, Star, Wrench } from 'lucide-react';
+import { Layers, Shield, Star, Wrench } from 'lucide-react';
 
 export function HomePage({
   onOpenCatalog,
+  onOpenSets,
   onOpenServices,
   onOpenReviews,
 }: {
   onOpenCatalog: () => void;
+  onOpenSets: () => void;
   onOpenServices: () => void;
   onOpenReviews: () => void;
 }) {
@@ -44,6 +46,13 @@ export function HomePage({
           onClick={onOpenCatalog}
         />
         <NavCard
+          icon={<Layers size={26} />}
+          title="Комплекты со скидкой"
+          description="Готовые наборы из нескольких предметов с выгодой 15% по сравнению с раздельной покупкой."
+          onClick={onOpenSets}
+          accent
+        />
+        <NavCard
           icon={<Wrench size={26} />}
           title="Услуги мастерской"
           description="Подгонка по меркам, ремонт и реставрация, историческая консультация, финишная отделка."
@@ -61,29 +70,32 @@ export function HomePage({
   );
 }
 
-function NavCard({ icon, title, description, onClick }: {
+function NavCard({ icon, title, description, onClick, accent }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   onClick: () => void;
+  accent?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
       style={{
         textAlign: 'left', cursor: 'pointer',
-        border: '1px solid var(--border)', borderRadius: 18,
-        padding: '24px 20px', background: 'var(--bg-panel-soft)',
+        border: `1px solid ${accent ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: 18,
+        padding: '24px 20px',
+        background: accent ? 'rgba(161,51,51,0.08)' : 'var(--bg-panel-soft)',
         display: 'flex', flexDirection: 'column', gap: 10,
         transition: 'border-color 0.2s, background 0.2s',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--accent)';
-        e.currentTarget.style.background = 'rgba(161,51,51,0.06)';
+        e.currentTarget.style.background = 'rgba(161,51,51,0.12)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'var(--border)';
-        e.currentTarget.style.background = 'var(--bg-panel-soft)';
+        e.currentTarget.style.borderColor = accent ? 'var(--accent)' : 'var(--border)';
+        e.currentTarget.style.background = accent ? 'rgba(161,51,51,0.08)' : 'var(--bg-panel-soft)';
       }}
     >
       <span style={{ color: 'var(--accent-warm)' }}>{icon}</span>

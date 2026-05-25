@@ -9,6 +9,7 @@ export function Header({
   currentView,
   onHome,
   onOpenCatalog,
+  onOpenSets,
   onOpenServices,
   onOpenReviews,
   onOpenAdmin,
@@ -22,6 +23,7 @@ export function Header({
   currentView: ViewMode;
   onHome: () => void;
   onOpenCatalog: () => void;
+  onOpenSets: () => void;
   onOpenServices: () => void;
   onOpenReviews: () => void;
   onOpenAdmin: () => void;
@@ -51,6 +53,9 @@ export function Header({
             </button>
             <button className={`nav-button ${currentView === 'catalog' ? 'nav-button-active' : ''}`} onClick={onOpenCatalog}>
               Каталог
+            </button>
+            <button className={`nav-button ${currentView === 'sets' ? 'nav-button-active' : ''}`} onClick={onOpenSets}>
+              Комплекты
             </button>
             <button className={`nav-button ${currentView === 'services' ? 'nav-button-active' : ''}`} onClick={onOpenServices}>
               Услуги
@@ -104,6 +109,7 @@ export function Header({
         <div className="mobile-nav shell">
           <button onClick={() => { onHome(); setMenuOpen(false); }}>Главная</button>
           <button onClick={() => { onOpenCatalog(); setMenuOpen(false); }}>Каталог</button>
+          <button onClick={() => { onOpenSets(); setMenuOpen(false); }}>Комплекты</button>
           <button onClick={() => { onOpenServices(); setMenuOpen(false); }}>Услуги</button>
           <button onClick={() => { onOpenReviews(); setMenuOpen(false); }}>Отзывы</button>
           {user?.isStaff ? <button onClick={() => { onOpenAdmin(); setMenuOpen(false); }}>Мастерская</button> : null}

@@ -4,7 +4,31 @@ export type Era = 'XIII век' | 'XIV век' | 'XV век' | 'XVI век';
 export type Material = 'Сталь' | 'Кожа' | 'Комбинированный' | 'Латунь и сталь' | 'Шерсть и лён' | 'Дерево';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 export type SortMode = 'default' | 'newest' | 'popular' | 'duration';
-export type ViewMode = 'home' | 'catalog' | 'services' | 'reviews' | 'privacy' | 'admin' | 'login';
+export type ViewMode = 'home' | 'catalog' | 'sets' | 'services' | 'reviews' | 'privacy' | 'admin' | 'login';
+
+export interface SetProduct {
+  id: number;
+  name: string;
+  slug: string;
+  price_from: number;
+  image: string;
+}
+
+export interface ProductSet {
+  id: number;
+  slug: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  gallery: string[];
+  badge: string;
+  price_from: number;       // со скидкой 15%
+  price_individual: number; // без скидки (сумма предметов)
+  discount: number;         // размер скидки в рублях
+  discount_percent: number; // 15
+  products: SetProduct[];
+}
 
 export interface Review {
   id?: number;

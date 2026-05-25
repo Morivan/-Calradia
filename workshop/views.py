@@ -716,10 +716,18 @@ class WorkshopUsersView(APIView):
 
 # ── Sets ──────────────────────────────────────────────────────────────────────
 
+DISCOUNT_PERCENT = 15  # fixed set discount
+
 def _set_to_dict(ps) -> dict:
     products = list(ps.products.all())
     price_individual = sum(p.price_from for p in products)
-    price_set = ps.price_from if ps.price_from else price_individual
+    # Always apply 15% discount; admin can still override via price_from
+    if ps.price_from:
+        price_set = ps.price_from
+    elif price_individual:
+        price_set = round(price_individual * (1 - DISCOUNT_PERCENT / 100))
+    else:
+        price_set = 0
     return {
         'id': ps.id,
         'slug': ps.slug,
@@ -732,8 +740,25 @@ def _set_to_dict(ps) -> dict:
         'price_from': price_set,
         'price_individual': price_individual,
         'discount': price_individual - price_set,
+        'discount_percent': DISCOUNT_PERCENT,
         'products': [{'id': p.id, 'name': p.name, 'slug': p.slug, 'price_from': p.price_from, 'image': p.image} for p in products],
     }
+
+
+class PublicSetsView(APIView):
+    """Public catalog of product sets — no auth required."""
+    def get(self, request):
+        sets = ProductSet.objects.prefetch_related('products').all()
+        return Response([_set_to_dict(s) for s in sets])
+
+
+class PublicSetDetailView(APIView):
+    """Public single set by slug."""
+    def get(self, request, slug):
+        ps = ProductSet.objects.prefetch_related('products').filter(slug=slug).first()
+        if not ps:
+            return Response({"detail": "Комплект не найден."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(_set_to_dict(ps))
 
 
 class WorkshopSetsView(APIView):

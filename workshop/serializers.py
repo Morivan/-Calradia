@@ -5,10 +5,18 @@ from .models import IntegrationLink, Product, Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     date = serializers.CharField(source="review_date", read_only=True)
+    photos = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
-        fields = ("id", "text", "date", "vk_url", "photo_url", "review_date")
+        fields = ("id", "text", "date", "review_date", "vk_url", "photos")
+
+    def get_photos(self, obj) -> list:
+        """Return merged list: photos JSONField + legacy photo_url."""
+        urls = list(obj.photos) if obj.photos else []
+        if obj.photo_url and obj.photo_url not in urls:
+            urls.insert(0, obj.photo_url)
+        return urls
 
 
 class ProductSerializer(serializers.ModelSerializer):

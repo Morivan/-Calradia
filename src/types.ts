@@ -8,11 +8,11 @@ export type ViewMode = 'home' | 'catalog' | 'services' | 'reviews' | 'privacy' |
 
 export interface Review {
   id?: number;
-  author: string;
   text: string;
   date: string;
+  review_date?: string;
   vk_url?: string;
-  photo_url?: string;
+  photos?: string[];
 }
 
 export interface Product {

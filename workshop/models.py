@@ -50,7 +50,8 @@ class Review(TimestampedModel):
     text = models.TextField()
     review_date = models.CharField(max_length=64, blank=True)
     vk_url = models.CharField(max_length=512, blank=True)
-    photo_url = models.CharField(max_length=1024, blank=True)
+    photo_url = models.CharField(max_length=1024, blank=True)   # legacy single photo
+    photos = models.JSONField(default=list, blank=True)          # list of photo URLs
 
     class Meta:
         ordering = ["-created_at"]

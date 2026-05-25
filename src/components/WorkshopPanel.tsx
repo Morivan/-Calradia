@@ -1318,7 +1318,7 @@ function CatalogTab({ products, onRefresh }: { products: Product[]; onRefresh: (
 
 // ── Reviews Manage Tab ────────────────────────────────────────────────────────
 
-type ReviewRecord = { id: number; text: string; date: string; review_date: string; vk_url: string; photo_url: string };
+type ReviewRecord = { id: number; text: string; date: string; review_date: string; vk_url: string; photos: string[] };
 
 function ReviewsManageTab() {
   const [reviews, setReviews] = useState<ReviewRecord[]>([]);
@@ -1372,10 +1372,20 @@ function ReviewsManageTab() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {reviews.map(rv => (
           <div key={rv.id} className="secondary-card" style={{ padding: '16px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            {rv.photo_url && (
-              <img src={rv.photo_url} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-            )}
             <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Thumbnail strip */}
+              {rv.photos && rv.photos.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                  {rv.photos.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt=""
+                      style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }}
+                    />
+                  ))}
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
                 {rv.vk_url && (
                   <a href={rv.vk_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#4a9eda' }}>
@@ -1415,15 +1425,25 @@ function ReviewFormModal({ review, onClose, onSaved }: {
   const [text, setText] = useState(review?.text ?? '');
   const [date, setDate] = useState(review?.review_date ?? review?.date ?? '');
   const [vkUrl, setVkUrl] = useState(review?.vk_url ?? '');
-  const [photoUrl, setPhotoUrl] = useState(review?.photo_url ?? '');
+  // Dynamic list of photo URLs
+  const [photos, setPhotos] = useState<string[]>(
+    review?.photos && review.photos.length > 0 ? review.photos : ['']
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const setPhoto = (idx: number, val: string) =>
+    setPhotos(prev => prev.map((p, i) => i === idx ? val : p));
+  const addPhoto = () => setPhotos(prev => [...prev, '']);
+  const removePhoto = (idx: number) =>
+    setPhotos(prev => prev.length > 1 ? prev.filter((_, i) => i !== idx) : ['']);
 
   const handleSave = async () => {
     if (!text.trim()) { setError('Введите текст отзыва'); return; }
     setSaving(true);
     setError('');
-    const body = { text: text.trim(), review_date: date.trim(), vk_url: vkUrl.trim(), photo_url: photoUrl.trim() };
+    const cleanPhotos = photos.map(p => p.trim()).filter(Boolean);
+    const body = { text: text.trim(), review_date: date.trim(), vk_url: vkUrl.trim(), photos: cleanPhotos };
     const r = review
       ? await apiFetch(`/api/workshop/reviews/${review.id}/`, { method: 'PATCH', body: JSON.stringify(body) })
       : await apiFetch('/api/workshop/reviews/', { method: 'POST', body: JSON.stringify(body) });
@@ -1437,38 +1457,74 @@ function ReviewFormModal({ review, onClose, onSaved }: {
   };
 
   const fieldStyle: React.CSSProperties = {
-    width: '100%', padding: '9px 12px', borderRadius: 8,
+    padding: '9px 12px', borderRadius: 8,
     border: '1px solid var(--border)', background: 'var(--bg-panel-soft)',
-    color: 'var(--text-main)', fontSize: 13, boxSizing: 'border-box',
+    color: 'var(--text-main)', fontSize: 13, flex: 1, minWidth: 0,
   };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div className="secondary-card" style={{ width: '100%', maxWidth: 520, padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="secondary-card" style={{ width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>{review ? 'Редактировать отзыв' : 'Новый отзыв'}</h3>
           <button className="icon-button" onClick={onClose}><X size={16} /></button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
             Текст отзыва *
             <textarea value={text} onChange={e => setText(e.target.value)}
-              style={{ ...fieldStyle, marginTop: 4, minHeight: 100, resize: 'vertical' as const }}
+              style={{ ...fieldStyle, flex: 'unset', minHeight: 100, resize: 'vertical' as const, width: '100%', boxSizing: 'border-box' }}
               placeholder="Слова клиента..." />
           </label>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
             Дата (необязательно)
-            <input value={date} onChange={e => setDate(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="01.01.2025" />
+            <input value={date} onChange={e => setDate(e.target.value)}
+              style={{ ...fieldStyle, flex: 'unset', width: '100%', boxSizing: 'border-box' }} placeholder="01.01.2025" />
           </label>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 4 }}>
             Ссылка ВКонтакте (необязательно)
-            <input value={vkUrl} onChange={e => setVkUrl(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="https://vk.com/id..." />
+            <input value={vkUrl} onChange={e => setVkUrl(e.target.value)}
+              style={{ ...fieldStyle, flex: 'unset', width: '100%', boxSizing: 'border-box' }} placeholder="https://vk.com/id..." />
           </label>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            URL фото (необязательно)
-            <input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} style={{ ...fieldStyle, marginTop: 4 }} placeholder="https://..." />
-          </label>
+
+          {/* Dynamic photo URL list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              Фото (URL, необязательно)
+            </span>
+            {photos.map((url, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                {url && (
+                  <img src={url} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border)' }}
+                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                )}
+                <input
+                  value={url}
+                  onChange={e => setPhoto(idx, e.target.value)}
+                  style={fieldStyle}
+                  placeholder={`https://... (фото ${idx + 1})`}
+                />
+                <button
+                  className="icon-button"
+                  style={{ padding: '5px 8px', color: '#f87171', flexShrink: 0 }}
+                  onClick={() => removePhoto(idx)}
+                  title="Удалить фото"
+                  type="button"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="icon-button"
+              style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '5px 10px' }}
+              onClick={addPhoto}
+            >
+              <Plus size={13} /> Добавить фото
+            </button>
+          </div>
         </div>
 
         {error && <p style={{ margin: 0, color: '#f87171', fontSize: 13 }}>{error}</p>}

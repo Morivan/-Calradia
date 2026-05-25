@@ -88,7 +88,7 @@
 | `MasterApproval` | Допуск мастера к конкретному предмету |
 | `VKPost` | Пост из ВКонтакте |
 | `Colleague` | Сотрудник мастерской |
-| `IntegrationLink` | Внешние ссылки (VK, Telegram, Яндекс.Форма) |
+| `IntegrationLink` | Внешние ссылки (VK, Telegram) |
 
 ## API
 
@@ -217,7 +217,7 @@ crontab -e
 | `TELEGRAM_CHANNEL_ID` | ID канала для репостов из VK |
 | `VK_CALLBACK_SECRET` | Секретный ключ Callback API ВКонтакте |
 | `VK_CONFIRMATION_TOKEN` | Строка подтверждения от ВКонтакте |
-| `EMAIL_HOST` | SMTP-сервер (`smtp.yandex.ru`, `smtp.gmail.com` и др.) |
+| `EMAIL_HOST` | SMTP-сервер (`smtp.gmail.com`, `smtp.mail.ru` и др.) |
 | `EMAIL_PORT` | Порт SMTP (обычно `465` для SSL) |
 | `EMAIL_USE_SSL` | `true` для SSL (порт 465) |
 | `EMAIL_HOST_USER` | Логин почтового ящика |

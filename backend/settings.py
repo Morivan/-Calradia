@@ -183,14 +183,6 @@ VK_CALLBACK_SECRET = os.getenv("VK_CALLBACK_SECRET", "")
 VK_CONFIRMATION_TOKEN = os.getenv("VK_CONFIRMATION_TOKEN", "")
 VK_SERVICE_TOKEN = os.getenv("VK_SERVICE_TOKEN", "")
 
-WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN", "")
-
-YANDEX_DISK_TOKEN = os.getenv("YANDEX_DISK_TOKEN", "")
-YANDEX_ORDERS_TABLE_PATH = os.getenv("YANDEX_ORDERS_TABLE_PATH", "")
-YANDEX_CLIENTS_TABLE_PATH = os.getenv("YANDEX_CLIENTS_TABLE_PATH", "")
-YANDEX_MATERIALS_TABLE_PATH = os.getenv("YANDEX_MATERIALS_TABLE_PATH", "")
-YANDEX_COLLEAGUES_TABLE_PATH = os.getenv("YANDEX_COLLEAGUES_TABLE_PATH", "")
-
 # ── Logging ───────────────────────────────────────────────────────────────────
 
 LOGGING = {
@@ -220,6 +212,18 @@ LOGGING = {
         },
     },
 }
+
+# ── Email ─────────────────────────────────────────────────────────────────────
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.yandex.ru")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "true").lower() == "true"
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "false").lower() == "true"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "")
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 

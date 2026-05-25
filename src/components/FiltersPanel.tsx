@@ -12,7 +12,7 @@ export function FiltersPanel({
   onToggle: (section: keyof Filters, option: string) => void;
   onReset: () => void;
 }) {
-  const [expanded, setExpanded] = useState(filterSections.map((section) => section.title));
+  const [expanded, setExpanded] = useState<string[]>([]);
 
   return (
     <aside className="filters secondary-card">
@@ -63,7 +63,7 @@ export function FiltersPanel({
         );
       })}
 
-      <button className="cta-button cta-muted" onClick={onReset}>
+      <button className="cta-button cta-muted" onClick={onReset} style={{ fontSize: 12, padding: '6px 12px' }}>
         Очистить выбранное
       </button>
     </aside>

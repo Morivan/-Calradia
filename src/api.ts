@@ -19,5 +19,4 @@ export const defaultLinks: ExternalLinks = {
   telegramPublic: 'https://web.telegram.org/k/#@kalradiaWarBand',
   vkCommunity: 'https://vk.com/calradia_band',
   vkMessages: 'https://vk.com/im/convo/-234061306?entrypoint=community_page&tab=all',
-  yandexForm: '',
 };

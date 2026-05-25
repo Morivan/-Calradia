@@ -4,14 +4,15 @@ export type Era = 'XIII век' | 'XIV век' | 'XV век' | 'XVI век';
 export type Material = 'Сталь' | 'Кожа' | 'Комбинированный' | 'Латунь и сталь' | 'Шерсть и лён' | 'Дерево';
 export type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 export type SortMode = 'default' | 'newest' | 'popular' | 'duration';
-export type ViewMode = 'catalog' | 'admin' | 'login';
+export type ViewMode = 'home' | 'catalog' | 'services' | 'reviews' | 'privacy' | 'admin' | 'login';
 
 export interface Review {
   id?: number;
   author: string;
   text: string;
-  rating: number;
   date: string;
+  vk_url?: string;
+  photo_url?: string;
 }
 
 export interface Product {
@@ -53,12 +54,11 @@ export interface ExternalLinks {
   telegramPublic: string;
   vkCommunity: string;
   vkMessages: string;
-  yandexForm: string;
 }
 
 export interface BootstrapPayload {
   products: Product[];
-  reviewsByProduct: Record<string, Review[]>;
+  reviews: Review[];
   links: ExternalLinks;
 }
 

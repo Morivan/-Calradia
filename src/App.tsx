@@ -6,16 +6,20 @@ import { AdminModule } from './components/AdminModule';
 import { FiltersPanel } from './components/FiltersPanel';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
+import { HomePage } from './components/HomePage';
 import { LoginPage } from './components/LoginPage';
+import { PrivacyPage } from './components/PrivacyPage';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetail } from './components/ProductDetail';
+import { ReviewsPage } from './components/ReviewsPage';
+import { ServicesPage } from './components/ServicesPage';
 import { SortControl } from './components/SortControl';
 import { VKGroupFeed } from './components/VKGroupFeed';
-import { WorkshopServices } from './components/WorkshopServices';
-import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, SortMode, ViewMode } from './types';
+import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, SortMode, ViewMode } from './types';
+
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>('catalog');
+  const [currentView, setCurrentView] = useState<ViewMode>('home');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortMode>('default');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -31,6 +35,7 @@ export default function App() {
   });
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   const loadBootstrap = async () => {
     try {
@@ -40,8 +45,11 @@ export default function App() {
       if (payload.products?.length) {
         setCatalogProducts(payload.products);
       }
-if (payload.links) {
+      if (payload.links) {
         setExternalLinks({ ...defaultLinks, ...payload.links });
+      }
+      if (payload.reviews) {
+        setReviews(payload.reviews);
       }
     } catch (error) {
       console.error('Не удалось загрузить bootstrap-данные', error);
@@ -125,9 +133,38 @@ if (payload.links) {
   };
 
   const goHome = () => {
+    setCurrentView('home');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goCatalog = () => {
     setCurrentView('catalog');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openServices = () => {
+    setCurrentView('services');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openPrivacy = () => {
+    setCurrentView('privacy');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openReviews = () => {
+    setCurrentView('reviews');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openAdmin = () => {
@@ -156,6 +193,9 @@ if (payload.links) {
         detailOpen={Boolean(selectedProduct)}
         currentView={currentView}
         onHome={goHome}
+        onOpenCatalog={goCatalog}
+        onOpenServices={openServices}
+        onOpenReviews={openReviews}
         onOpenAdmin={openAdmin}
         onOpenLogin={() => setLoginOpen(true)}
         onLogout={handleLogout}
@@ -169,55 +209,59 @@ if (payload.links) {
       <main className="shell page-content">
         {currentView === 'admin' && user?.isStaff ? (
           <AdminModule products={catalogProducts} onRefresh={loadBootstrap} />
+        ) : currentView === 'privacy' ? (
+          <PrivacyPage onBack={goHome} />
+        ) : currentView === 'services' ? (
+          <ServicesPage onBack={goHome} links={externalLinks} />
+        ) : currentView === 'reviews' ? (
+          <ReviewsPage reviews={reviews} onBack={goHome} />
+        ) : currentView === 'home' && !selectedProduct ? (
+          <HomePage onOpenCatalog={goCatalog} onOpenServices={openServices} onOpenReviews={openReviews} />
         ) : selectedProduct ? (
           <ProductDetail
             product={selectedProduct}
-            onBack={goHome}
+            onBack={goCatalog}
             links={externalLinks}
           />
         ) : (
-          <>
-            <section className="catalog-layout" id="catalog collections">
-              <div className="catalog-side-column">
-                <div className="desktop-only catalog-side-stack">
-                  <div className="catalog-side-meta">
-                    <p className="catalog-count">Изделий: {filteredProducts.length}</p>
-                    <SortControl sort={sort} onChange={setSort} />
-                  </div>
-                  <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
+          <section className="catalog-layout" id="catalog collections">
+            <div className="catalog-side-column">
+              <div className="desktop-only catalog-side-stack">
+                <div className="catalog-side-meta">
+                  <p className="catalog-count">Изделий: {filteredProducts.length}</p>
+                  <SortControl sort={sort} onChange={setSort} />
                 </div>
-
-                <div className="mobile-filter-bar mobile-only">
-                  <button className="icon-button" onClick={() => setMobileFiltersOpen(true)}>
-                    <SlidersHorizontal size={16} />
-                    Фильтры {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
-                  </button>
-                </div>
+                <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
               </div>
 
-              <section className="catalog-column">
-                <div className="product-grid">
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onOpen={openProduct} />
-                  ))}
+              <div className="mobile-filter-bar mobile-only">
+                <button className="icon-button" onClick={() => setMobileFiltersOpen(true)}>
+                  <SlidersHorizontal size={16} />
+                  Фильтры {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+                </button>
+              </div>
+            </div>
+
+            <section className="catalog-column">
+              <div className="product-grid">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} onOpen={openProduct} />
+                ))}
+              </div>
+
+              {filteredProducts.length === 0 ? (
+                <div className="empty-state secondary-card">
+                  <h3>Ничего не найдено</h3>
+                  <p>Попробуй сбросить фильтры или изменить поисковый запрос.</p>
+                  <button className="cta-button" onClick={resetFilters}>
+                    Сбросить фильтры
+                  </button>
                 </div>
-
-                {filteredProducts.length === 0 ? (
-                  <div className="empty-state secondary-card">
-                    <h3>Ничего не найдено</h3>
-                    <p>Попробуй сбросить фильтры или изменить поисковый запрос.</p>
-                    <button className="cta-button" onClick={resetFilters}>
-                      Сбросить фильтры
-                    </button>
-                  </div>
-                ) : null}
-              </section>
-
-              <VKGroupFeed />
+              ) : null}
             </section>
 
-            <WorkshopServices />
-          </>
+            <VKGroupFeed />
+          </section>
         )}
       </main>
 
@@ -235,7 +279,7 @@ if (payload.links) {
         </div>
       ) : null}
 
-      <Footer />
+      <Footer onOpenPrivacy={openPrivacy} />
     </div>
   );
 }

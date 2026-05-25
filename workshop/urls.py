@@ -1,6 +1,15 @@
 from django.urls import path
 
-from .views import AuthView, BootstrapView, ClientWebhookView, ClientWithOrderWebhookView, ColleagueWebhookView, LogoutView, MeView, NewsPostCreateView, NewsPostDeleteView, OrderWebhookView, ProductDetailView, ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView, VKPostsView
+from .views import (
+    ApprovalsMeView, AuthView, BootstrapView, LogoutView, MeView,
+    NewsPostCreateView, NewsPostDeleteView, ProductDetailView,
+    ProductListCreateView, ReviewCreateView, TelegramWebhookView, VkCallbackView,
+    VKPostsView, WorkshopDashboardView, WorkshopOrdersView, WorkshopOrderDetailView,
+    WorkshopClientsView, WorkshopClientDetailView, WorkshopUsersView,
+    WorkshopSetsView, WorkshopSetDetailView, WorkshopTasksView, WorkshopTaskDetailView,
+    WorkshopApprovalsView, WorkshopOrderCreateView,
+    WorkshopReviewsView, WorkshopReviewDetailView,
+)
 
 urlpatterns = [
     path("bootstrap/", BootstrapView.as_view(), name="bootstrap"),
@@ -12,11 +21,22 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("integrations/telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
     path("integrations/vk/callback/", VkCallbackView.as_view(), name="vk-callback"),
-    path("webhook/client/", ClientWebhookView.as_view(), name="webhook-client"),
-    path("webhook/client-order/", ClientWithOrderWebhookView.as_view(), name="webhook-client-order"),
-    path("webhook/order/", OrderWebhookView.as_view(), name="webhook-order"),
-path("webhook/colleague/", ColleagueWebhookView.as_view(), name="webhook-colleague"),
     path("vk-posts/", VKPostsView.as_view(), name="vk-posts"),
     path("news/", NewsPostCreateView.as_view(), name="news-create"),
     path("news/<int:post_id>/", NewsPostDeleteView.as_view(), name="news-delete"),
+    path("workshop/dashboard/", WorkshopDashboardView.as_view(), name="workshop-dashboard"),
+    path("workshop/orders/", WorkshopOrdersView.as_view(), name="workshop-orders"),
+    path("workshop/orders/<int:order_id>/", WorkshopOrderDetailView.as_view(), name="workshop-order-detail"),
+    path("workshop/clients/", WorkshopClientsView.as_view(), name="workshop-clients"),
+    path("workshop/clients/<int:client_id>/", WorkshopClientDetailView.as_view(), name="workshop-client-detail"),
+    path("workshop/users/", WorkshopUsersView.as_view(), name="workshop-users"),
+    path("workshop/sets/", WorkshopSetsView.as_view(), name="workshop-sets"),
+    path("workshop/sets/<int:set_id>/", WorkshopSetDetailView.as_view(), name="workshop-set-detail"),
+    path("workshop/tasks/", WorkshopTasksView.as_view(), name="workshop-tasks"),
+    path("workshop/tasks/<int:task_id>/", WorkshopTaskDetailView.as_view(), name="workshop-task-detail"),
+    path("workshop/approvals/me/", ApprovalsMeView.as_view(), name="workshop-approvals-me"),
+    path("workshop/approvals/", WorkshopApprovalsView.as_view(), name="workshop-approvals"),
+    path("workshop/orders/create/", WorkshopOrderCreateView.as_view(), name="workshop-order-create"),
+    path("workshop/reviews/", WorkshopReviewsView.as_view(), name="workshop-reviews"),
+    path("workshop/reviews/<int:review_id>/", WorkshopReviewDetailView.as_view(), name="workshop-review-detail"),
 ]

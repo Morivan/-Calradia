@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Client, Colleague, IntegrationLink, Order, Product, Review, VKPost
+from .models import Client, Colleague, IntegrationLink, MasterApproval, Order, Product, ProductSet, Review, Task, VKPost
 
 
 # ── helpers ────────────────────────────────────────────────────────────────────
@@ -43,8 +43,8 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("product", "author", "rating", "review_date")
-    search_fields = ("author", "text", "product__name")
+    list_display = ("author", "review_date", "vk_url")
+    search_fields = ("author", "text")
 
 
 # ── IntegrationLink ────────────────────────────────────────────────────────────
@@ -193,3 +193,22 @@ class ColleagueAdmin(admin.ModelAdmin):
     list_filter = ("direction",)
     search_fields = ("name", "specialization", "contact")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(ProductSet)
+class ProductSetAdmin(admin.ModelAdmin):
+    list_display = ('name', 'subtitle', 'badge')
+    search_fields = ('name',)
+    filter_horizontal = ('products',)
+
+
+@admin.register(MasterApproval)
+class MasterApprovalAdmin(admin.ModelAdmin):
+    list_display = ('master', 'product')
+    list_filter = ('master',)
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'order', 'status', 'assigned_to', 'created_at')
+    list_filter = ('status', 'assigned_to')

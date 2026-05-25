@@ -861,17 +861,9 @@ class WorkshopTasksView(APIView):
             _models.F('order__deadline').asc(nulls_last=True), 'created_at'
         )
         if view == 'stack':
+            # All pending tasks are visible to every staff member.
+            # Approval is checked only when actually taking a task.
             qs = qs.filter(status=Task.Status.PENDING)
-            if not request.user.is_superuser:
-                approved_product_ids = list(
-                    MasterApproval.objects.filter(master=request.user).values_list('product_id', flat=True)
-                )
-                # service tasks (product=None) are available to all staff;
-                # product tasks only for approved masters
-                qs = qs.filter(
-                    _models.Q(product__isnull=True) |
-                    _models.Q(product_id__in=approved_product_ids)
-                )
         elif view == 'mine':
             qs = qs.filter(assigned_to=request.user).exclude(status=Task.Status.DONE)
         elif view == 'all' and request.user.is_superuser:

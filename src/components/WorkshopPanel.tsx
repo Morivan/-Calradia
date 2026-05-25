@@ -1694,15 +1694,11 @@ function TasksTab({ me, approvedProductIds }: { me: Me; approvedProductIds: numb
         <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Clock size={14} /> Стек задач
           <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>
-            {stackTasks.length > 0 ? `${stackTasks.length} доступных` : 'нет доступных задач'}
+            {stackTasks.length > 0 ? `${stackTasks.length} задач` : 'нет задач'}
           </span>
         </div>
         {stackTasks.length === 0
-          ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>
-              {approvedProductIds.length === 0 && !me.isSuperuser
-                ? 'У вас нет допусков — обратитесь к администратору'
-                : 'Свободных задач нет'}
-            </p>
+          ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>Свободных задач нет</p>
           : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
@@ -1715,7 +1711,7 @@ function TasksTab({ me, approvedProductIds }: { me: Me; approvedProductIds: numb
                 {stackTasks.map(t => {
                   const ok = canTake(t);
                   return (
-                    <tr key={t.id} style={{ borderBottom: '1px solid var(--border)', opacity: ok ? 1 : 0.5 }}>
+                    <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={cellStyle}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           {t.product_image && (
@@ -1735,21 +1731,24 @@ function TasksTab({ me, approvedProductIds }: { me: Me; approvedProductIds: numb
                         {t.product_id === null
                           ? <span style={{ fontSize: 11, color: '#86efac' }}>Услуга</span>
                           : ok
-                            ? <span style={{ fontSize: 11, color: '#86efac' }}>✓ Есть</span>
-                            : <span style={{ fontSize: 11, color: '#f87171' }}>✗ Нет</span>
+                            ? <span style={{ fontSize: 11, color: '#86efac' }}>✓ Допуск есть</span>
+                            : <span style={{ fontSize: 11, color: '#f87171' }}>✗ Нет допуска</span>
                         }
                       </td>
                       <td style={{ ...cellStyle, textAlign: 'right' }}>
-                        {ok && (
-                          <button
-                            className="cta-button"
-                            style={{ padding: '5px 14px', fontSize: 12 }}
-                            disabled={saving === t.id}
-                            onClick={() => patchTask(t.id, 'take')}
-                          >
-                            {saving === t.id ? '...' : 'Взять'}
-                          </button>
-                        )}
+                        <button
+                          className="cta-button"
+                          style={{
+                            padding: '5px 14px', fontSize: 12,
+                            opacity: ok ? 1 : 0.35,
+                            cursor: ok ? 'pointer' : 'not-allowed',
+                          }}
+                          disabled={!ok || saving === t.id}
+                          title={ok ? undefined : 'Нет допуска к этому предмету'}
+                          onClick={() => ok && patchTask(t.id, 'take')}
+                        >
+                          {saving === t.id ? '...' : 'Взять'}
+                        </button>
                       </td>
                     </tr>
                   );

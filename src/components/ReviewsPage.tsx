@@ -12,8 +12,11 @@ export function ReviewsPage({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button className="icon-button" onClick={onBack}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+        <button
+          className="icon-button"
+          onClick={onBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}
+        >
           <ArrowLeft size={15} /> Назад
         </button>
         <div>
@@ -31,7 +34,7 @@ export function ReviewsPage({
           <p style={{ color: 'var(--text-muted)', margin: 0 }}>Отзывов пока нет.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {reviews.map((review, i) => (
             <ReviewCard key={review.id ?? i} review={review} />
           ))}
@@ -43,46 +46,73 @@ export function ReviewsPage({
 }
 
 function ReviewCard({ review }: { review: Review }) {
-  return (
-    <div className="review-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Author row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {review.photo_url ? (
-          <img
-            src={review.photo_url}
-            alt={review.author}
-            style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-          />
-        ) : (
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-            background: 'rgba(161,51,51,0.18)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: 20, fontWeight: 700, color: 'var(--accent)',
-          }}>
-            {review.author.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{review.author}</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{review.date}</div>
-        </div>
-        {review.vk_url && (
-          <a
-            href={review.vk_url}
-            target="_blank"
-            rel="noreferrer"
-            style={{ marginLeft: 'auto', color: 'var(--text-muted)', flexShrink: 0 }}
-            title="Страница ВКонтакте"
-          >
-            <ExternalLink size={15} />
-          </a>
-        )}
-      </div>
+  const hasPhoto = Boolean(review.photo_url);
 
-      {/* Text */}
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: 'var(--text-main)' }}>
-        «{review.text}»
-      </p>
+  return (
+    <div
+      className="secondary-card"
+      style={{
+        display: 'flex',
+        gap: 20,
+        alignItems: hasPhoto ? 'flex-start' : 'center',
+        padding: '20px 24px',
+        borderRadius: 18,
+      }}
+    >
+      {/* Фото автора */}
+      {hasPhoto && (
+        <img
+          src={review.photo_url}
+          alt=""
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 12,
+            objectFit: 'cover',
+            flexShrink: 0,
+            border: '1px solid rgba(117,133,108,0.3)',
+          }}
+        />
+      )}
+
+      {/* Контент */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <p style={{
+          margin: 0,
+          fontSize: '1rem',
+          lineHeight: 1.75,
+          color: 'var(--text-main)',
+          fontStyle: 'italic',
+        }}>
+          «{review.text}»
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          {review.review_date && (
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              {review.review_date}
+            </span>
+          )}
+          {review.vk_url && (
+            <a
+              href={review.vk_url}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 12,
+                color: '#4a9eda',
+                textDecoration: 'none',
+              }}
+            >
+              <ExternalLink size={12} />
+              ВКонтакте
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -857,13 +857,21 @@ class WorkshopTasksView(APIView):
         if not _is_staff(request):
             return Response({"detail": "Требуется авторизация."}, status=status.HTTP_401_UNAUTHORIZED)
         view = request.query_params.get('view', 'stack')
-        qs = Task.objects.select_related('order', 'product', 'assigned_to')
+        qs = Task.objects.select_related('order', 'product', 'assigned_to').order_by(
+            _models.F('order__deadline').asc(nulls_last=True), 'created_at'
+        )
         if view == 'stack':
             qs = qs.filter(status=Task.Status.PENDING)
-            approved_product_ids = list(
-                MasterApproval.objects.filter(master=request.user).values_list('product_id', flat=True)
-            )
-            qs = qs.filter(product_id__in=approved_product_ids)
+            if not request.user.is_superuser:
+                approved_product_ids = list(
+                    MasterApproval.objects.filter(master=request.user).values_list('product_id', flat=True)
+                )
+                # service tasks (product=None) are available to all staff;
+                # product tasks only for approved masters
+                qs = qs.filter(
+                    _models.Q(product__isnull=True) |
+                    _models.Q(product_id__in=approved_product_ids)
+                )
         elif view == 'mine':
             qs = qs.filter(assigned_to=request.user).exclude(status=Task.Status.DONE)
         elif view == 'all' and request.user.is_superuser:
@@ -884,27 +892,58 @@ class WorkshopTaskDetailView(APIView):
         if action == 'take':
             if task.status != Task.Status.PENDING:
                 return Response({"detail": "Задача уже взята."}, status=status.HTTP_400_BAD_REQUEST)
-            approved = MasterApproval.objects.filter(master=request.user, product=task.product).exists()
-            if not approved and not request.user.is_superuser:
-                return Response({"detail": "Нет допуска к этому предмету."}, status=status.HTTP_403_FORBIDDEN)
+            # Service tasks (no product) can be taken by anyone; product tasks require approval
+            if task.product is not None and not request.user.is_superuser:
+                approved = MasterApproval.objects.filter(master=request.user, product=task.product).exists()
+                if not approved:
+                    return Response({"detail": "Нет допуска к этому предмету."}, status=status.HTTP_403_FORBIDDEN)
             task.status = Task.Status.TAKEN
             task.assigned_to = request.user
             task.save()
+            # Move order to В работе when first task is taken
+            _sync_order_status(task.order)
+
         elif action == 'done':
             if task.assigned_to != request.user and not request.user.is_superuser:
                 return Response({"detail": "Нельзя закрыть чужую задачу."}, status=status.HTTP_403_FORBIDDEN)
             task.status = Task.Status.DONE
             task.save()
+            # If all tasks for this order are done → complete the order
+            _sync_order_status(task.order)
+
         elif action == 'release':
             if task.assigned_to == request.user or request.user.is_superuser:
                 task.status = Task.Status.PENDING
                 task.assigned_to = None
                 task.save()
+                # Order may need to go back from В работе
+                _sync_order_status(task.order)
         else:
             if 'notes' in request.data:
                 task.notes = request.data['notes']
                 task.save()
         return Response(_task_to_dict(task))
+
+
+def _sync_order_status(order: Order):
+    """Auto-update order status based on its tasks state."""
+    tasks = list(order.tasks.all())
+    if not tasks:
+        return
+    all_done   = all(t.status == Task.Status.DONE   for t in tasks)
+    any_taken  = any(t.status == Task.Status.TAKEN  for t in tasks)
+    any_done   = any(t.status == Task.Status.DONE   for t in tasks)
+
+    if all_done:
+        new_status = Order.Status.DONE
+    elif any_taken or any_done:
+        new_status = Order.Status.IN_PROGRESS
+    else:
+        new_status = Order.Status.NEW
+
+    if order.status != new_status and order.status not in (Order.Status.DONE, Order.Status.CANCELLED):
+        order.status = new_status
+        order.save(update_fields=['status'])
 
 
 # ── Approvals ─────────────────────────────────────────────────────────────────

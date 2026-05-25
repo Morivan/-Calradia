@@ -1626,9 +1626,199 @@ function ReviewFormModal({ review, onClose, onSaved }: {
   );
 }
 
+// ── Tasks Tab ─────────────────────────────────────────────────────────────────
+
+type TaskRecord = {
+  id: number;
+  order_id: number;
+  order_client: string;
+  order_deadline: string | null;
+  product_id: number | null;
+  product_name: string;
+  product_image: string;
+  status: string;
+  assigned_to_id: number | null;
+  assigned_to_name: string | null;
+  notes: string;
+};
+
+function TasksTab({ me, approvedProductIds }: { me: Me; approvedProductIds: number[] }) {
+  const [stackTasks, setStackTasks] = useState<TaskRecord[]>([]);
+  const [mineTasks, setMineTasks] = useState<TaskRecord[]>([]);
+  const [saving, setSaving] = useState<number | null>(null);
+  const [detailOrderId, setDetailOrderId] = useState<number | null>(null);
+
+  const loadStack = () =>
+    apiFetch('/api/workshop/tasks/?view=stack').then(r => r.ok ? r.json() : []).then(setStackTasks);
+  const loadMine  = () =>
+    apiFetch('/api/workshop/tasks/?view=mine').then(r => r.ok ? r.json() : []).then(setMineTasks);
+
+  useEffect(() => { loadStack(); loadMine(); }, []);
+
+  const patchTask = async (taskId: number, action: string) => {
+    setSaving(taskId);
+    try {
+      const r = await apiFetch(`/api/workshop/tasks/${taskId}/`, {
+        method: 'PATCH', body: JSON.stringify({ action }),
+      });
+      if (r.ok) { loadStack(); loadMine(); }
+      else {
+        const d = await r.json().catch(() => ({}));
+        alert(d.detail ?? 'Ошибка');
+      }
+    } finally { setSaving(null); }
+  };
+
+  const canTake = (t: TaskRecord) =>
+    me.isSuperuser ||
+    t.product_id === null ||                          // service task
+    approvedProductIds.includes(t.product_id);        // has approval
+
+  const cellStyle: React.CSSProperties = { padding: '10px 14px', verticalAlign: 'middle' };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {detailOrderId !== null && (
+        <OrderDetailModal
+          orderId={detailOrderId}
+          meId={me.id}
+          isSuperuser={!!me.isSuperuser}
+          approvedProductIds={approvedProductIds}
+          onClose={() => setDetailOrderId(null)}
+          onUpdated={() => { setDetailOrderId(null); loadStack(); loadMine(); }}
+        />
+      )}
+
+      {/* ── Stack (available tasks) ── */}
+      <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Clock size={14} /> Стек задач
+          <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>
+            {stackTasks.length > 0 ? `${stackTasks.length} доступных` : 'нет доступных задач'}
+          </span>
+        </div>
+        {stackTasks.length === 0
+          ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>
+              {approvedProductIds.length === 0 && !me.isSuperuser
+                ? 'У вас нет допусков — обратитесь к администратору'
+                : 'Свободных задач нет'}
+            </p>
+          : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Предмет', 'Клиент', 'Дедлайн', 'Допуск', ''].map(h => (
+                    <th key={h} style={{ ...cellStyle, fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textAlign: 'left' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {stackTasks.map(t => {
+                  const ok = canTake(t);
+                  return (
+                    <tr key={t.id} style={{ borderBottom: '1px solid var(--border)', opacity: ok ? 1 : 0.5 }}>
+                      <td style={cellStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {t.product_image && (
+                            <img src={t.product_image} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                          )}
+                          <strong
+                            style={{ cursor: 'pointer', color: 'var(--text-main)' }}
+                            onClick={() => setDetailOrderId(t.order_id)}
+                          >{t.product_name}</strong>
+                        </div>
+                      </td>
+                      <td style={{ ...cellStyle, color: 'var(--text-muted)' }}>{t.order_client}</td>
+                      <td style={{ ...cellStyle, whiteSpace: 'nowrap' as const }}>
+                        {t.order_deadline ? <DeadlinePill deadline={t.order_deadline} /> : '—'}
+                      </td>
+                      <td style={cellStyle}>
+                        {t.product_id === null
+                          ? <span style={{ fontSize: 11, color: '#86efac' }}>Услуга</span>
+                          : ok
+                            ? <span style={{ fontSize: 11, color: '#86efac' }}>✓ Есть</span>
+                            : <span style={{ fontSize: 11, color: '#f87171' }}>✗ Нет</span>
+                        }
+                      </td>
+                      <td style={{ ...cellStyle, textAlign: 'right' }}>
+                        {ok && (
+                          <button
+                            className="cta-button"
+                            style={{ padding: '5px 14px', fontSize: 12 }}
+                            disabled={saving === t.id}
+                            onClick={() => patchTask(t.id, 'take')}
+                          >
+                            {saving === t.id ? '...' : 'Взять'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+        }
+      </div>
+
+      {/* ── My taken tasks ── */}
+      <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CheckCircle size={14} /> Мои задачи
+          <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>
+            {mineTasks.length > 0 ? `${mineTasks.length} активных` : 'нет активных'}
+          </span>
+        </div>
+        {mineTasks.length === 0
+          ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>Нет взятых задач</p>
+          : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Предмет', 'Клиент', 'Дедлайн', ''].map(h => (
+                    <th key={h} style={{ ...cellStyle, fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textAlign: 'left' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {mineTasks.map(t => (
+                  <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={cellStyle}>
+                      <strong
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setDetailOrderId(t.order_id)}
+                      >{t.product_name}</strong>
+                    </td>
+                    <td style={{ ...cellStyle, color: 'var(--text-muted)' }}>{t.order_client}</td>
+                    <td style={{ ...cellStyle, whiteSpace: 'nowrap' as const }}>
+                      {t.order_deadline ? <DeadlinePill deadline={t.order_deadline} /> : '—'}
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: 'right', display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                      <button
+                        className="cta-button"
+                        style={{ padding: '5px 14px', fontSize: 12, background: 'rgba(74,222,128,0.2)', color: '#86efac' }}
+                        disabled={saving === t.id}
+                        onClick={() => patchTask(t.id, 'done')}
+                      >
+                        <CheckCircle size={12} style={{ marginRight: 4, display: 'inline' }} />
+                        {saving === t.id ? '...' : 'Готово'}
+                      </button>
+                      <button
+                        style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12 }}
+                        disabled={saving === t.id}
+                        onClick={() => patchTask(t.id, 'release')}
+                      >Вернуть</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+        }
+      </div>
+    </div>
+  );
+}
+
 // ── WorkshopPanel (root export) ───────────────────────────────────────────────
 
-type TabId = 'dashboard' | 'orders' | 'clients' | 'approvals' | 'catalog' | 'reviews';
+type TabId = 'dashboard' | 'orders' | 'tasks' | 'clients' | 'approvals' | 'catalog' | 'reviews';
 
 export function WorkshopPanel({
   me, products, onRefresh,
@@ -1649,6 +1839,7 @@ export function WorkshopPanel({
   const tabs: Array<{ id: TabId; label: string }> = ([
     { id: 'dashboard' as TabId, label: 'Сводка' },
     { id: 'orders' as TabId,    label: 'Заказы' },
+    { id: 'tasks' as TabId,     label: 'Задачи' },
     { id: 'clients' as TabId,   label: 'Клиенты' },
     ...(me.isSuperuser ? [{ id: 'approvals' as TabId, label: 'Допуски' }] : []),
     { id: 'catalog' as TabId,   label: 'Каталог' },
@@ -1677,6 +1868,7 @@ export function WorkshopPanel({
       <div style={{ marginTop: 24 }}>
         {tab === 'dashboard' && <DashboardTab me={me} approvedProductIds={approvedProductIds} />}
         {tab === 'orders'    && <OrdersTab me={me} approvedProductIds={approvedProductIds} />}
+        {tab === 'tasks'     && <TasksTab me={me} approvedProductIds={approvedProductIds} />}
         {tab === 'clients'   && <ClientsTab />}
         {tab === 'approvals' && me.isSuperuser && <ApprovalsTab />}
         {tab === 'catalog'   && <CatalogTab products={products} onRefresh={onRefresh} />}

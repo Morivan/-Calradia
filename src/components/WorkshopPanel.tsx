@@ -49,6 +49,15 @@ type ClientRecord = {
 
 type StaffUser = { id: number; username: string; fullName: string };
 
+type MyOrderRow = {
+  id: number;
+  client_name: string;
+  product_name: string;
+  status: string;
+  deadline: string | null;
+  days_left: number | null;
+};
+
 type DashboardData = {
   status_counts: Record<string, number>;
   upcoming_deadlines: Array<{
@@ -61,6 +70,7 @@ type DashboardData = {
     assigned_to_name: string | null;
   }>;
   my_active_count: number;
+  my_orders: MyOrderRow[];
 };
 
 type Me = { id: number; username: string; fullName: string; isStaff: boolean; isSuperuser?: boolean };
@@ -755,6 +765,24 @@ function OrderDetailModal({
   );
 }
 
+// ── Order status badge ────────────────────────────────────────────────────────
+
+const ORDER_STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
+  'Новый':    { bg: 'rgba(147,197,253,0.15)', fg: '#93c5fd' },
+  'В работе': { bg: 'rgba(252,211,77,0.15)',  fg: '#fcd34d' },
+  'Выполнен': { bg: 'rgba(134,239,172,0.15)', fg: '#86efac' },
+  'Отменён':  { bg: 'rgba(156,163,175,0.12)', fg: '#9ca3af' },
+};
+
+function OrderStatusBadge({ status }: { status: string }) {
+  const s = ORDER_STATUS_STYLE[status] ?? { bg: 'rgba(255,255,255,0.06)', fg: 'var(--text-muted)' };
+  return (
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: s.bg, color: s.fg }}>
+      {status}
+    </span>
+  );
+}
+
 // ── Dashboard Tab ─────────────────────────────────────────────────────────────
 
 function DashboardTab({ me, approvedProductIds }: { me: Me; approvedProductIds: number[] }) {
@@ -782,6 +810,7 @@ function DashboardTab({ me, approvedProductIds }: { me: Me; approvedProductIds: 
         />
       )}
 
+      {/* ── Status counters ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 14 }}>
         {[
           { label: 'Новых',     key: 'Новый',    fg: '#93c5fd' },
@@ -800,9 +829,59 @@ function DashboardTab({ me, approvedProductIds }: { me: Me; approvedProductIds: 
         </div>
       </div>
 
+      {/* ── My orders (sorted by deadline) ── */}
       <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Clock size={14} /> Дедлайны (14 дней)
+          <CheckCircle size={14} /> Мои заказы
+          {data.my_orders.length > 0 && (
+            <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>
+              {data.my_orders.length} {plural(data.my_orders.length, 'заказ', 'заказа', 'заказов')} · по дедлайну ↑
+            </span>
+          )}
+        </div>
+        {data.my_orders.length === 0
+          ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>
+              Нет взятых заказов
+            </p>
+          : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <tbody>
+                {data.my_orders.map(o => {
+                  const urgent = o.days_left !== null && o.days_left <= 3;
+                  const soon   = o.days_left !== null && o.days_left <= 7 && o.days_left > 3;
+                  const deadlineFg = urgent ? '#f87171' : soon ? '#fbbf24' : 'var(--text-muted)';
+                  return (
+                    <tr
+                      key={o.id}
+                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                      onClick={() => setDetailOrderId(o.id)}
+                    >
+                      <td style={{ padding: '10px 18px' }}>
+                        <strong style={{ fontSize: 13 }}>{o.product_name || o.client_name}</strong>
+                        {o.product_name && o.client_name && (
+                          <><br /><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{o.client_name}</span></>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px 18px' }}>
+                        <OrderStatusBadge status={o.status} />
+                      </td>
+                      <td style={{ padding: '10px 18px', whiteSpace: 'nowrap' as const, color: deadlineFg, fontWeight: urgent ? 700 : 400 }}>
+                        {o.deadline
+                          ? <><DeadlinePill deadline={o.deadline} /></>
+                          : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+                        }
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+        }
+      </div>
+
+      {/* ── All upcoming deadlines (whole workshop) ── */}
+      <div className="secondary-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Clock size={14} /> Дедлайны мастерской (14 дней)
         </div>
         {data.upcoming_deadlines.length === 0
           ? <p style={{ padding: '16px 18px', color: 'var(--text-muted)', fontSize: 13 }}>Горящих заказов нет</p>
@@ -832,6 +911,13 @@ function DashboardTab({ me, approvedProductIds }: { me: Me; approvedProductIds: 
       </div>
     </div>
   );
+}
+
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
 }
 
 // ── Orders Tab (Kanban) ───────────────────────────────────────────────────────

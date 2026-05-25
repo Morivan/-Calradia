@@ -11,6 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
 from django.db.models import Count as _Count
+from django.db import models as _models
 from django.contrib.auth.models import User as _User
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -544,10 +545,44 @@ class WorkshopDashboardView(APIView):
             Order.objects.filter(status__in=active_statuses, assigned_to=request.user).count()
         )
 
+        # All orders where this user has taken a task (or is directly assigned),
+        # sorted by deadline ascending (null deadline at the end)
+        my_order_ids = set(
+            Task.objects.filter(
+                assigned_to=request.user,
+                status__in=[Task.Status.TAKEN, Task.Status.DONE],
+            ).values_list('order_id', flat=True)
+        ) | set(
+            Order.objects.filter(assigned_to=request.user).values_list('id', flat=True)
+        )
+
+        my_orders_qs = (
+            Order.objects
+            .filter(id__in=my_order_ids)
+            .select_related('assigned_to')
+            .prefetch_related('tasks')
+            .order_by(
+                # nulls last: orders without deadline go to the bottom
+                _models.F('deadline').asc(nulls_last=True)
+            )
+        )
+
+        def _my_order_dict(o):
+            days = (o.deadline - today).days if o.deadline else None
+            return {
+                'id': o.id,
+                'client_name': o.client_name,
+                'product_name': o.product_name,
+                'status': o.status,
+                'deadline': o.deadline.isoformat() if o.deadline else None,
+                'days_left': days,
+            }
+
         return Response({
             'status_counts': status_counts,
             'upcoming_deadlines': upcoming,
             'my_active_count': my_active,
+            'my_orders': [_my_order_dict(o) for o in my_orders_qs],
         })
 
 

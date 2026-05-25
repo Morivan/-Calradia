@@ -148,7 +148,10 @@ class ProductSet(TimestampedModel):
     image = models.URLField(max_length=1000, blank=True)
     gallery = models.JSONField(default=list)
     products = models.ManyToManyField(Product, blank=True, related_name='product_sets')
-    price_from = models.PositiveIntegerField(null=True, blank=True)
+    price_from = models.PositiveIntegerField(null=True, blank=True,
+        help_text='Итоговая цена комплекта (если задана — скидка вычисляется из неё)')
+    discount_percent = models.PositiveSmallIntegerField(null=True, blank=True,
+        help_text='Скидка в % (0–100). Если задана price_from, это поле игнорируется')
     badge = models.CharField(max_length=64, blank=True)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
     updated_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')

@@ -82,10 +82,14 @@ type ProductSet = {
   subtitle: string;
   description: string;
   image: string;
+  gallery: string[];
   badge: string;
   price_from: number;
   price_individual: number;
   discount: number;
+  discount_percent: number;
+  price_from_override: number | null;
+  discount_percent_override: number | null;
   products: Array<{ id: number; name: string; slug: string; price_from: number; image: string }>;
 };
 
@@ -1626,6 +1630,382 @@ function ReviewFormModal({ review, onClose, onSaved }: {
   );
 }
 
+// ── Set Form Modal ────────────────────────────────────────────────────────────
+
+type PricingMode = 'percent' | 'fixed';
+
+function SetFormModal({
+  set, products, onClose, onSaved,
+}: {
+  set: ProductSet | null;
+  products: Product[];
+  onClose: () => void;
+  onSaved: (s: ProductSet) => void;
+}) {
+  const isNew = !set;
+
+  const initMode: PricingMode = set?.price_from_override ? 'fixed' : 'percent';
+  const [pricingMode, setPricingMode] = useState<PricingMode>(initMode);
+
+  const [form, setForm] = useState({
+    name: set?.name ?? '',
+    subtitle: set?.subtitle ?? '',
+    description: set?.description ?? '',
+    image: set?.image ?? '',
+    badge: set?.badge ?? '',
+    discount_percent: String(set?.discount_percent_override ?? ''),
+    price_from: String(set?.price_from_override ?? ''),
+  });
+
+  const [productSearch, setProductSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>(
+    set?.products.map(p => p.id) ?? []
+  );
+  const [galleryLines, setGalleryLines] = useState<string[]>(
+    set?.gallery?.length ? set.gallery : ['']
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Live pricing preview
+  const selectedProducts = products.filter(p => selectedIds.includes(parseInt(p.id)));
+  const priceIndividual = selectedProducts.reduce((s, p) => s + p.priceFrom, 0);
+
+  let livePrice: number | null = null;
+  let livePercent: number | null = null;
+  if (pricingMode === 'percent') {
+    const pct = parseInt(form.discount_percent);
+    if (!isNaN(pct) && pct > 0 && pct <= 100 && priceIndividual > 0) {
+      livePrice = Math.round(priceIndividual * (1 - pct / 100));
+    }
+  } else {
+    const price = parseInt(form.price_from);
+    if (!isNaN(price) && price > 0 && priceIndividual > 0 && price < priceIndividual) {
+      livePercent = Math.round((priceIndividual - price) / priceIndividual * 100);
+    }
+  }
+
+  const field = (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const toggleProduct = (id: number) =>
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const gallery = galleryLines.map(u => u.trim()).filter(Boolean);
+      const body: Record<string, unknown> = {
+        name: form.name,
+        subtitle: form.subtitle,
+        description: form.description,
+        image: form.image.trim(),
+        badge: form.badge,
+        gallery,
+        product_ids: selectedIds,
+      };
+      if (pricingMode === 'percent') {
+        body.discount_percent = form.discount_percent ? parseInt(form.discount_percent) : null;
+        body.price_from = null;
+      } else {
+        body.price_from = form.price_from ? parseInt(form.price_from) : null;
+        body.discount_percent = null;
+      }
+      const url = isNew ? '/api/workshop/sets/' : `/api/workshop/sets/${set!.id}/`;
+      const resp = await apiFetch(url, { method: isNew ? 'POST' : 'PATCH', body: JSON.stringify(body) });
+      const data = await resp.json();
+      if (!resp.ok) { setError(data.detail ?? 'Ошибка сохранения.'); return; }
+      onSaved(data as ProductSet);
+    } catch {
+      setError('Нет связи с сервером.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) &&
+    !selectedIds.includes(parseInt(p.id))
+  );
+
+  return (
+    <div className="ws-modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="ws-modal-box" style={{ maxWidth: 600, maxHeight: '92vh', overflowY: 'auto' }}>
+        <div className="ws-modal-header">
+          <h2 style={{ margin: 0, fontSize: 18 }}>{isNew ? 'Новый комплект' : 'Редактировать комплект'}</h2>
+          <button className="icon-button" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Basic info */}
+          <label className="product-form-field">
+            <span>Название *</span>
+            <input value={form.name} onChange={field('name')} required />
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <label className="product-form-field">
+              <span>Подзаголовок</span>
+              <input value={form.subtitle} onChange={field('subtitle')} />
+            </label>
+            <label className="product-form-field">
+              <span>Бейдж</span>
+              <input value={form.badge} onChange={field('badge')} placeholder="Хит / Новинка..." />
+            </label>
+          </div>
+          <label className="product-form-field">
+            <span>Фото (URL)</span>
+            <input value={form.image} onChange={field('image')} placeholder="https://..." />
+          </label>
+          <label className="product-form-field">
+            <span>Описание</span>
+            <textarea value={form.description} onChange={field('description')} rows={3} />
+          </label>
+
+          {/* Gallery */}
+          <div>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Галерея (дополнительные фото)</span>
+            {galleryLines.map((url, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <input
+                  value={url}
+                  onChange={e => setGalleryLines(prev => prev.map((u, i) => i === idx ? e.target.value : u))}
+                  style={{ flex: 1, padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-main)', fontSize: 13 }}
+                  placeholder={`https://... (фото ${idx + 1})`}
+                />
+                <button type="button" className="icon-button"
+                  onClick={() => setGalleryLines(prev => prev.length > 1 ? prev.filter((_, i) => i !== idx) : [''])}>
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
+            <button type="button" className="icon-button"
+              style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px' }}
+              onClick={() => setGalleryLines(prev => [...prev, ''])}>
+              <Plus size={13} /> Добавить фото
+            </button>
+          </div>
+
+          {/* Product selection */}
+          <div>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Предметы в комплекте</span>
+            {selectedIds.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {products.filter(p => selectedIds.includes(parseInt(p.id))).map(p => (
+                  <button key={p.id} type="button" onClick={() => toggleProduct(parseInt(p.id))}
+                    style={{ padding: '4px 10px', borderRadius: 20, border: '1px solid rgba(147,197,253,0.4)', background: 'rgba(147,197,253,0.12)', color: '#93c5fd', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    {p.name} <X size={11} />
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{ position: 'relative' }}>
+              <input
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                placeholder="Найти предмет и добавить..."
+                style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-panel-soft)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-main)', fontSize: 13 }}
+              />
+              {productSearch && filteredProducts.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 180, overflowY: 'auto', marginTop: 2 }}>
+                  {filteredProducts.slice(0, 8).map(p => (
+                    <div key={p.id}
+                      onClick={() => { toggleProduct(parseInt(p.id)); setProductSearch(''); }}
+                      style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--border)' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-panel-soft)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      {p.name} — {p.priceFrom.toLocaleString('ru-RU')} ₽
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {priceIndividual > 0 && (
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
+                Сумма по отдельности: <strong style={{ color: 'var(--text-main)' }}>{priceIndividual.toLocaleString('ru-RU')} ₽</strong>
+              </p>
+            )}
+          </div>
+
+          {/* Pricing mode */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Цена комплекта</span>
+            <div style={{ display: 'flex', gap: 0, background: 'var(--bg-panel-soft)', borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 12 }}>
+              <button type="button" onClick={() => setPricingMode('percent')} style={{
+                flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 600,
+                background: pricingMode === 'percent' ? 'var(--accent)' : 'transparent',
+                color: pricingMode === 'percent' ? '#fff' : 'var(--text-muted)',
+                cursor: 'pointer', border: 'none',
+              }}>% скидки</button>
+              <button type="button" onClick={() => setPricingMode('fixed')} style={{
+                flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 600,
+                background: pricingMode === 'fixed' ? 'var(--accent)' : 'transparent',
+                color: pricingMode === 'fixed' ? '#fff' : 'var(--text-muted)',
+                cursor: 'pointer', border: 'none', borderLeft: '1px solid var(--border)',
+              }}>Итоговая цена</button>
+            </div>
+
+            {pricingMode === 'percent' ? (
+              <div>
+                <label className="product-form-field">
+                  <span>Скидка, % (0–100)</span>
+                  <input type="number" min="0" max="100" value={form.discount_percent} onChange={field('discount_percent')} placeholder="Например: 15" />
+                </label>
+                {livePrice !== null && (
+                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#86efac', fontWeight: 600 }}>
+                    → Итоговая цена: {livePrice.toLocaleString('ru-RU')} ₽
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>
+                      (экономия {(priceIndividual - livePrice).toLocaleString('ru-RU')} ₽)
+                    </span>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="product-form-field">
+                  <span>Итоговая цена комплекта, ₽</span>
+                  <input type="number" min="0" value={form.price_from} onChange={field('price_from')} placeholder="Например: 85000" />
+                </label>
+                {livePercent !== null && (
+                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#86efac', fontWeight: 600 }}>
+                    → Скидка: {livePercent}%
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>
+                      (экономия {(priceIndividual - parseInt(form.price_from)).toLocaleString('ru-RU')} ₽)
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {!form.discount_percent && !form.price_from && (
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
+                Без скидки — комплект продаётся по сумме предметов
+              </p>
+            )}
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button type="button" className="icon-button" style={{ padding: '8px 20px' }} onClick={onClose}>Отмена</button>
+            <button type="submit" className="cta-button" disabled={loading}>
+              {loading ? 'Сохранение...' : isNew ? 'Создать' : 'Сохранить'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Sets Manage Tab ───────────────────────────────────────────────────────────
+
+function SetsManageTab({ products }: { products: Product[] }) {
+  const [sets, setSets] = useState<ProductSet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formTarget, setFormTarget] = useState<ProductSet | 'new' | undefined>(undefined);
+  const [deleting, setDeleting] = useState<number | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await apiFetch('/api/workshop/sets/');
+      if (r.ok) setSets(await r.json());
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Удалить комплект?')) return;
+    setDeleting(id);
+    try {
+      await apiFetch(`/api/workshop/sets/${id}/`, { method: 'DELETE' });
+      setSets(prev => prev.filter(s => s.id !== id));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <div>
+      {formTarget !== undefined && (
+        <SetFormModal
+          set={formTarget === 'new' ? null : formTarget}
+          products={products}
+          onClose={() => setFormTarget(undefined)}
+          onSaved={saved => {
+            setSets(prev => {
+              const idx = prev.findIndex(s => s.id === saved.id);
+              if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next; }
+              return [...prev, saved];
+            });
+            setFormTarget(undefined);
+          }}
+        />
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+        <button className="cta-button" style={{ padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+          onClick={() => setFormTarget('new')}>
+          <Plus size={15} /> Новый комплект
+        </button>
+      </div>
+
+      {loading && <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Загрузка...</p>}
+
+      <div className="secondary-card" style={{ padding: 0 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              {['Комплект', 'Предметы', 'Цена', 'Скидка', ''].map(h => (
+                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, color: 'var(--text-muted)' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sets.map(s => (
+              <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '12px 16px' }}>
+                  <strong>{s.name}</strong>
+                  {s.subtitle && <><br /><small style={{ color: 'var(--text-muted)' }}>{s.subtitle}</small></>}
+                </td>
+                <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: 13 }}>
+                  {s.products.length} предм.
+                </td>
+                <td style={{ padding: '12px 16px', fontWeight: 600 }}>
+                  {s.price_from ? `${s.price_from.toLocaleString('ru-RU')} ₽` : '—'}
+                  {s.price_individual > 0 && s.discount > 0 && (
+                    <><br /><small style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 400 }}>{s.price_individual.toLocaleString('ru-RU')} ₽</small></>
+                  )}
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  {s.discount_percent > 0
+                    ? <span style={{ color: '#86efac', fontWeight: 700 }}>−{s.discount_percent}%</span>
+                    : <span style={{ color: 'var(--text-muted)' }}>—</span>
+                  }
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="icon-button" title="Редактировать" onClick={() => setFormTarget(s)}><Pencil size={15} /></button>
+                    <button className="icon-button" title="Удалить" disabled={deleting === s.id} onClick={() => handleDelete(s.id)}><Trash2 size={15} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {!loading && sets.length === 0 && (
+              <tr><td colSpan={5} style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>Комплектов пока нет</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ── Tasks Tab ─────────────────────────────────────────────────────────────────
 
 type TaskRecord = {
@@ -1817,7 +2197,7 @@ function TasksTab({ me, approvedProductIds }: { me: Me; approvedProductIds: numb
 
 // ── WorkshopPanel (root export) ───────────────────────────────────────────────
 
-type TabId = 'dashboard' | 'orders' | 'tasks' | 'clients' | 'approvals' | 'catalog' | 'reviews';
+type TabId = 'dashboard' | 'orders' | 'tasks' | 'clients' | 'approvals' | 'catalog' | 'sets' | 'reviews';
 
 export function WorkshopPanel({
   me, products, onRefresh,
@@ -1842,6 +2222,7 @@ export function WorkshopPanel({
     { id: 'clients' as TabId,   label: 'Клиенты' },
     ...(me.isSuperuser ? [{ id: 'approvals' as TabId, label: 'Допуски' }] : []),
     { id: 'catalog' as TabId,   label: 'Каталог' },
+    { id: 'sets' as TabId,      label: 'Комплекты' },
     { id: 'reviews' as TabId,   label: 'Отзывы' },
   ]);
 
@@ -1871,6 +2252,7 @@ export function WorkshopPanel({
         {tab === 'clients'   && <ClientsTab />}
         {tab === 'approvals' && me.isSuperuser && <ApprovalsTab />}
         {tab === 'catalog'   && <CatalogTab products={products} onRefresh={onRefresh} />}
+        {tab === 'sets'      && <SetsManageTab products={products} />}
         {tab === 'reviews'   && <ReviewsManageTab />}
       </div>
     </section>

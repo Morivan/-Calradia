@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import type { ExternalLinks, ProductSet, SetProduct } from '../types';
 
-const DISCOUNT = 15;
-
 // ── Public Sets Catalog ───────────────────────────────────────────────────────
 
 export function SetsPage({
@@ -48,7 +46,7 @@ export function SetsPage({
           <h1 style={{ margin: 0, fontSize: 'clamp(1.3rem, 3vw, 1.9rem)' }}>Комплекты</h1>
           {sets.length > 0 && (
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              {sets.length} {plural(sets.length, 'комплект', 'комплекта', 'комплектов')} · скидка {DISCOUNT}% при заказе набором
+              {sets.length} {plural(sets.length, 'комплект', 'комплекта', 'комплектов')} · скидки при заказе набором
             </span>
           )}
         </div>
@@ -109,14 +107,16 @@ function SetCard({ set, onClick }: { set: ProductSet; onClick: () => void }) {
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Фото не добавлено</div>
         }
         {/* Discount badge */}
-        <div style={{
-          position: 'absolute', top: 12, right: 12,
-          background: 'var(--accent)', color: '#fff',
-          fontWeight: 700, fontSize: 13,
-          padding: '4px 10px', borderRadius: 8,
-        }}>
-          −{DISCOUNT}%
-        </div>
+        {set.discount_percent > 0 && (
+          <div style={{
+            position: 'absolute', top: 12, right: 12,
+            background: 'var(--accent)', color: '#fff',
+            fontWeight: 700, fontSize: 13,
+            padding: '4px 10px', borderRadius: 8,
+          }}>
+            −{set.discount_percent}%
+          </div>
+        )}
         {set.badge && (
           <div style={{
             position: 'absolute', top: 12, left: 12,
@@ -261,15 +261,17 @@ function SetDetail({
           {/* Price block */}
           <div className="secondary-card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Discount badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{
-                background: 'var(--accent)', color: '#fff',
-                fontWeight: 700, fontSize: 13,
-                padding: '3px 10px', borderRadius: 8,
-              }}>
-                −{set.discount_percent ?? DISCOUNT}% при заказе набором
-              </span>
-            </div>
+            {set.discount_percent > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{
+                  background: 'var(--accent)', color: '#fff',
+                  fontWeight: 700, fontSize: 13,
+                  padding: '3px 10px', borderRadius: 8,
+                }}>
+                  −{set.discount_percent}% при заказе набором
+                </span>
+              </div>
+            )}
 
             {/* Price line */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>

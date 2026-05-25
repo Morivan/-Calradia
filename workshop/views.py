@@ -716,18 +716,23 @@ class WorkshopUsersView(APIView):
 
 # ── Sets ──────────────────────────────────────────────────────────────────────
 
-DISCOUNT_PERCENT = 15  # fixed set discount
-
 def _set_to_dict(ps) -> dict:
     products = list(ps.products.all())
     price_individual = sum(p.price_from for p in products)
-    # Always apply 15% discount; admin can still override via price_from
+
     if ps.price_from:
+        # Admin set a fixed final price → back-calculate the %
         price_set = ps.price_from
-    elif price_individual:
-        price_set = round(price_individual * (1 - DISCOUNT_PERCENT / 100))
+        discount_pct = round((price_individual - price_set) / price_individual * 100) if price_individual else 0
+    elif ps.discount_percent is not None:
+        # Admin set a % → calculate final price
+        discount_pct = ps.discount_percent
+        price_set = round(price_individual * (1 - discount_pct / 100)) if price_individual else 0
     else:
-        price_set = 0
+        # Nothing set — no discount
+        discount_pct = 0
+        price_set = price_individual
+
     return {
         'id': ps.id,
         'slug': ps.slug,
@@ -740,7 +745,10 @@ def _set_to_dict(ps) -> dict:
         'price_from': price_set,
         'price_individual': price_individual,
         'discount': price_individual - price_set,
-        'discount_percent': DISCOUNT_PERCENT,
+        'discount_percent': discount_pct,
+        # raw admin settings (for the workshop panel form)
+        'price_from_override': ps.price_from,
+        'discount_percent_override': ps.discount_percent,
         'products': [{'id': p.id, 'name': p.name, 'slug': p.slug, 'price_from': p.price_from, 'image': p.image} for p in products],
     }
 
@@ -761,6 +769,31 @@ class PublicSetDetailView(APIView):
         return Response(_set_to_dict(ps))
 
 
+def _parse_set_pricing(data):
+    """
+    Returns (price_from, discount_percent, error_str).
+    Exactly one of price_from / discount_percent will be non-None (or both None if nothing given).
+    If both are supplied, price_from wins and discount_percent is cleared.
+    """
+    raw_price = data.get('price_from')
+    raw_pct   = data.get('discount_percent')
+    price_from = discount_percent = None
+    try:
+        if raw_price not in (None, '', 0, '0'):
+            price_from = int(raw_price)
+            # price_from wins → clear percent override
+            discount_percent = None
+        elif raw_pct not in (None, ''):
+            pct = int(raw_pct)
+            if not (0 <= pct <= 100):
+                return None, None, 'Скидка должна быть от 0 до 100%.'
+            discount_percent = pct
+            price_from = None
+    except (ValueError, TypeError):
+        return None, None, 'Некорректное значение цены или скидки.'
+    return price_from, discount_percent, None
+
+
 class WorkshopSetsView(APIView):
     def get(self, request):
         sets = ProductSet.objects.prefetch_related('products').all()
@@ -772,11 +805,9 @@ class WorkshopSetsView(APIView):
         name = (request.data.get('name') or '').strip()
         if not name:
             return Response({"detail": "Укажите название комплекта."}, status=status.HTTP_400_BAD_REQUEST)
-        price_raw = request.data.get('price_from')
-        try:
-            price_from = int(price_raw) if price_raw else None
-        except (ValueError, TypeError):
-            return Response({"detail": "Некорректное значение цены."}, status=status.HTTP_400_BAD_REQUEST)
+        price_from, discount_percent, err = _parse_set_pricing(request.data)
+        if err:
+            return Response({"detail": err}, status=status.HTTP_400_BAD_REQUEST)
         ps = ProductSet.objects.create(
             slug=_unique_slug(name),
             name=name,
@@ -786,6 +817,7 @@ class WorkshopSetsView(APIView):
             gallery=request.data.get('gallery') or [],
             badge=(request.data.get('badge') or '').strip(),
             price_from=price_from,
+            discount_percent=discount_percent,
             created_by=request.user,
             updated_by=request.user,
         )
@@ -811,12 +843,12 @@ class WorkshopSetDetailView(APIView):
         for field in ('name', 'subtitle', 'description', 'image', 'gallery', 'badge'):
             if field in request.data:
                 setattr(ps, field, request.data[field])
-        if 'price_from' in request.data:
-            v = request.data['price_from']
-            try:
-                ps.price_from = int(v) if v else None
-            except (ValueError, TypeError):
-                return Response({"detail": "Некорректное значение цены."}, status=status.HTTP_400_BAD_REQUEST)
+        if 'price_from' in request.data or 'discount_percent' in request.data:
+            price_from, discount_percent, err = _parse_set_pricing(request.data)
+            if err:
+                return Response({"detail": err}, status=status.HTTP_400_BAD_REQUEST)
+            ps.price_from = price_from
+            ps.discount_percent = discount_percent
         if 'product_ids' in request.data:
             ps.products.set(Product.objects.filter(pk__in=request.data['product_ids']))
         ps.updated_by = request.user

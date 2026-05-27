@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from workshop.models import Order
 
-NOTIFY_DAYS = [14, 7, 3, 1]
+NOTIFY_DAYS = [14, 7, 3]
 
 SUBJECT_TEMPLATE = "⚠️ Заказ горит: {client} — {product} (осталось {days} дн.)"
 

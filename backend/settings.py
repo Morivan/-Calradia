@@ -225,6 +225,11 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "false").lower() == "true"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "")
 
+# ── Cron ──────────────────────────────────────────────────────────────────────
+# Run once after deployment to register the daily reminder job:
+#   python manage.py setup_cron          — install
+#   python manage.py setup_cron --remove — uninstall
+
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

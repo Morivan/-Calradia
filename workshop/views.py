@@ -109,6 +109,7 @@ class ReviewCreateView(APIView):
             return Response({"detail": "Товар не найден."}, status=status.HTTP_404_NOT_FOUND)
         review = Review.objects.create(
             product=product,
+            author=request.data.get("author", "").strip(),
             text=request.data.get("text", "").strip(),
             review_date=request.data.get("date") or timezone.localtime().strftime("%d.%m.%Y"),
         )

@@ -9,7 +9,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ("id", "text", "date", "review_date", "vk_url", "photos")
+        fields = ("id", "author", "text", "date", "review_date", "vk_url", "photos")
 
     def get_photos(self, obj) -> list:
         """Return merged list: photos JSONField + legacy photo_url."""

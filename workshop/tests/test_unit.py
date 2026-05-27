@@ -120,7 +120,6 @@ class SerializerUnitTests(TestCase):
             product=cls.product,
             author="Иван",
             text="Отлично",
-            rating=5,
             review_date="11.03.2026",
         )
 
@@ -138,7 +137,8 @@ class SerializerUnitTests(TestCase):
     def test_review_serializer_maps_date_field(self):
         data = ReviewSerializer(self.review).data
         self.assertEqual(data["date"], "11.03.2026")
-        self.assertEqual(data["rating"], 5)
+        self.assertEqual(data["author"], "Иван")
+        self.assertEqual(data["text"], "Отлично")
 
 
 @tag("unit")

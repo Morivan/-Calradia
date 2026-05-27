@@ -1,13 +1,19 @@
 from uuid import uuid4
 import json
 import logging
+import re
 import datetime as _dt
+import xml.etree.ElementTree as ET
+
+import requests as _req
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.core.cache import cache
 from django.middleware.csrf import get_token as _get_csrf_token
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
+from django.utils.timezone import make_aware
 from django.views import View
 from django.utils import timezone
 from django.db.models import Count as _Count
@@ -304,7 +310,6 @@ class VkCallbackView(APIView):
                 return HttpResponse("ok", content_type="text/plain")
 
             # Deduplicate by post ID using Django cache
-            from django.core.cache import cache
             post_key = f"vk_post_{post.get('owner_id')}_{post.get('id')}"
             if cache.get(post_key):
                 return HttpResponse("ok", content_type="text/plain")
@@ -312,8 +317,6 @@ class VkCallbackView(APIView):
 
             # Save to DB
             try:
-                import datetime
-                from django.utils.timezone import make_aware
                 photo_url = ''
                 attachments = post.get('attachments', [])
                 for att in attachments:
@@ -323,7 +326,7 @@ class VkCallbackView(APIView):
                             best = max(sizes, key=lambda s: s.get('width', 0))
                             photo_url = best.get('url', '')
                         break
-                posted_at = make_aware(datetime.datetime.fromtimestamp(post.get('date', 0)))
+                posted_at = make_aware(_dt.datetime.fromtimestamp(post.get('date', 0)))
                 VKPost.objects.get_or_create(
                     post_id=post.get('id'),
                     defaults={
@@ -333,8 +336,8 @@ class VkCallbackView(APIView):
                         'posted_at': posted_at,
                     }
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("VK callback: failed to save VKPost: %s", exc)
 
             channel_id = settings.TELEGRAM_CHANNEL_ID
             if not channel_id:
@@ -365,8 +368,8 @@ class VKPostsView(View):
             data = self._fetch_rss()
             if data:
                 return JsonResponse({'posts': data})
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("VK RSS fetch failed, falling back to DB: %s", exc)
         # Fallback: DB (posts captured via callback)
         posts = VKPost.objects.all()[:10]
         data = [
@@ -381,8 +384,6 @@ class VKPostsView(View):
         return JsonResponse({'posts': data})
 
     def _fetch_rss(self):
-        import xml.etree.ElementTree as ET
-        import requests as _req
         resp = _req.get(self.VK_RSS, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
         root = ET.fromstring(resp.content)
@@ -394,7 +395,6 @@ class VKPostsView(View):
             description = (item.findtext('description') or '').strip()
             text = description if description else title
             # strip HTML tags simply
-            import re
             text = re.sub(r'<[^>]+>', '', text).strip()
             pub_date = item.findtext('pubDate') or ''
             photo_url = ''
@@ -423,10 +423,13 @@ class NewsPostCreateView(View):
     def post(self, request):
         if not request.user.is_staff:
             return JsonResponse({'error': 'forbidden'}, status=403)
-        import json
-        body = json.loads(request.body)
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Невалидный JSON'}, status=400)
+        # Use microsecond timestamp to avoid collision if two posts created in same second
         post = VKPost.objects.create(
-            post_id=int(timezone.now().timestamp()),
+            post_id=int(timezone.now().timestamp() * 1000),
             owner_id=0,
             text=body.get('text', '')[:2000],
             photo_url=body.get('photo_url', ''),
@@ -465,7 +468,8 @@ def _order_to_dict(order) -> dict:
         'id': order.id,
         'client_id': order.client_id,
         'client_name': order.client_name,
-        'client_vk': order.client_vk if hasattr(order, 'client_vk') else '',
+        'client_vk': order.client_vk,
+        'product_id': order.product_id,
         'product_name': order.product_name,
         'configuration': order.configuration,
         'status': order.status,
@@ -479,9 +483,9 @@ def _order_to_dict(order) -> dict:
             order.assigned_to.get_full_name() or order.assigned_to.username
         ) if order.assigned_to else None,
         'created_at': order.created_at.strftime('%d.%m.%Y'),
-        'order_type': order.order_type if hasattr(order, 'order_type') else 'product',
-        'set_id': order.product_set_id if hasattr(order, 'product_set_id') else None,
-        'set_name': order.product_set.name if hasattr(order, 'product_set') and order.product_set else None,
+        'order_type': order.order_type,
+        'set_id': order.product_set_id,
+        'set_name': order.product_set.name if order.product_set else None,
         'tasks': [
             {
                 'id': t.id,
@@ -609,17 +613,18 @@ class WorkshopOrdersView(APIView):
             _User.objects.filter(pk=assigned_id, is_staff=True).first()
             if assigned_id else None
         ) or request.user
-        order = Order.objects.create(
-            client_name=client_name,
-            product_name=(request.data.get('product_name') or '').strip(),
-            configuration=(request.data.get('configuration') or '').strip(),
-            status=request.data.get('status') or Order.Status.NEW,
-            deadline=_parse_deadline(request.data.get('deadline')),
-            total=_parse_int(request.data.get('total')),
-            advance=_parse_int(request.data.get('advance')),
-            notes=(request.data.get('notes') or '').strip(),
-            assigned_to=assigned_user,
-        )
+        with transaction.atomic():
+            order = Order.objects.create(
+                client_name=client_name,
+                product_name=(request.data.get('product_name') or '').strip(),
+                configuration=(request.data.get('configuration') or '').strip(),
+                status=request.data.get('status') or Order.Status.NEW,
+                deadline=_parse_deadline(request.data.get('deadline')),
+                total=_parse_int(request.data.get('total')),
+                advance=_parse_int(request.data.get('advance')),
+                notes=(request.data.get('notes') or '').strip(),
+                assigned_to=assigned_user,
+            )
         return Response(_order_to_dict(order), status=status.HTTP_201_CREATED)
 
 
@@ -1084,20 +1089,21 @@ class WorkshopOrderCreateView(APIView):
             if assigned_id else None
         ) or request.user
 
-        order = Order.objects.create(
-            client_name=client_name,
-            client_vk=(data.get('client_vk') or '').strip(),
-            order_type=order_type,
-            product=product,
-            product_set=product_set,
-            product_name=product_name,
-            configuration=(data.get('configuration') or '').strip(),
-            status=Order.Status.NEW,
-            deadline=_parse_deadline(data.get('deadline')),
-            total=total,
-            advance=advance,
-            notes=(data.get('notes') or '').strip(),
-            assigned_to=assigned_user,
-        )
-        _create_tasks_for_order(order)
+        with transaction.atomic():
+            order = Order.objects.create(
+                client_name=client_name,
+                client_vk=(data.get('client_vk') or '').strip(),
+                order_type=order_type,
+                product=product,
+                product_set=product_set,
+                product_name=product_name,
+                configuration=(data.get('configuration') or '').strip(),
+                status=Order.Status.NEW,
+                deadline=_parse_deadline(data.get('deadline')),
+                total=total,
+                advance=advance,
+                notes=(data.get('notes') or '').strip(),
+                assigned_to=assigned_user,
+            )
+            _create_tasks_for_order(order)
         return Response(_order_to_dict(order), status=status.HTTP_201_CREATED)

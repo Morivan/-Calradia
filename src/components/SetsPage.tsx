@@ -7,9 +7,11 @@ import type { ExternalLinks, ProductSet, SetProduct } from '../types';
 export function SetsPage({
   onBack,
   links,
+  initialSlug,
 }: {
   onBack: () => void;
   links: ExternalLinks;
+  initialSlug?: string;
 }) {
   const [sets, setSets] = useState<ProductSet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,15 @@ export function SetsPage({
   useEffect(() => {
     fetch('/api/catalog/sets/')
       .then(r => r.ok ? r.json() : [])
-      .then((data: ProductSet[]) => { setSets(data); setLoading(false); });
-  }, []);
+      .then((data: ProductSet[]) => {
+        setSets(data);
+        setLoading(false);
+        if (initialSlug) {
+          const match = data.find((s: ProductSet) => s.slug === initialSlug);
+          if (match) setSelected(match);
+        }
+      });
+  }, [initialSlug]);
 
   if (selected) {
     return (

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock3, Hammer, Scale, X } from 'lucide-react';
+import { ArrowLeft, Clock3, Hammer, Layers, Scale, X } from 'lucide-react';
 import type { ExternalLinks, Product } from '../types';
 
 export function ProductDetail({
   product,
   onBack,
   links,
+  onOpenSet,
 }: {
   product: Product;
   onBack: () => void;
   links: ExternalLinks;
+  onOpenSet?: (slug: string) => void;
 }) {
   const [activeImage, setActiveImage] = useState(product.gallery[0] ?? product.image);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -135,6 +137,30 @@ export function ProductDetail({
               </a>
             </div>
           </div>
+
+          {product.setDiscounts && product.setDiscounts.length > 0 && (
+            <div className="detail-set-promo">
+              <Layers size={14} className="detail-set-promo-icon" />
+              <div className="detail-set-promo-body">
+                <span className="detail-set-promo-label">Дешевле в комплекте:</span>
+                <div className="detail-set-promo-list">
+                  {product.setDiscounts.map(s => (
+                    <button
+                      key={s.slug}
+                      className="detail-set-promo-link"
+                      onClick={() => onOpenSet ? onOpenSet(s.slug) : undefined}
+                    >
+                      {s.discount_percent > 0 && (
+                        <span className="detail-set-promo-pct">−{s.discount_percent}%</span>
+                      )}
+                      {s.name}
+                      <span className="detail-set-promo-arrow">→</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="detail-description">
             <h2>Описание изделия</h2>

@@ -37,6 +37,7 @@ export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [openSetSlug, setOpenSetSlug] = useState<string | undefined>(undefined);
 
   const loadBootstrap = async () => {
     try {
@@ -162,6 +163,15 @@ export default function App() {
   };
 
   const openSets = () => {
+    setOpenSetSlug(undefined);
+    setCurrentView('sets');
+    setSelectedProduct(null);
+    setMobileFiltersOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openSetBySlug = (slug: string) => {
+    setOpenSetSlug(slug);
     setCurrentView('sets');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -223,7 +233,7 @@ export default function App() {
         ) : currentView === 'services' ? (
           <ServicesPage onBack={goHome} links={externalLinks} />
         ) : currentView === 'sets' ? (
-          <SetsPage onBack={goHome} links={externalLinks} />
+          <SetsPage onBack={goHome} links={externalLinks} initialSlug={openSetSlug} />
         ) : currentView === 'reviews' ? (
           <ReviewsPage reviews={reviews} onBack={goHome} />
         ) : currentView === 'home' && !selectedProduct ? (
@@ -233,6 +243,7 @@ export default function App() {
             product={selectedProduct}
             onBack={goCatalog}
             links={externalLinks}
+            onOpenSet={openSetBySlug}
           />
         ) : (
           <section className="catalog-layout" id="catalog collections">

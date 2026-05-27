@@ -26,6 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
     protectionClass = serializers.CharField(source="protection_class")
     createdBy = serializers.SerializerMethodField()
     updatedBy = serializers.SerializerMethodField()
+    setDiscounts = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -53,6 +54,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "updatedBy",
             "created_at",
             "updated_at",
+            "setDiscounts",
         )
 
     def get_createdBy(self, obj):
@@ -60,6 +62,25 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_updatedBy(self, obj):
         return obj.updated_by.get_full_name() or obj.updated_by.username if obj.updated_by else None
+
+    def get_setDiscounts(self, obj) -> list:
+        """Return all sets this product belongs to, with computed discount_percent."""
+        result = []
+        for ps in obj.product_sets.all():
+            products = list(ps.products.all())
+            price_individual = sum(p.price_from for p in products)
+            if ps.price_from:
+                discount_pct = round((price_individual - ps.price_from) / price_individual * 100) if price_individual else 0
+            elif ps.discount_percent is not None:
+                discount_pct = ps.discount_percent
+            else:
+                discount_pct = 0
+            result.append({
+                'slug': ps.slug,
+                'name': ps.name,
+                'discount_percent': discount_pct,
+            })
+        return result
 
 
 class IntegrationLinkSerializer(serializers.ModelSerializer):

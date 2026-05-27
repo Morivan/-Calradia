@@ -70,7 +70,7 @@ class BootstrapView(APIView):
             page, page_size = 1, 200
 
         offset = (page - 1) * page_size
-        all_products = Product.objects.all()
+        all_products = Product.objects.prefetch_related('product_sets__products').all()
         total = all_products.count()
         products_qs = all_products[offset:offset + page_size]
         product_ids = [p.id for p in products_qs]
@@ -160,7 +160,8 @@ class WorkshopReviewDetailView(APIView):
 
 class ProductListCreateView(APIView):
     def get(self, request):
-        return Response(ProductSerializer(Product.objects.all(), many=True).data)
+        qs = Product.objects.prefetch_related('product_sets__products').all()
+        return Response(ProductSerializer(qs, many=True).data)
 
     def post(self, request):
         if not _is_staff(request):

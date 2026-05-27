@@ -46,6 +46,17 @@ export function ProductCard({
           <strong>от {product.priceFrom.toLocaleString('ru-RU')} ₽</strong>
         </div>
 
+        {product.setDiscounts && product.setDiscounts.length > 0 && (() => {
+          const best = product.setDiscounts!.reduce((m, s) => Math.max(m, s.discount_percent), 0);
+          return (
+            <div className="product-set-hint">
+              <span className="product-set-badge">
+                {best > 0 ? `−${best}% ` : ''}в комплекте
+              </span>
+            </div>
+          );
+        })()}
+
       </div>
     </article>
   );

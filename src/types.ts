@@ -30,6 +30,12 @@ export interface ProductSet {
   products: SetProduct[];
 }
 
+export interface SetDiscount {
+  slug: string;
+  name: string;
+  discount_percent: number;
+}
+
 export interface Review {
   id?: number;
   text: string;
@@ -63,6 +69,7 @@ export interface Product {
   updatedBy?: string;
   created_at?: string;
   updated_at?: string;
+  setDiscounts?: SetDiscount[];
 }
 
 export interface Filters {

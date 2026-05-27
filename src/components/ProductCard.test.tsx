@@ -51,21 +51,21 @@ describe('ProductCard', () => {
     expect(screen.queryByText(/в комплекте/)).not.toBeInTheDocument();
   });
 
-  it('shows set badge with correct discount when discount > 0', () => {
-    render(<ProductCard product={{ ...base, setDiscounts: [{ slug: 's', name: 'S', discount_percent: 15 }] }} onOpen={vi.fn()} />);
-    expect(screen.getByText(/−15%/)).toBeInTheDocument();
-    expect(screen.getByText(/в комплекте/)).toBeInTheDocument();
+  it('shows set badge with discount and set name when discount > 0', () => {
+    render(<ProductCard product={{ ...base, setDiscounts: [{ slug: 's', name: 'Рыцарский комплект', discount_percent: 15 }] }} onOpen={vi.fn()} />);
+    expect(screen.getByText(/−15%.*Рыцарский комплект/)).toBeInTheDocument();
   });
 
-  it('shows highest discount when multiple sets', () => {
+  it('shows a badge for each set when product is in multiple sets', () => {
     render(<ProductCard product={{
       ...base,
       setDiscounts: [
-        { slug: 'a', name: 'A', discount_percent: 10 },
-        { slug: 'b', name: 'B', discount_percent: 20 },
+        { slug: 'a', name: 'Комплект А', discount_percent: 10 },
+        { slug: 'b', name: 'Комплект Б', discount_percent: 20 },
       ],
     }} onOpen={vi.fn()} />);
-    expect(screen.getByText(/−20%/)).toBeInTheDocument();
+    expect(screen.getByText(/−10%.*Комплект А/)).toBeInTheDocument();
+    expect(screen.getByText(/−20%.*Комплект Б/)).toBeInTheDocument();
   });
 
   it('shows badge when product has badge text', () => {

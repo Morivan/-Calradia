@@ -48,11 +48,10 @@ export function ProductCard({
 
         {product.setDiscounts && product.setDiscounts.length > 0 && (() => {
           const best = product.setDiscounts!.reduce((m, s) => Math.max(m, s.discount_percent), 0);
+          if (best <= 0) return null;
           return (
             <div className="product-set-hint">
-              <span className="product-set-badge">
-                {best > 0 ? `−${best}% ` : ''}в комплекте
-              </span>
+              <span className="product-set-badge">−{best}% в комплекте</span>
             </div>
           );
         })()}

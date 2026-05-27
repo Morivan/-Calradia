@@ -661,8 +661,8 @@ function OrderDetailModal({
   };
 
   if (!order) return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+    <div className="ws-modal-overlay" onClick={onClose}>
+      <div className="ws-modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
         <p style={{ color: 'var(--text-muted)', padding: 32 }}>Загрузка...</p>
       </div>
     </div>
@@ -674,8 +674,8 @@ function OrderDetailModal({
   const myTask = order.tasks.find(t => t.assigned_to_id === meId && t.status === 'taken');
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+    <div className="ws-modal-overlay" onClick={onClose}>
+      <div className="ws-modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1 }}>Заказ #{order.id}</p>

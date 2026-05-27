@@ -99,7 +99,7 @@ export function Header({
             </button>
           )}
 
-          <button className="icon-button mobile-only" onClick={() => setMenuOpen((v) => !v)} aria-label="Открыть меню">
+          <button className="icon-button mobile-only" onClick={() => setMenuOpen((v) => !v)} aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}>
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>

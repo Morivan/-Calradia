@@ -27,6 +27,10 @@ export function SetsPage({
           const match = data.find((s: ProductSet) => s.slug === initialSlug);
           if (match) setSelected(match);
         }
+      })
+      .catch(() => {
+        setSets([]);
+        setLoading(false);
       });
   }, [initialSlug]);
 

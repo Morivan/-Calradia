@@ -1,4 +1,4 @@
-import { Layers, Shield, Star, Wrench } from 'lucide-react';
+import { CheckCircle2, Layers, Shield, Star, Wrench } from 'lucide-react';
 import type { Product } from '../types';
 
 export function HomePage({
@@ -24,31 +24,32 @@ export function HomePage({
       {/* ── Hero ── */}
       <div className="hero">
         <div className="hero-content" style={{ flex: 1 }}>
-          <p className="eyebrow">Кузница Кальрадия · с 2011 года</p>
+          <p className="eyebrow">Кузница Кальрадия</p>
           <h1 style={{ fontSize: 'clamp(1.4rem, 3.2vw, 2.2rem)', whiteSpace: 'normal', maxWidth: 540, lineHeight: 1.15 }}>
             Средневековые доспехи<br />и снаряжение ручной работы
           </h1>
           <p style={{ margin: '12px 0 0', color: '#e7e2d7', fontSize: 15, lineHeight: 1.7, maxWidth: 480 }}>
-            Турнирные комплекты, исторические реконструкции и предметы быта
-            по источникам XIII–XVI веков. Работаем под заказ.
+            Выполним заказ любой сложности в адекватные сроки. Мастера разных профилей —
+            каждое изделие создаётся с учётом актуальных правил турниров и мероприятий.
           </p>
 
-          <div className="hero-stats">
-            <div>
-              <strong>500+</strong>
-              <span>изделий</span>
-            </div>
-            <div>
-              <strong>XIII–XVI</strong>
-              <span>века</span>
-            </div>
-            <div>
-              <strong>4</strong>
-              <span>направления</span>
-            </div>
+          <div className="hero-features">
+            {[
+              'Заказы любой сложности',
+              'Мастера разных профилей',
+              'Скидки при заказе комплектами',
+              'Ремонт и модификация',
+              'Проверка по правилам мероприятий',
+              'Уникальные заказы',
+            ].map(f => (
+              <div key={f} className="hero-feature">
+                <CheckCircle2 size={13} />
+                {f}
+              </div>
+            ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap', alignItems: 'center' }}>
             <button className="cta-button" onClick={onOpenCatalog}
               style={{ padding: '11px 30px', fontSize: 14 }}>
               Перейти в каталог

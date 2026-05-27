@@ -381,27 +381,33 @@ h1 {
   font-size: 1rem;
 }
 
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 28px;
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
 }
 
-.hero-stats div {
-  padding: 18px 20px;
-  border-radius: 22px;
-  border: 1px solid rgba(117, 133, 108, 0.25);
-  background: rgba(255, 255, 255, 0.04);
+.hero-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px 5px 10px;
+  border-radius: 20px;
+  font-size: 0.79rem;
+  font-weight: 500;
+  color: #ddd8cc;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
 }
 
-.hero-stats strong {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 1.35rem;
+.hero-feature svg {
+  flex-shrink: 0;
+  color: #86efac;
+  opacity: 0.85;
 }
 
-.hero-stats span,
 .catalog-toolbar p,
 .filter-option span,
 .site-footer p,
@@ -1337,7 +1343,10 @@ h1 {
     display: none;
   }
 
-  .hero-stats,
+  .hero-features {
+    gap: 6px;
+  }
+
   .footer-grid,
   .detail-spec-grid,
   .searchbox {

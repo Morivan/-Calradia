@@ -687,8 +687,6 @@ h1 {
 
 .product-set-hint {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .product-set-badge {

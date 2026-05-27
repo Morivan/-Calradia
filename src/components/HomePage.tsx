@@ -1,4 +1,4 @@
-import { CheckCircle2, Layers, Shield, Star, Wrench } from 'lucide-react';
+import { Layers, Shield, Star, Wrench } from 'lucide-react';
 import type { Product } from '../types';
 
 export function HomePage({
@@ -33,21 +33,13 @@ export function HomePage({
             каждое изделие создаётся с учётом актуальных правил турниров и мероприятий.
           </p>
 
-          <div className="hero-features">
-            {[
-              'Заказы любой сложности',
-              'Мастера разных профилей',
-              'Скидки при заказе комплектами',
-              'Ремонт и модификация',
-              'Проверка по правилам мероприятий',
-              'Уникальные заказы',
-            ].map(f => (
-              <div key={f} className="hero-feature">
-                <CheckCircle2 size={13} />
-                {f}
-              </div>
-            ))}
-          </div>
+          <ul className="hero-list">
+            <li>Заказы любой сложности в адекватные сроки</li>
+            <li>Мастера разных профилей</li>
+            <li>Скидки при заказе комплектами</li>
+            <li>Ремонт, модификация и проверка снаряжения по правилам мероприятий</li>
+            <li>Уникальные заказы</li>
+          </ul>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap', alignItems: 'center' }}>
             <button className="cta-button" onClick={onOpenCatalog}

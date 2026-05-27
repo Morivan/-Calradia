@@ -381,31 +381,15 @@ h1 {
   font-size: 1rem;
 }
 
-.hero-features {
+.hero-list {
+  margin: 18px 0 0;
+  padding: 0 0 0 18px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.hero-feature {
-  display: inline-flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
-  padding: 5px 13px 5px 10px;
-  border-radius: 20px;
-  font-size: 0.79rem;
-  font-weight: 500;
   color: #ddd8cc;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  white-space: nowrap;
-}
-
-.hero-feature svg {
-  flex-shrink: 0;
-  color: #86efac;
-  opacity: 0.85;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .catalog-toolbar p,
@@ -1341,10 +1325,6 @@ h1 {
 
   .desktop-only {
     display: none;
-  }
-
-  .hero-features {
-    gap: 6px;
   }
 
   .footer-grid,

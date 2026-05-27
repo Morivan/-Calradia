@@ -134,6 +134,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openProductBySlug = (slug: string) => {
+    const p = catalogProducts.find(x => x.slug === slug);
+    if (p) openProduct(p);
+  };
+
   const goHome = () => {
     setCurrentView('home');
     setSelectedProduct(null);
@@ -233,7 +238,7 @@ export default function App() {
         ) : currentView === 'services' ? (
           <ServicesPage onBack={goHome} links={externalLinks} />
         ) : currentView === 'sets' ? (
-          <SetsPage onBack={goHome} links={externalLinks} initialSlug={openSetSlug} />
+          <SetsPage onBack={goHome} links={externalLinks} initialSlug={openSetSlug} onOpenProduct={openProductBySlug} />
         ) : currentView === 'reviews' ? (
           <ReviewsPage reviews={reviews} onBack={goHome} />
         ) : currentView === 'home' && !selectedProduct ? (

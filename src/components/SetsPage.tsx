@@ -8,10 +8,12 @@ export function SetsPage({
   onBack,
   links,
   initialSlug,
+  onOpenProduct,
 }: {
   onBack: () => void;
   links: ExternalLinks;
   initialSlug?: string;
+  onOpenProduct?: (slug: string) => void;
 }) {
   const [sets, setSets] = useState<ProductSet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export function SetsPage({
         set={selected}
         onBack={() => setSelected(null)}
         links={links}
+        onOpenProduct={onOpenProduct}
       />
     );
   }
@@ -192,10 +195,12 @@ function SetDetail({
   set,
   onBack,
   links,
+  onOpenProduct,
 }: {
   set: ProductSet;
   onBack: () => void;
   links: ExternalLinks;
+  onOpenProduct?: (slug: string) => void;
 }) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const allImages = [set.image, ...(set.gallery ?? [])].filter(Boolean);
@@ -324,7 +329,7 @@ function SetDetail({
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {set.products.map(p => (
-                  <SetProductRow key={p.id} product={p} />
+                  <SetProductRow key={p.id} product={p} onOpen={onOpenProduct} />
                 ))}
               </div>
               {/* Total row */}
@@ -335,14 +340,6 @@ function SetDetail({
             </div>
           )}
 
-          {/* Description */}
-          {set.description && (
-            <div className="secondary-card" style={{ padding: '16px 20px' }}>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>
-                {set.description}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -405,17 +402,34 @@ function SetDetail({
 
 // ── Set product row ───────────────────────────────────────────────────────────
 
-function SetProductRow({ product }: { product: SetProduct }) {
+function SetProductRow({ product, onOpen }: { product: SetProduct; onOpen?: (slug: string) => void }) {
+  const clickable = Boolean(onOpen && product.slug);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? () => onOpen!(product.slug) : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen!(product.slug); } } : undefined}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        borderRadius: 10,
+        padding: '4px 6px',
+        margin: '0 -6px',
+        cursor: clickable ? 'pointer' : 'default',
+        transition: 'background 0.13s',
+      }}
+      onMouseEnter={clickable ? e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.05)' : undefined}
+      onMouseLeave={clickable ? e => (e.currentTarget as HTMLDivElement).style.background = 'transparent' : undefined}
+    >
       {product.image
         ? <img src={product.image} alt={product.name} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
         : <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--bg-panel-soft)', flexShrink: 0 }} />
       }
-      <span style={{ flex: 1, fontSize: 13 }}>{product.name}</span>
+      <span style={{ flex: 1, fontSize: 13, color: clickable ? 'var(--text-main)' : undefined }}>{product.name}</span>
       <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
         {fmtMoney(product.price_from)}
       </span>
+      {clickable && <span style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 2 }}>›</span>}
     </div>
   );
 }

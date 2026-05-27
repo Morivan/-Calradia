@@ -237,7 +237,14 @@ export default function App() {
         ) : currentView === 'reviews' ? (
           <ReviewsPage reviews={reviews} onBack={goHome} />
         ) : currentView === 'home' && !selectedProduct ? (
-          <HomePage onOpenCatalog={goCatalog} onOpenSets={openSets} onOpenServices={openServices} onOpenReviews={openReviews} />
+          <HomePage
+            onOpenCatalog={goCatalog}
+            onOpenSets={openSets}
+            onOpenServices={openServices}
+            onOpenReviews={openReviews}
+            onOpenProduct={openProduct}
+            featuredProducts={catalogProducts}
+          />
         ) : selectedProduct ? (
           <ProductDetail
             product={selectedProduct}

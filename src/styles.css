@@ -409,6 +409,45 @@ h1 {
   color: var(--text-muted);
 }
 
+/* ── Home page ─────────────────────────────────────────────────────────────── */
+
+.home-section-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.home-nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.home-nav-card strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-nav-card span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Catalog layout ─────────────────────────────────────────────────────────── */
+
 .catalog-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 360px;

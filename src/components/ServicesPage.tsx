@@ -45,17 +45,6 @@ export function ServicesPage({
           Напишите нам — обсудим детали и подберём подходящий вариант.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {links.telegramOrder && (
-            <a
-              href={links.telegramOrder}
-              target="_blank"
-              rel="noreferrer"
-              className="cta-button"
-              style={{ padding: '10px 24px', fontSize: 14, textDecoration: 'none', display: 'inline-block' }}
-            >
-              Написать в Telegram
-            </a>
-          )}
           {links.vkMessages && (
             <a
               href={links.vkMessages}

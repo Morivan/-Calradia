@@ -11,13 +11,12 @@ export function Footer({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
         </div>
         <div>
           <h4>Контакты</h4>
-          <p>Telegram: @kalradia_forge</p>
           <p>Email: master@kalradia.ru</p>
           <p>Пн-Пт: 09:00-18:00</p>
         </div>
         <div>
           <h4>Новости мастерской</h4>
-          <p>Следите за обновлениями в нашем <a href="https://vk.com/calradia_band" target="_blank" rel="noreferrer">ВКонтакте</a> и <a href="https://t.me/kalradiaWarBand" target="_blank" rel="noreferrer">Telegram</a>.</p>
+          <p>Следите за обновлениями в нашем <a href="https://vk.com/calradia_band" target="_blank" rel="noreferrer">ВКонтакте</a>.</p>
         </div>
         <div>
           <h4>Документы</h4>

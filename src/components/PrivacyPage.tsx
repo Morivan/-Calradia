@@ -40,7 +40,6 @@ export function PrivacyPage({ onBack }: { onBack: () => void }) {
         <InfoTable rows={[
           ['Наименование', 'Кузница Кальрадия'],
           ['Контактный email', 'master@kalradia.ru'],
-          ['Telegram', '@kalradia_forge'],
         ]} />
         <p>
           По всем вопросам, связанным с обработкой персональных данных, вы можете обратиться
@@ -138,7 +137,7 @@ export function PrivacyPage({ onBack }: { onBack: () => void }) {
         </ul>
         <p>
           Для реализации своих прав направьте обращение на email{' '}
-          <strong>master@kalradia.ru</strong> или в Telegram <strong>@kalradia_forge</strong>.
+          <strong>master@kalradia.ru</strong>.
           Ответ предоставляется в течение 30 дней.
         </p>
       </Section>

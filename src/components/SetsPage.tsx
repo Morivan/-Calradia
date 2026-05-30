@@ -311,7 +311,7 @@ function SetDetail({
 
             {/* CTA */}
             <a
-              href={links.telegramOrder}
+              href={links.vkMessages}
               target="_blank"
               rel="noreferrer"
               className="cta-button"

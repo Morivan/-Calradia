@@ -20,11 +20,13 @@ BLACK = RGBColor(0, 0, 0)
 def setup_document() -> Document:
     doc = Document()
 
-    for section in doc.sections:
-        section.left_margin   = Cm(3.0)
-        section.right_margin  = Cm(1.5)
-        section.top_margin    = Cm(2.0)
-        section.bottom_margin = Cm(2.0)
+    # Title page section — matches НовГУ template margins (twips→cm)
+    # left=1133 tw≈2cm, right=425 tw≈0.75cm, top=1060 tw≈1.87cm, bottom=280 tw≈0.49cm
+    s0 = doc.sections[0]
+    s0.left_margin   = Cm(2.0)
+    s0.right_margin  = Cm(0.75)
+    s0.top_margin    = Cm(1.87)
+    s0.bottom_margin = Cm(0.49)
 
     # Normal
     ns = doc.styles['Normal']
@@ -171,52 +173,205 @@ def list_item(doc, text, num=None):
 # ДОКУМЕНТ
 # ──────────────────────────────────────────────────────────────────────────────
 
+def title_right_block(doc, lines, left_indent_cm=11.0):
+    """Блок текста, прижатый вправо (УТВЕРЖДАЮ, подписи)."""
+    for text, underline_tab, space_before in lines:
+        p = doc.add_paragraph()
+        p.paragraph_format.left_indent        = Cm(left_indent_cm)
+        p.paragraph_format.first_line_indent  = Cm(0)
+        p.paragraph_format.space_before       = Pt(space_before)
+        p.paragraph_format.space_after        = Pt(0)
+        p.paragraph_format.line_spacing_rule  = WD_LINE_SPACING.ONE_POINT_FIVE
+
+        if underline_tab:
+            # Подчёркнутый таб (линия подписи) + имя
+            tab_run = p.add_run('\t')
+            tab_run.font.name = TNR
+            tab_run.font.size = Pt(14)
+            tab_run.font.underline = True
+            # добавляем tabStop на параграф
+            pPr = p._element.get_or_add_pPr()
+            tabs_el = OxmlElement('w:tabs')
+            tab_el = OxmlElement('w:tab')
+            tab_el.set(qn('w:val'), 'left')
+            tab_el.set(qn('w:pos'), str(int((left_indent_cm + 3.0) / 2.54 * 1440)))
+            tabs_el.append(tab_el)
+            pPr.append(tabs_el)
+            # имя после таба
+            name_run = p.add_run(text)
+            name_run.font.name = TNR
+            name_run.font.size = Pt(14)
+            name_run.font.color.rgb = BLACK
+        else:
+            run = p.add_run(text)
+            run.font.name = TNR
+            run.font.size = Pt(14)
+            run.font.color.rgb = BLACK
+
+
+def add_hline(doc):
+    """Горизонтальная линия через весь текст (нижняя граница абзаца)."""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after  = Pt(0)
+    p.paragraph_format.first_line_indent = Cm(0)
+    pPr = p._element.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '6')
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), '000000')
+    pBdr.append(bottom)
+    pPr.append(pBdr)
+
+
+def add_new_section(doc, left_cm=3.0, right_cm=1.5, top_cm=2.0, bottom_cm=2.0):
+    """Добавить разрыв раздела с новыми полями."""
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    new_section = doc.add_section()
+    new_section.left_margin   = Cm(left_cm)
+    new_section.right_margin  = Cm(right_cm)
+    new_section.top_margin    = Cm(top_cm)
+    new_section.bottom_margin = Cm(bottom_cm)
+    return new_section
+
+
+def title_centered(doc, text, bold=False, size_pt=14, left_ind=1.72, right_ind=0.96, space_before=0):
+    p = doc.add_paragraph()
+    p.paragraph_format.alignment          = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.first_line_indent  = Cm(0)
+    p.paragraph_format.left_indent        = Cm(left_ind)
+    p.paragraph_format.right_indent       = Cm(right_ind)
+    p.paragraph_format.space_before       = Pt(space_before)
+    p.paragraph_format.space_after        = Pt(0)
+    p.paragraph_format.line_spacing_rule  = WD_LINE_SPACING.ONE_POINT_FIVE
+    run = p.add_run(text)
+    run.font.name  = TNR
+    run.font.size  = Pt(size_pt)
+    run.font.bold  = bold
+    run.font.color.rgb = BLACK
+    return p
+
+
 def build(output_path='пояснительная_записка.docx'):
     doc = setup_document()
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # ТИТУЛЬНЫЙ ЛИСТ
-    # ══════════════════════════════════════════════════════════════════════════
     C = WD_ALIGN_PARAGRAPH.CENTER
-    R = WD_ALIGN_PARAGRAPH.RIGHT
 
-    para(doc, 'Министерство науки и высшего образования Российской Федерации',
-         align=C, indent=False)
-    para(doc,
-         'Федеральное государственное бюджетное образовательное учреждение\n'
-         'высшего образования\n'
-         '«Новгородский государственный университет имени Ярослава Мудрого»',
-         align=C, indent=False)
-    para(doc, 'Политехнический институт', align=C, indent=False)
-    p = para(doc, 'Кафедра информационных технологий и систем',
-             align=C, indent=False, space_after=24)
+    # ══════════════════════════════════════════════════════════════════════════
+    # ТИТУЛЬНЫЙ ЛИСТ  (поля: left=2cm, right=0.75cm, top=1.87cm, bot=0.49cm)
+    # ══════════════════════════════════════════════════════════════════════════
 
-    # УТВЕРЖДАЮ
-    para(doc, 'УТВЕРЖДАЮ', align=R, indent=False)
-    para(doc, 'Зав. кафедрой ИТС', align=R, indent=False)
-    para(doc, '____________  ___________________', align=R, indent=False)
-    para(doc, '«____» ________________ 2026 г.', align=R, indent=False, space_after=24)
+    # Верхний блок — министерство и университет (по центру, суженный)
+    # ind left≈1.92cm right≈1.15cm — из шаблона
+    for line in [
+        'Министерство науки и высшего образования Российской Федерации',
+        'Федеральное государственное бюджетное образовательное учреждение\nвысшего образования',
+        '«Новгородский государственный университет имени Ярослава Мудрого»',
+        'Политехнический институт',
+    ]:
+        p = doc.add_paragraph()
+        p.paragraph_format.alignment         = C
+        p.paragraph_format.first_line_indent = Cm(0)
+        p.paragraph_format.left_indent       = Cm(1.92)
+        p.paragraph_format.right_indent      = Cm(1.15)
+        p.paragraph_format.space_before      = Pt(0)
+        p.paragraph_format.space_after       = Pt(0)
+        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+        run = p.add_run(line)
+        run.font.name = TNR; run.font.size = Pt(14); run.font.color.rgb = BLACK
 
-    # Название работы
-    para(doc,
-         'РАЗРАБОТКА ВЕБ-ПРИЛОЖЕНИЯ ДЛЯ ОНЛАЙН-КАТАЛОГА И СИСТЕМЫ УПРАВЛЕНИЯ '
-         'ЗАКАЗАМИ МАСТЕРСКОЙ СРЕДНЕВЕКОВОГО СНАРЯЖЕНИЯ «КУЗНИЦА КАЛЬРАДИЯ»',
-         align=C, bold=True, indent=False, size_pt=16)
-    para(doc, 'Пояснительная записка к выпускной квалификационной работе', align=C, indent=False)
-    para(doc, 'по направлению подготовки 09.03.01 «Информатика и вычислительная техника»', align=C, indent=False, space_after=12)
-    para(doc, 'НУОП._____-__ ПЗ', align=C, indent=False, space_after=24)
+    # Кафедра — выровнена немного правее центра (left≈4.42cm)
+    p_kaf = doc.add_paragraph()
+    p_kaf.paragraph_format.alignment         = C
+    p_kaf.paragraph_format.first_line_indent = Cm(0)
+    p_kaf.paragraph_format.left_indent       = Cm(4.42)
+    p_kaf.paragraph_format.space_before      = Pt(0)
+    p_kaf.paragraph_format.space_after       = Pt(0)
+    p_kaf.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    run = p_kaf.add_run('Кафедра информационных технологий и систем')
+    run.font.name = TNR; run.font.size = Pt(14); run.font.color.rgb = BLACK
 
-    # Руководитель и студент
-    para(doc, 'Руководитель', align=R, indent=False)
-    para(doc, '_____________  ___________________', align=R, indent=False)
-    para(doc, '«____» ________________ 2026 г.', align=R, indent=False, space_after=12)
-    para(doc, 'Студент  группы ____', align=R, indent=False)
-    para(doc, '_____________  ___________________', align=R, indent=False)
-    para(doc, '«____» ________________ 2026 г.', align=R, indent=False, space_after=60)
+    # Горизонтальная линия
+    add_hline(doc)
 
-    para(doc, 'Великий Новгород', align=C, indent=False)
-    para(doc, '2026', align=C, indent=False)
-    page_break(doc)
+    # Пустые строки перед УТВЕРЖДАЮ
+    for _ in range(3):
+        blank(doc)
+
+    # УТВЕРЖДАЮ (left_indent ≈ 11 cm от левого поля)
+    title_right_block(doc, [
+        ('УТВЕРЖДАЮ',                  False, 0),
+        ('Заведующий кафедрой',        False, 0),
+        ('Цымбалюк Л.Н.',              True,  6),   # подчёркнутый таб + ФИО
+        ('«____» ____________ 2026 г.', False, 6),
+    ], left_indent_cm=11.0)
+
+    # Пустые строки для отступа до названия
+    for _ in range(5):
+        blank(doc)
+
+    # Название работы (Heading 1 style, bold, centered)
+    title_centered(doc,
+        'РАЗРАБОТКА ВЕБ-ПРИЛОЖЕНИЯ ДЛЯ ОНЛАЙН-КАТАЛОГА И СИСТЕМЫ УПРАВЛЕНИЯ '
+        'ЗАКАЗАМИ МАСТЕРСКОЙ СРЕДНЕВЕКОВОГО СНАРЯЖЕНИЯ «КУЗНИЦА КАЛЬРАДИЯ»',
+        bold=True, left_ind=0.97, right_ind=0.54, space_before=1)
+
+    blank(doc)
+
+    # Пояснительная записка
+    title_centered(doc,
+        'Пояснительная записка к выпускной квалификационной работе',
+        left_ind=0.97, right_ind=0.54)
+    title_centered(doc,
+        'по направлению подготовки 09.03.01 Информатика и вычислительная техника '
+        'направленность (профиль) Программное обеспечение вычислительной техники '
+        'и автоматизированных систем',
+        left_ind=0.62, right_ind=0.18)
+
+    # Пустые строки перед подписями
+    for _ in range(5):
+        blank(doc)
+
+    # Руководитель (left_indent ≈ 11 cm)
+    title_right_block(doc, [
+        ('Руководитель',               False, 0),
+        ('',                           True,  6),   # подчёркнутый таб (ФИО не заполнено)
+        ('«____» ____________ 2026 г.', False, 6),
+    ], left_indent_cm=11.0)
+
+    # Пустая строка между подписями
+    blank(doc)
+
+    # Студент
+    title_right_block(doc, [
+        ('Студент группы _____',        False, 0),
+        ('',                            True,  6),
+        ('«____» ____________ 2026 г.', False, 6),
+    ], left_indent_cm=11.0)
+
+    # Отступ внизу + город
+    for _ in range(4):
+        blank(doc)
+
+    p_city = doc.add_paragraph()
+    p_city.paragraph_format.alignment         = C
+    p_city.paragraph_format.first_line_indent = Cm(0)
+    p_city.paragraph_format.space_before      = Pt(0)
+    p_city.paragraph_format.space_after       = Pt(0)
+    r = p_city.add_run('Великий Новгород')
+    r.font.name = TNR; r.font.size = Pt(14); r.font.color.rgb = BLACK
+
+    p_year = doc.add_paragraph()
+    p_year.paragraph_format.alignment         = C
+    p_year.paragraph_format.first_line_indent = Cm(0)
+    r = p_year.add_run('2026')
+    r.font.name = TNR; r.font.size = Pt(14); r.font.color.rgb = BLACK
+
+    # После титульника — новый раздел с основными полями документа
+    add_new_section(doc, left_cm=3.0, right_cm=1.5, top_cm=2.0, bottom_cm=2.0)
 
     # ══════════════════════════════════════════════════════════════════════════
     # АННОТАЦИЯ

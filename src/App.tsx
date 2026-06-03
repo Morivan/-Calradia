@@ -14,16 +14,14 @@ import { ProductDetail } from './components/ProductDetail';
 import { ReviewsPage } from './components/ReviewsPage';
 import { ServicesPage } from './components/ServicesPage';
 import { SetsPage } from './components/SetsPage';
-import { SortControl } from './components/SortControl';
 import { VKGroupFeed } from './components/VKGroupFeed';
-import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, SortMode, ViewMode } from './types';
+import type { AuthUser, BootstrapPayload, ExternalLinks, Filters, Product, Review, ViewMode } from './types';
 
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<SortMode>('default');
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(fallbackProducts);
   const [externalLinks, setExternalLinks] = useState<ExternalLinks>(defaultLinks);
@@ -93,25 +91,8 @@ export default function App() {
       return matchesQuery && matchesCategories && matchesEras && matchesMaterials && matchesSizes && matchesStatuses;
     });
 
-    switch (sort) {
-      case 'newest':
-        result = result.sort((a, b) => {
-          if (a.created_at && b.created_at) {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          }
-          return Number(Boolean(b.created_at)) - Number(Boolean(a.created_at));
-        });
-        break;
-      case 'popular':
-        result = result.sort((a, b) => b.popularity - a.popularity);
-        break;
-      case 'duration':
-        result = result.sort((a, b) => a.leadTime.localeCompare(b.leadTime, 'ru'));
-        break;
-    }
-
     return result;
-  }, [catalogProducts, filters, query, sort]);
+  }, [catalogProducts, filters, query]);
 
   const activeFilterCount =
     filters.categories.length + filters.eras.length + filters.materials.length +
@@ -263,7 +244,6 @@ export default function App() {
               <div className="desktop-only catalog-side-stack">
                 <div className="catalog-side-meta">
                   <p className="catalog-count">Изделий: {filteredProducts.length}</p>
-                  <SortControl sort={sort} onChange={setSort} />
                 </div>
                 <FiltersPanel filters={filters} onToggle={toggleFilter} onReset={resetFilters} />
               </div>

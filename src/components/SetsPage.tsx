@@ -154,201 +154,144 @@ function SetDetail({
   links: ExternalLinks;
   onOpenProduct?: (slug: string) => void;
 }) {
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const allImages = [set.image, ...(set.gallery ?? [])].filter(Boolean);
+  const [activeImage, setActiveImage] = useState(allImages[0] ?? '');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
-    if (lightboxIdx === null) return;
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxIdx(null);
-      if (e.key === 'ArrowRight') setLightboxIdx(i => i !== null ? (i + 1) % allImages.length : null);
-      if (e.key === 'ArrowLeft')  setLightboxIdx(i => i !== null ? (i - 1 + allImages.length) % allImages.length : null);
-    };
-    window.addEventListener('keydown', fn);
-    return () => window.removeEventListener('keydown', fn);
-  }, [lightboxIdx, allImages.length]);
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightboxOpen]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Back */}
-      <button
-        className="icon-button"
-        onClick={onBack}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, alignSelf: 'flex-start' }}
-      >
-        <ArrowLeft size={15} /> Все комплекты
-      </button>
+    <section className="detail-page">
+      {lightboxOpen && activeImage && (
+        <div className="lightbox-overlay" onClick={() => setLightboxOpen(false)}>
+          <button className="lightbox-close icon-button" aria-label="Закрыть" onClick={() => setLightboxOpen(false)}>
+            <X size={22} />
+          </button>
+          <img
+            src={activeImage}
+            alt={set.name}
+            className="lightbox-img"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,420px)', gap: 32, alignItems: 'start' }}>
+      <div className="detail-breadcrumbs">
+        <button className="detail-back" onClick={onBack}>
+          <ArrowLeft size={16} />
+          Все комплекты
+        </button>
+        <span>Комплекты</span>
+        <span>/</span>
+        <span>{set.name}</span>
+      </div>
 
-        {/* Left: gallery */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {/* Main image */}
+      <div className="detail-layout">
+        <div className="detail-gallery">
           {allImages.length > 0 && (
-            <div
-              style={{ aspectRatio: '4/3', borderRadius: 16, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--bg-panel-soft)' }}
-              onClick={() => setLightboxIdx(0)}
-            >
-              <img src={allImages[0]} alt={set.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="detail-main-image" style={{ cursor: 'zoom-in' }} onClick={() => setLightboxOpen(true)}>
+              <img src={activeImage || allImages[0]} alt={set.name} />
             </div>
           )}
-          {/* Thumbnail strip */}
           {allImages.length > 1 && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="detail-thumbnails">
               {allImages.map((src, idx) => (
-                <img
+                <button
                   key={idx}
-                  src={src}
-                  alt=""
-                  onClick={() => setLightboxIdx(idx)}
-                  style={{
-                    width: 72, height: 72, borderRadius: 10, objectFit: 'cover',
-                    cursor: 'pointer',
-                    border: '2px solid transparent',
-                    transition: 'border-color 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
-                />
+                  className={`detail-thumb ${activeImage === src ? 'detail-thumb-active' : ''}`}
+                  onClick={() => setActiveImage(src)}
+                >
+                  <img src={src} alt={`${set.name} ${idx + 1}`} />
+                </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Right: info */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Title */}
-          <div>
-            {set.badge && (
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: 'var(--accent)', textTransform: 'uppercase' }}>
-                {set.badge}
-              </span>
-            )}
-            <h1 style={{ margin: '6px 0 4px', fontSize: 'clamp(1.4rem, 3vw, 2rem)' }}>{set.name}</h1>
-            {set.subtitle && <p style={{ margin: 0, color: 'var(--text-muted)' }}>{set.subtitle}</p>}
+        <div className="detail-info">
+          <div className="detail-title-block">
+            {set.badge
+              ? <span className="detail-badge">{set.badge}</span>
+              : set.discount_percent > 0
+                ? <span className="detail-badge">−{set.discount_percent}% набором</span>
+                : null
+            }
+            <h1>{set.name}</h1>
+            {set.subtitle && <p>{set.subtitle}</p>}
           </div>
 
-          {/* Price block */}
-          <div className="secondary-card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Discount badge */}
+          <div className="detail-spec-grid">
+            <div>
+              <span>Предметов в наборе</span>
+              <strong>{set.products.length}</strong>
+            </div>
             {set.discount_percent > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{
-                  background: 'var(--accent)', color: '#fff',
-                  fontWeight: 700, fontSize: 13,
-                  padding: '3px 10px', borderRadius: 8,
-                }}>
-                  −{set.discount_percent}% при заказе набором
-                </span>
+              <div>
+                <span>Скидка набором</span>
+                <strong>−{set.discount_percent}%</strong>
               </div>
             )}
-
-            {/* Price line */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '2rem', fontWeight: 800, lineHeight: 1 }}>
-                {fmtMoney(set.price_from)}
-              </span>
-              {set.discount > 0 && (
-                <span style={{ fontSize: '1.1rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
-                  {fmtMoney(set.price_individual)}
-                </span>
-              )}
-            </div>
-
             {set.discount > 0 && (
-              <p style={{ margin: 0, fontSize: 13, color: '#86efac', fontWeight: 600 }}>
-                Экономия {fmtMoney(set.discount)} по сравнению с раздельной покупкой
-              </p>
+              <div>
+                <span>Экономия</span>
+                <strong>{fmtMoney(set.discount)}</strong>
+              </div>
             )}
-
-            {/* CTA */}
-            <a
-              href={links.vkMessages}
-              target="_blank"
-              rel="noreferrer"
-              className="cta-button"
-              style={{ textAlign: 'center', textDecoration: 'none', marginTop: 6 }}
-            >
-              Заказать комплект
-            </a>
           </div>
 
-          {/* Items in set */}
+          <div className="detail-price-row">
+            <div>
+              <span>Цена комплекта</span>
+              <strong>{fmtMoney(set.price_from)}</strong>
+              {set.discount > 0 && (
+                <s style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 8 }}>
+                  {fmtMoney(set.price_individual)}
+                </s>
+              )}
+            </div>
+            <div className="detail-actions">
+              <a
+                className="cta-button detail-cta"
+                href={links.vkMessages}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Заказать комплект
+              </a>
+            </div>
+          </div>
+
           {set.products.length > 0 && (
-            <div className="secondary-card" style={{ padding: '16px 20px' }}>
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Состав комплекта ({set.products.length} предмета)
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="detail-history">
+              <h3>Состав комплекта</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {set.products.map(p => (
                   <SetProductRow key={p.id} product={p} onOpen={onOpenProduct} />
                 ))}
               </div>
-              {/* Total row */}
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span style={{ color: 'var(--text-muted)' }}>Итого по отдельности</span>
-                <span style={{ fontWeight: 700 }}>{fmtMoney(set.price_individual)}</span>
-              </div>
+              {set.discount > 0 && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Итого по отдельности</span>
+                  <span style={{ fontWeight: 700 }}>{fmtMoney(set.price_individual)}</span>
+                </div>
+              )}
             </div>
           )}
 
-        </div>
-      </div>
-
-      {/* Lightbox */}
-      {lightboxIdx !== null && (
-        <div
-          className="lightbox-overlay"
-          onClick={() => setLightboxIdx(null)}
-          style={{ flexDirection: 'column', gap: 16 }}
-        >
-          <button className="lightbox-close icon-button" onClick={() => setLightboxIdx(null)} aria-label="Закрыть">
-            <X size={20} />
-          </button>
-          <img
-            src={allImages[lightboxIdx]}
-            alt=""
-            className="lightbox-img"
-            onClick={e => e.stopPropagation()}
-          />
-          {allImages.length > 1 && (
-            <>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                <button
-                  className="icon-button"
-                  style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 16px', color: '#fff', fontSize: 18 }}
-                  onClick={() => setLightboxIdx(i => i !== null ? (i - 1 + allImages.length) % allImages.length : null)}
-                >‹</button>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
-                  {lightboxIdx + 1} / {allImages.length}
-                </span>
-                <button
-                  className="icon-button"
-                  style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 16px', color: '#fff', fontSize: 18 }}
-                  onClick={() => setLightboxIdx(i => i !== null ? (i + 1) % allImages.length : null)}
-                >›</button>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
-                {allImages.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt=""
-                    onClick={() => setLightboxIdx(idx)}
-                    style={{
-                      width: 48, height: 48, borderRadius: 6, objectFit: 'cover', cursor: 'pointer',
-                      border: idx === lightboxIdx ? '2px solid var(--accent)' : '2px solid transparent',
-                      opacity: idx === lightboxIdx ? 1 : 0.55,
-                      transition: 'opacity 0.15s, border-color 0.15s',
-                    }}
-                  />
-                ))}
-              </div>
-            </>
+          {set.description && (
+            <div className="detail-description">
+              <h2>Описание</h2>
+              <p>{set.description}</p>
+            </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 }
 

@@ -96,96 +96,48 @@ export function SetsPage({
 
 function SetCard({ set, onClick }: { set: ProductSet; onClick: () => void }) {
   return (
-    <div
-      className="secondary-card"
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        overflow: 'hidden',
-        borderRadius: 18,
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'transform 0.15s, box-shadow 0.15s',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
-        (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.4))';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = '';
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '';
-      }}
+    <article className="product-card" onClick={onClick} role="button" tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
     >
-      {/* Cover image */}
-      <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: 'var(--bg-panel-soft)' }}>
+      <div className="product-image-wrap">
         {set.image
-          ? <img src={set.image} alt={set.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+          ? <img className="product-image" src={set.image} alt={set.name} />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Фото не добавлено</div>
         }
-        {/* Discount badge */}
+        {set.badge && <span className="product-badge">{set.badge}</span>}
         {set.discount_percent > 0 && (
-          <div style={{
-            position: 'absolute', top: 12, right: 12,
-            background: 'var(--accent)', color: '#fff',
-            fontWeight: 700, fontSize: 13,
-            padding: '4px 10px', borderRadius: 8,
-          }}>
-            −{set.discount_percent}%
-          </div>
-        )}
-        {set.badge && (
-          <div style={{
-            position: 'absolute', top: 12, left: 12,
-            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-            color: '#fff', fontSize: 11, fontWeight: 600,
-            padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5,
-          }}>
-            {set.badge}
-          </div>
+          <span className="product-badge product-badge--right">−{set.discount_percent}%</span>
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1.05rem', lineHeight: 1.3 }}>{set.name}</h3>
-          {set.subtitle && (
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>{set.subtitle}</p>
-          )}
+      <div className="product-body">
+        <div className="product-headline">
+          <h3>{set.name}</h3>
+          {set.subtitle && <p>{set.subtitle}</p>}
         </div>
 
-        {/* Products mini-list */}
         {set.products.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {set.products.map(p => (
-              <span key={p.id} style={{
-                fontSize: 11, padding: '2px 8px', borderRadius: 6,
-                background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)',
-              }}>
-                {p.name}
-              </span>
-            ))}
+          <div className="product-highlights">
+            {set.products.map(p => <span key={p.id}>{p.name}</span>)}
           </div>
         )}
 
-        {/* Price */}
-        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-            {fmtMoney(set.price_from)}
-          </span>
+        <div className="product-meta">
+          <strong>от {fmtMoney(set.price_from)}</strong>
           {set.discount > 0 && (
             <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
               {fmtMoney(set.price_individual)}
             </span>
           )}
-          {set.discount > 0 && (
-            <span style={{ fontSize: 12, color: '#86efac', fontWeight: 600 }}>
-              экономия {fmtMoney(set.discount)}
-            </span>
-          )}
         </div>
+
+        {set.discount > 0 && (
+          <div className="product-set-hint">
+            <span className="product-set-badge">экономия {fmtMoney(set.discount)}</span>
+          </div>
+        )}
       </div>
-    </div>
+    </article>
   );
 }
 

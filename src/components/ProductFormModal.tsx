@@ -112,10 +112,23 @@ export function ProductFormModal({
           </button>
         </div>
         <form className="contact-form product-form" onSubmit={submit}>
-          {field('Фото (URL)', 'image', 'url')}
+          <label className="product-form-field">
+            <span>Фото (URL)</span>
+            <input
+              type="url"
+              value={form.image}
+              onChange={(e) => set('image', e.target.value)}
+              onBlur={(e) => {
+                const url = e.target.value.trim();
+                if (url && !form.gallery.trim()) {
+                  set('gallery', url);
+                }
+              }}
+            />
+          </label>
 
           <label className="product-form-field contact-form-wide">
-            <span>Галерея (по одному URL на строку)</span>
+            <span>Галерея (по одному URL на строку; первое фото — главное)</span>
             <textarea rows={3} value={form.gallery} onChange={(e) => set('gallery', e.target.value)} />
           </label>
 

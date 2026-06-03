@@ -119,7 +119,7 @@ function SetCard({ set, onClick }: { set: ProductSet; onClick: () => void }) {
       {/* Cover image */}
       <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: 'var(--bg-panel-soft)' }}>
         {set.image
-          ? <img src={set.image} alt={set.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={set.image} alt={set.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Фото не добавлено</div>
         }
         {/* Discount badge */}

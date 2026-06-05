@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { apiFetch, defaultLinks } from './api';
 import { fallbackProducts } from './data';
@@ -36,6 +36,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [openSetSlug, setOpenSetSlug] = useState<string | undefined>(undefined);
+  const historyReady = useRef(false);
 
   const loadBootstrap = async () => {
     try {
@@ -71,6 +72,8 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     void fetch('/api/csrf/');
     void loadBootstrap();
     void checkAuth();
+    window.history.replaceState({ view: 'home', productId: null, setSlug: null }, '');
+    historyReady.current = true;
   }, []);
 
   useEffect(() => {
@@ -78,6 +81,24 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const updated = catalogProducts.find((p) => p.id === selectedProduct.id);
     if (updated) setSelectedProduct(updated);
   }, [catalogProducts, selectedProduct]);
+
+  useEffect(() => {
+    const handler = (e: PopStateEvent) => {
+      const s = e.state as { view?: ViewMode; productId?: string | null; setSlug?: string | null } | null;
+      setMobileFiltersOpen(false);
+      window.scrollTo({ top: 0 });
+      if (!s) { setCurrentView('home'); setSelectedProduct(null); setOpenSetSlug(undefined); return; }
+      setCurrentView(s.view ?? 'home');
+      setOpenSetSlug(s.setSlug ?? undefined);
+      if (s.productId) {
+        setSelectedProduct(catalogProducts.find((p) => p.id === s.productId) ?? null);
+      } else {
+        setSelectedProduct(null);
+      }
+    };
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, [catalogProducts]);
 
   const filteredProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -109,7 +130,14 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const resetFilters = () =>
     setFilters({ categories: [], eras: [], materials: [], sizes: [], statuses: [] });
 
+  const pushNav = (view: ViewMode, productId: string | null = null, setSlug: string | null = null) => {
+    if (historyReady.current) {
+      window.history.pushState({ view, productId, setSlug }, '');
+    }
+  };
+
   const openProduct = (product: Product) => {
+    pushNav('catalog', product.id);
     setCurrentView('catalog');
     setSelectedProduct(product);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -121,6 +149,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const goHome = () => {
+    pushNav('home');
     setCurrentView('home');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -128,6 +157,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const goCatalog = () => {
+    pushNav('catalog');
     setCurrentView('catalog');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -135,6 +165,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openServices = () => {
+    pushNav('services');
     setCurrentView('services');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -142,6 +173,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openPrivacy = () => {
+    pushNav('privacy');
     setCurrentView('privacy');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -149,6 +181,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openSets = () => {
+    pushNav('sets');
     setOpenSetSlug(undefined);
     setCurrentView('sets');
     setSelectedProduct(null);
@@ -157,6 +190,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openSetBySlug = (slug: string) => {
+    pushNav('sets', null, slug);
     setOpenSetSlug(slug);
     setCurrentView('sets');
     setSelectedProduct(null);
@@ -165,6 +199,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openReviews = () => {
+    pushNav('reviews');
     setCurrentView('reviews');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);
@@ -172,6 +207,7 @@ const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   };
 
   const openAdmin = () => {
+    pushNav('admin');
     setCurrentView('admin');
     setSelectedProduct(null);
     setMobileFiltersOpen(false);

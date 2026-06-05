@@ -16,7 +16,27 @@ export function Footer({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
         </div>
         <div>
           <h4>Новости мастерской</h4>
-          <p>Следите за обновлениями в нашем <a href="https://vk.com/calradia_band" target="_blank" rel="noreferrer">ВКонтакте</a>.</p>
+          <p style={{ marginBottom: 8 }}>Следите за обновлениями и новыми работами:</p>
+          <a
+            href="https://vk.com/calradia_band"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 16px',
+              background: 'rgba(74,133,200,0.18)',
+              border: '1px solid rgba(74,133,200,0.35)',
+              borderRadius: 8,
+              color: '#6baee8',
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            ВКонтакте →
+          </a>
         </div>
         <div>
           <h4>Документы</h4>

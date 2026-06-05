@@ -839,7 +839,7 @@ function DashboardTab({ me, approvedProductIds }: { me: Me; approvedProductIds: 
           <CheckCircle size={14} /> Мои заказы
           {data.my_orders.length > 0 && (
             <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>
-              {data.my_orders.length} {plural(data.my_orders.length, 'заказ', 'заказа', 'заказов')} · по дедлайну ↑
+              {data.my_orders.length} {plural(data.my_orders.length, 'заказ', 'заказа', 'заказов')} · по дедлайну
             </span>
           )}
         </div>
@@ -1824,7 +1824,7 @@ function SetFormModal({
             </div>
             {priceIndividual > 0 && (
               <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
-                Сумма по отдельности: <strong style={{ color: 'var(--text-main)' }}>{priceIndividual.toLocaleString('ru-RU')} ₽</strong>
+                Сумма предметов: <strong style={{ color: 'var(--text-main)' }}>{priceIndividual.toLocaleString('ru-RU')} ₽</strong>
               </p>
             )}
           </div>

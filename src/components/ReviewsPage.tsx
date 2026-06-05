@@ -131,9 +131,9 @@ function SinglePhoto({ src }: { src: string }) {
         alt=""
         onClick={() => setOpen(true)}
         style={{
-          width: 96,
-          height: 96,
-          borderRadius: 12,
+          width: 72,
+          height: 72,
+          borderRadius: 10,
           objectFit: 'cover',
           cursor: 'zoom-in',
           border: '1px solid rgba(117,133,108,0.3)',
@@ -183,8 +183,8 @@ function PhotoGallery({ photos }: { photos: string[] }) {
             alt=""
             onClick={() => setLightboxIdx(idx)}
             style={{
-              width: 88,
-              height: 88,
+              width: 72,
+              height: 72,
               borderRadius: 10,
               objectFit: 'cover',
               cursor: 'zoom-in',

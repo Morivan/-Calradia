@@ -72,7 +72,12 @@ export function Header({
         </nav>
 
         <div className="topbar-actions">
-          {!detailOpen ? (
+          {detailOpen ? (
+            <button className="detail-back-inline" onClick={onHome}>
+              <ArrowLeft size={16} />
+              Назад в каталог
+            </button>
+          ) : (currentView === 'catalog' || currentView === 'sets') ? (
             <label className="searchbox" aria-label="Поиск по каталогу">
               <Search size={16} />
               <input
@@ -82,12 +87,7 @@ export function Header({
                 onChange={(event) => onQueryChange(event.target.value)}
               />
             </label>
-          ) : (
-            <button className="detail-back-inline" onClick={onHome}>
-              <ArrowLeft size={16} />
-              Назад в каталог
-            </button>
-          )}
+          ) : null}
 
           {user ? (
             <button className="icon-button" onClick={onLogout} aria-label="Выйти" title={`Выйти (${user.fullName})`}>

@@ -139,22 +139,22 @@ export function ProductDetail({
           </div>
 
           {product.setDiscounts && product.setDiscounts.length > 0 && (
-            <div className="detail-set-promo">
-              <Layers size={14} className="detail-set-promo-icon" />
-              <div className="detail-set-promo-body">
-                <span className="detail-set-promo-label">Дешевле в комплекте:</span>
-                <div className="detail-set-promo-list">
+            <div className="detail-set-bundle">
+              <Layers size={14} className="detail-set-bundle-icon" />
+              <div className="detail-set-bundle-body">
+                <span className="detail-set-bundle-label">Дешевле в комплекте:</span>
+                <div className="detail-set-bundle-list">
                   {product.setDiscounts.map(s => (
                     <button
                       key={s.slug}
-                      className="detail-set-promo-link"
+                      className="detail-set-bundle-link"
                       onClick={() => onOpenSet ? onOpenSet(s.slug) : undefined}
                     >
                       {s.discount_percent > 0 && (
-                        <span className="detail-set-promo-pct">−{s.discount_percent}%</span>
+                        <span className="detail-set-bundle-pct">−{s.discount_percent}%</span>
                       )}
                       {s.name}
-                      <span className="detail-set-promo-arrow">→</span>
+                      <span className="detail-set-bundle-arrow">→</span>
                     </button>
                   ))}
                 </div>

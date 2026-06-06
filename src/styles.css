@@ -1047,8 +1047,8 @@ h1 {
   white-space: nowrap;
 }
 
-/* Set discount promo block in product detail */
-.detail-set-promo {
+/* Set discount bundle block in product detail */
+.detail-set-bundle {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1058,32 +1058,32 @@ h1 {
   border: 1px solid rgba(134, 239, 172, 0.2);
 }
 
-.detail-set-promo-icon {
+.detail-set-bundle-icon {
   color: #86efac;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.detail-set-promo-body {
+.detail-set-bundle-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.detail-set-promo-label {
+.detail-set-bundle-label {
   font-size: 0.78rem;
   color: var(--text-muted);
   display: block;
 }
 
-.detail-set-promo-list {
+.detail-set-bundle-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.detail-set-promo-link {
+.detail-set-bundle-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1099,11 +1099,11 @@ h1 {
   white-space: nowrap;
 }
 
-.detail-set-promo-link:hover {
+.detail-set-bundle-link:hover {
   background: rgba(134, 239, 172, 0.18);
 }
 
-.detail-set-promo-pct {
+.detail-set-bundle-pct {
   font-size: 0.75rem;
   font-weight: 800;
   background: rgba(134, 239, 172, 0.2);
@@ -1111,7 +1111,7 @@ h1 {
   border-radius: 4px;
 }
 
-.detail-set-promo-arrow {
+.detail-set-bundle-arrow {
   opacity: 0.6;
   font-size: 0.75rem;
 }

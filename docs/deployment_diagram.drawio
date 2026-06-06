@@ -1,195 +1,210 @@
 <mxfile host="app.diagrams.net" version="21.0.0">
-  <diagram name="Диаграмма развёртывания" id="gost-deployment">
-    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1"
+  <diagram name="Диаграмма развёртывания" id="deploy-v4">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1"
                   connect="1" arrows="1" fold="1" page="1" pageScale="1"
-                  pageWidth="1169" pageHeight="827" math="0" shadow="0">
+                  pageWidth="1700" pageHeight="900" math="0" shadow="0">
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
 
-        <!-- ЗАГОЛОВОК -->
-        <mxCell id="title" value="ДИАГРАММА РАЗВЁРТЫВАНИЯ&#xa;Веб-приложение «Кузница Кальрадия»&#xa;ГОСТ 19.701-90" style="text;html=1;align=center;verticalAlign=middle;fontFamily=Courier New;fontSize=12;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="330" y="20" width="500" height="60" as="geometry"/>
+        <mxCell id="title" value="Рисунок 3 — Диаграмма развёртывания системы «Кузница Кальрадия»"
+          style="text;html=1;align=center;fontFamily=Arial;fontSize=13;fontStyle=1;fillColor=none;strokeColor=none;"
+          vertex="1" parent="1">
+          <mxGeometry x="240" y="18" width="1200" height="30" as="geometry"/>
         </mxCell>
 
-        <!-- БРАУЗЕР ПОЛЬЗОВАТЕЛЯ -->
-        <mxCell id="browser" value="&lt;b&gt;БРАУЗЕР ПОЛЬЗОВАТЕЛЯ&lt;/b&gt;&#xa;(клиентский узел)&#xa;&#xa;React 19 / TypeScript&#xa;(SPA, статические файлы)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#ffffff;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="120" width="200" height="100" as="geometry"/>
+        <mxCell id="browser" value="&lt;b&gt;Браузер пользователя&lt;/b&gt;&lt;br&gt;(клиентский узел)&lt;br&gt;React 19 / TypeScript"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="20" y="195" width="200" height="100" as="geometry"/>
         </mxCell>
 
-        <!-- ВКОНТАКТЕ API -->
-        <mxCell id="vk" value="&lt;b&gt;ВКОНТАКТЕ API&lt;/b&gt;&#xa;(внешняя система)&#xa;&#xa;api.vk.com" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#ffffff;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="400" width="200" height="80" as="geometry"/>
+        <mxCell id="server" value="&lt;b&gt;Сервер: VPS Debian 11 GNU/Linux&lt;/b&gt;"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#333333;strokeWidth=2;verticalAlign=top;"
+          vertex="1" parent="1">
+          <mxGeometry x="240" y="60" width="1200" height="720" as="geometry"/>
         </mxCell>
 
-        <!-- TELEGRAM BOT API -->
-        <mxCell id="tg" value="&lt;b&gt;TELEGRAM BOT API&lt;/b&gt;&#xa;(внешняя система)&#xa;&#xa;api.telegram.org" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#ffffff;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="510" width="200" height="80" as="geometry"/>
+        <mxCell id="nginx" value="&lt;b&gt;Nginx 1.18&lt;/b&gt; (обратный прокси-сервер)"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fontStyle=1;fillColor=none;strokeColor=#888888;dashed=1;verticalAlign=top;"
+          vertex="1" parent="1">
+          <mxGeometry x="260" y="100" width="750" height="200" as="geometry"/>
         </mxCell>
 
-        <!-- SMTP-СЕРВЕР -->
-        <mxCell id="smtp" value="&lt;b&gt;SMTP-СЕРВЕР&lt;/b&gt;&#xa;(внешняя система)&#xa;&#xa;порт 587 (STARTTLS)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#ffffff;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="620" width="200" height="80" as="geometry"/>
+        <mxCell id="nginx_static" value="&lt;b&gt;Раздача статики&lt;/b&gt;&lt;br&gt;/var/www/calradia/dist/&lt;br&gt;index.html, assets/*.js, *.css"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="275" y="140" width="350" height="80" as="geometry"/>
         </mxCell>
 
-        <!-- СЕРВЕР: внешняя граница -->
-        <mxCell id="server_border" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="310" y="100" width="830" height="650" as="geometry"/>
-        </mxCell>
-        <mxCell id="server_label" value="&lt;b&gt;СЕРВЕР: VPS Debian 11 GNU/Linux&lt;/b&gt;&#xa;IP: 195.16.x.x  |  /var/www/calradia" style="text;html=1;align=left;verticalAlign=top;fontFamily=Courier New;fontSize=10;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="320" y="108" width="420" height="35" as="geometry"/>
+        <mxCell id="nginx_proxy" value="&lt;b&gt;Проксирование&lt;/b&gt;&lt;br&gt;/api/ → Gunicorn&lt;br&gt;/admin/ → Gunicorn"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="645" y="140" width="350" height="80" as="geometry"/>
         </mxCell>
 
-        <!-- NGINX: граница подсистемы -->
-        <mxCell id="nginx_border" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="330" y="155" width="360" height="200" as="geometry"/>
-        </mxCell>
-        <mxCell id="nginx_label" value="&lt;b&gt;NGINX 1.18&lt;/b&gt; (обратный прокси-сервер)" style="text;html=1;align=left;fontFamily=Courier New;fontSize=10;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="338" y="160" width="340" height="20" as="geometry"/>
+        <mxCell id="gunicorn" value="&lt;b&gt;Gunicorn&lt;/b&gt; (WSGI-сервер приложений)"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fontStyle=1;fillColor=none;strokeColor=#888888;dashed=1;verticalAlign=top;"
+          vertex="1" parent="1">
+          <mxGeometry x="260" y="320" width="750" height="155" as="geometry"/>
         </mxCell>
 
-        <mxCell id="nginx_static" value="&lt;b&gt;Компонент: раздача статики&lt;/b&gt;&#xa;/var/www/calradia/dist/&#xa;index.html, assets/*.js, assets/*.css" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="340" y="185" width="240" height="60" as="geometry"/>
+        <mxCell id="w1" value="Рабочий&lt;br&gt;процесс 1"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="275" y="358" width="145" height="60" as="geometry"/>
         </mxCell>
 
-        <mxCell id="nginx_proxy" value="&lt;b&gt;Компонент: проксирование&lt;/b&gt;&#xa;location /api/ → Gunicorn&#xa;location /admin/ → Gunicorn" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="340" y="265" width="240" height="60" as="geometry"/>
+        <mxCell id="w2" value="Рабочий&lt;br&gt;процесс 2"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="432" y="358" width="145" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- GUNICORN: граница подсистемы -->
-        <mxCell id="gunicorn_border" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="330" y="375" width="360" height="130" as="geometry"/>
-        </mxCell>
-        <mxCell id="gunicorn_label" value="&lt;b&gt;GUNICORN&lt;/b&gt; (WSGI-сервер приложений)" style="text;html=1;align=left;fontFamily=Courier New;fontSize=10;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="338" y="380" width="340" height="20" as="geometry"/>
+        <mxCell id="w3" value="Рабочий&lt;br&gt;процесс 3"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="589" y="358" width="145" height="60" as="geometry"/>
         </mxCell>
 
-        <mxCell id="worker1" value="Рабочий процесс 1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="340" y="405" width="100" height="40" as="geometry"/>
-        </mxCell>
-        <mxCell id="worker2" value="Рабочий процесс 2" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="450" y="405" width="100" height="40" as="geometry"/>
-        </mxCell>
-        <mxCell id="worker3" value="Рабочий процесс 3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="560" y="405" width="100" height="40" as="geometry"/>
-        </mxCell>
-        <mxCell id="gunicorn_note" value="Unix-сокет: /run/gunicorn/calradia.sock" style="text;html=1;align=left;fontFamily=Courier New;fontSize=9;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="340" y="452" width="340" height="16" as="geometry"/>
+        <mxCell id="django" value="&lt;b&gt;Django 5.2 / Python 3.11&lt;/b&gt; (серверное приложение)"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fontStyle=1;fillColor=none;strokeColor=#888888;dashed=1;verticalAlign=top;"
+          vertex="1" parent="1">
+          <mxGeometry x="1040" y="100" width="380" height="560" as="geometry"/>
         </mxCell>
 
-        <!-- DJANGO: граница подсистемы -->
-        <mxCell id="django_border" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="740" y="155" width="380" height="350" as="geometry"/>
-        </mxCell>
-        <mxCell id="django_label" value="&lt;b&gt;DJANGO 5.2 / PYTHON 3.11&lt;/b&gt; (серверное приложение)" style="text;html=1;align=left;fontFamily=Courier New;fontSize=10;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="748" y="160" width="365" height="20" as="geometry"/>
+        <mxCell id="drf" value="&lt;b&gt;Django REST Framework&lt;/b&gt;&lt;br&gt;/api/products/, /api/orders/&lt;br&gt;/api/clients/, /api/reviews/"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="140" width="350" height="72" as="geometry"/>
         </mxCell>
 
-        <mxCell id="drf" value="&lt;b&gt;Django REST Framework&lt;/b&gt;&#xa;/api/products/, /api/reviews/&#xa;/api/orders/, /api/clients/" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="750" y="185" width="230" height="65" as="geometry"/>
+        <mxCell id="dj_admin" value="&lt;b&gt;Django Admin&lt;/b&gt;&lt;br&gt;/admin/"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="224" width="350" height="62" as="geometry"/>
         </mxCell>
 
-        <mxCell id="django_admin" value="&lt;b&gt;Django Admin&lt;/b&gt;&#xa;/admin/" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="990" y="185" width="120" height="65" as="geometry"/>
+        <mxCell id="workshop" value="&lt;b&gt;Модуль workshop&lt;/b&gt;&lt;br&gt;Product, Order, Client&lt;br&gt;Review, Task, MasterApproval"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="298" width="350" height="76" as="geometry"/>
         </mxCell>
 
-        <mxCell id="workshop" value="&lt;b&gt;Модуль workshop&lt;/b&gt;&#xa;models: Product, Order,&#xa;Client, Review,&#xa;MasterApproval, Task" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="750" y="265" width="180" height="80" as="geometry"/>
+        <mxCell id="services" value="&lt;b&gt;Сервисный слой&lt;/b&gt;&lt;br&gt;services/telegram.py&lt;br&gt;services/vk.py"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="386" width="350" height="76" as="geometry"/>
         </mxCell>
 
-        <mxCell id="services" value="&lt;b&gt;Сервисный слой&lt;/b&gt;&#xa;services/telegram.py&#xa;services/vk.py" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="940" y="265" width="170" height="80" as="geometry"/>
+        <mxCell id="settings" value="&lt;b&gt;Настройки / безопасность&lt;/b&gt;&lt;br&gt;settings.py, .env, CORS, CSRF"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="474" width="350" height="62" as="geometry"/>
         </mxCell>
 
-        <mxCell id="settings" value="&lt;b&gt;Настройки / безопасность&lt;/b&gt;&#xa;settings.py, .env&#xa;CORS, CSRF, SECRET_KEY" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="750" y="360" width="360" height="50" as="geometry"/>
+        <mxCell id="cron" value="&lt;b&gt;Планировщик (cron / systemd)&lt;/b&gt;&lt;br&gt;notify_urgent_orders — ежечасно"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1055" y="548" width="350" height="62" as="geometry"/>
         </mxCell>
 
-        <mxCell id="cron" value="&lt;b&gt;Планировщик (cron / systemd)&lt;/b&gt;&#xa;notify_urgent_orders — ежечасно&#xa;уведомления по Telegram/SMTP" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=9;fillColor=#f5f5f5;strokeColor=#000000;align=left;" vertex="1" parent="1">
-          <mxGeometry x="750" y="420" width="360" height="60" as="geometry"/>
+        <mxCell id="sqlite" value="&lt;b&gt;База данных SQLite 3 (WAL)&lt;/b&gt;&lt;br&gt;/var/www/calradia/db.sqlite3"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="260" y="680" width="750" height="62" as="geometry"/>
         </mxCell>
 
-        <!-- БАЗА ДАННЫХ -->
-        <mxCell id="sqlite" value="&lt;b&gt;БАЗА ДАННЫХ&lt;/b&gt;&#xa;SQLite 3 (режим WAL)&#xa;/var/www/calradia/db.sqlite3" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#f5f5f5;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="740" y="565" width="360" height="70" as="geometry"/>
+        <mxCell id="media" value="&lt;b&gt;Медиафайлы&lt;/b&gt;&lt;br&gt;/var/www/calradia/media/"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1040" y="680" width="380" height="62" as="geometry"/>
         </mxCell>
 
-        <!-- МЕДИАФАЙЛЫ -->
-        <mxCell id="media" value="&lt;b&gt;МЕДИАФАЙЛЫ&lt;/b&gt;&#xa;/var/www/calradia/media/" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=10;fillColor=#f5f5f5;strokeColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="340" y="565" width="360" height="60" as="geometry"/>
+        <mxCell id="vk" value="&lt;b&gt;ВКонтакте API&lt;/b&gt;&lt;br&gt;(внешняя система)&lt;br&gt;api.vk.com"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1480" y="280" width="200" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- СВЯЗИ -->
+        <mxCell id="telegram" value="&lt;b&gt;Telegram Bot API&lt;/b&gt;&lt;br&gt;(внешняя система)&lt;br&gt;api.telegram.org"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1480" y="400" width="200" height="90" as="geometry"/>
+        </mxCell>
 
-        <!-- Браузер → Nginx  HTTPS :443 -->
-        <mxCell id="e1" value="HTTPS :443" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="browser" target="nginx_border" parent="1">
+        <mxCell id="smtp" value="&lt;b&gt;SMTP-сервер&lt;/b&gt;&lt;br&gt;(внешняя система)&lt;br&gt;порт 587 (STARTTLS)"
+          style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="1480" y="520" width="200" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="HTTPS :443"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          edge="1" source="browser" target="nginx" parent="1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Nginx статика → браузер (ответ) -->
-        <mxCell id="e2" value="HTML / JS / CSS" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;dashed=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" edge="1" source="nginx_static" target="browser" parent="1">
+        <mxCell id="e2" value="HTML / JS / CSS"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;"
+          edge="1" source="nginx_static" target="browser" parent="1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Nginx → Gunicorn Unix-сокет -->
-        <mxCell id="e3" value="Unix-сокет" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="nginx_proxy" target="gunicorn_border" parent="1">
+        <mxCell id="e3" value="Unix-сокет"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;fontStyle=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          edge="1" source="nginx_proxy" target="gunicorn" parent="1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Gunicorn → Django -->
-        <mxCell id="e4" value="WSGI-вызов" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="gunicorn_border" target="django_border" parent="1">
+        <mxCell id="e4" value="WSGI-вызов"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          edge="1" source="gunicorn" target="django" parent="1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Django → SQLite -->
-        <mxCell id="e5" value="ORM (чтение/запись)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="django_border" target="sqlite" parent="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-
-        <!-- Django services → VK -->
-        <mxCell id="e6" value="HTTPS (Webhook POST)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="services" target="vk" parent="1">
+        <mxCell id="e5" value="ORM"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;fontStyle=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;"
+          edge="1" source="django" target="sqlite" parent="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="900" y="305"/>
-              <mxPoint x="900" y="440"/>
-              <mxPoint x="140" y="440"/>
+              <mxPoint x="1040" y="660"/>
+              <mxPoint x="860" y="660"/>
             </Array>
           </mxGeometry>
         </mxCell>
 
-        <!-- Django services → Telegram -->
-        <mxCell id="e7" value="HTTPS Bot API" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="services" target="tg" parent="1">
+        <mxCell id="e6" value="HTTPS (Webhook POST)"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          edge="1" source="services" target="vk" parent="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="880" y="323"/>
-              <mxPoint x="880" y="550"/>
-              <mxPoint x="140" y="550"/>
+              <mxPoint x="1448" y="409"/>
+              <mxPoint x="1448" y="325"/>
             </Array>
           </mxGeometry>
         </mxCell>
 
-        <!-- Cron → SMTP -->
-        <mxCell id="e8" value="SMTP :587 (STARTTLS)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="cron" target="smtp" parent="1">
+        <mxCell id="e7" value="HTTPS Bot API"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          edge="1" source="services" target="telegram" parent="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="680" y="450"/>
-              <mxPoint x="680" y="660"/>
-              <mxPoint x="140" y="660"/>
+              <mxPoint x="1457" y="439"/>
+              <mxPoint x="1457" y="445"/>
             </Array>
           </mxGeometry>
         </mxCell>
 
-        <!-- Django → Media -->
-        <mxCell id="e9" value="файловый ввод/вывод" style="edgeStyle=orthogonalEdgeStyle;html=1;fontFamily=Courier New;fontSize=9;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="django_border" target="media" parent="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-
-        <!-- ШТАМП -->
-        <mxCell id="stamp_border" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="760" y="770" width="380" height="50" as="geometry"/>
-        </mxCell>
-        <mxCell id="stamp_text" value="Диаграмма развёртывания. ГОСТ 19.701-90.&#xa;Лист 1. Листов 1." style="text;html=1;align=center;verticalAlign=middle;fontFamily=Courier New;fontSize=9;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="760" y="770" width="380" height="50" as="geometry"/>
+        <mxCell id="e8" value="SMTP :587"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          edge="1" source="cron" target="smtp" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1466" y="579"/>
+              <mxPoint x="1466" y="565"/>
+            </Array>
+          </mxGeometry>
         </mxCell>
 
       </root>

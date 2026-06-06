@@ -171,10 +171,12 @@ function NewOrderModal({
   const [orderType, setOrderType] = useState<'product' | 'set' | 'service'>('product');
   const [products, setProducts] = useState<Product[]>([]);
   const [sets, setSets] = useState<ProductSet[]>([]);
+  const [clients, setClients] = useState<ClientRecord[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [setSearch, setSetSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedSet, setSelectedSet] = useState<ProductSet | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [form, setForm] = useState({
     client_name: '',
     client_vk: '',
@@ -188,12 +190,25 @@ function NewOrderModal({
   const [error, setError] = useState('');
 
   useEffect(() => {
+    apiFetch('/api/workshop/clients/').then(r => r.ok ? r.json() : []).then(setClients);
+  }, []);
+
+  useEffect(() => {
     if (orderType === 'product') {
       apiFetch('/api/catalog/products/').then(r => r.ok ? r.json() : []).then(setProducts);
     } else if (orderType === 'set') {
       apiFetch('/api/workshop/sets/').then(r => r.ok ? r.json() : []).then(setSets);
     }
   }, [orderType]);
+
+  const filteredClients = !selectedClient && form.client_name.length >= 1
+    ? clients.filter(c => c.name.toLowerCase().includes(form.client_name.toLowerCase())).slice(0, 8)
+    : [];
+
+  const handleSelectClient = (c: ClientRecord) => {
+    setSelectedClient(c);
+    setForm(f => ({ ...f, client_name: c.name, client_vk: c.vk_url || f.client_vk }));
+  };
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -373,10 +388,44 @@ function NewOrderModal({
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <label className="product-form-field">
-              <span>Клиент *</span>
-              <input value={form.client_name} onChange={set('client_name')} required />
-            </label>
+            <div className="product-form-field">
+              <span>
+                Клиент *
+                {selectedClient && (
+                  <span style={{ marginLeft: 6, fontSize: 11, color: '#86efac', fontWeight: 600 }}>
+                    из базы · {selectedClient.order_count} зак.
+                  </span>
+                )}
+              </span>
+              <div style={{ position: 'relative' }}>
+                <input
+                  value={form.client_name}
+                  onChange={e => {
+                    setSelectedClient(null);
+                    setForm(f => ({ ...f, client_name: e.target.value }));
+                  }}
+                  required
+                  placeholder="Введите имя или выберите из базы"
+                />
+                {filteredClients.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 200, overflowY: 'auto', marginTop: 2 }}>
+                    {filteredClients.map(c => (
+                      <div
+                        key={c.id}
+                        onMouseDown={e => { e.preventDefault(); handleSelectClient(c); }}
+                        style={{ padding: '7px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--border)' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-panel-soft)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <strong>{c.name}</strong>
+                        {c.vk_url && <span style={{ marginLeft: 6, fontSize: 11, color: '#4a9eda' }}>ВК</span>}
+                        <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-muted)' }}>{c.order_count} зак.</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
             <label className="product-form-field">
               <span>ВКонтакте клиента</span>
               <input value={form.client_vk} onChange={set('client_vk')} placeholder="https://vk.com/..." />

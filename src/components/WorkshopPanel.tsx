@@ -205,6 +205,10 @@ function NewOrderModal({
     ? clients.filter(c => c.name.toLowerCase().includes(form.client_name.toLowerCase())).slice(0, 8)
     : [];
 
+  const exactDuplicate = !selectedClient && form.client_name.length > 1
+    ? clients.find(c => c.name.toLowerCase() === form.client_name.toLowerCase()) ?? null
+    : null;
+
   const handleSelectClient = (c: ClientRecord) => {
     setSelectedClient(c);
     setForm(f => ({ ...f, client_name: c.name, client_vk: c.vk_url || f.client_vk }));
@@ -243,6 +247,7 @@ function NewOrderModal({
         order_type: orderType,
         client_name: form.client_name,
         client_vk: form.client_vk,
+        client_id: selectedClient?.id ?? null,
         total: parseInt(form.total) || 0,
         advance_override: form.advance ? parseInt(form.advance) : null,
         deadline: form.deadline || null,
@@ -425,6 +430,15 @@ function NewOrderModal({
                   </div>
                 )}
               </div>
+              {exactDuplicate && (
+                <div style={{ fontSize: 12, color: '#fbbf24', marginTop: 4 }}>
+                  ⚠ Клиент с таким именем уже есть в базе ({exactDuplicate.order_count} зак.).{' '}
+                  <span
+                    onMouseDown={e => { e.preventDefault(); handleSelectClient(exactDuplicate); }}
+                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                  >Выбрать</span>
+                </div>
+              )}
             </div>
             <label className="product-form-field">
               <span>ВКонтакте клиента</span>

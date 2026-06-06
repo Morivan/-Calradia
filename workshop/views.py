@@ -1090,10 +1090,29 @@ class WorkshopOrderCreateView(APIView):
             if assigned_id else None
         ) or request.user
 
+        client_vk = (data.get('client_vk') or '').strip()
+        client_id = data.get('client_id')
+
         with transaction.atomic():
+            # Resolve or create the Client record
+            client_obj = None
+            if client_id:
+                client_obj = Client.objects.filter(pk=client_id).first()
+            if client_obj is None:
+                client_obj = Client.objects.filter(name__iexact=client_name).first()
+            if client_obj is None:
+                client_obj = Client.objects.create(
+                    name=client_name, vk_url=client_vk, status=Client.Status.POTENTIAL,
+                )
+            # Update vk_url if we have one and the record doesn't yet
+            if client_vk and not client_obj.vk_url:
+                client_obj.vk_url = client_vk
+                client_obj.save(update_fields=['vk_url'])
+
             order = Order.objects.create(
+                client=client_obj,
                 client_name=client_name,
-                client_vk=(data.get('client_vk') or '').strip(),
+                client_vk=client_vk,
                 order_type=order_type,
                 product=product,
                 product_set=product_set,

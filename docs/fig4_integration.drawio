@@ -1,131 +1,416 @@
 <?xml version="1.0" ?>
-<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1420" pageHeight="860" math="0" shadow="0">
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1"
+              connect="1" arrows="1" fold="1" page="1" pageScale="1"
+              pageWidth="1420" pageHeight="860" math="0" shadow="0">
   <root>
     <mxCell id="0"/>
     <mxCell id="1" parent="0"/>
-    <mxCell id="2" value="Браузер пользователя" style="rounded=1;arcSize=3;verticalAlign=top;align=center;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=12;fontStyle=1;dashed=0;" vertex="1" parent="1">
-      <mxGeometry x="20" y="20" width="340" height="300" as="geometry"/>
+
+    <!-- ══ ЗАГОЛОВОК ══ -->
+    <mxCell id="ttl" value="Схема интеграции компонентов системы «Кузница Кальрадия»"
+      style="text;html=1;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=14;fontStyle=1;fillColor=none;strokeColor=none;"
+      vertex="1" parent="1">
+      <mxGeometry x="10" y="10" width="1400" height="30" as="geometry"/>
     </mxCell>
-    <mxCell id="3" value="App.tsx
-(маршрутизация, состояние)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="40" y="70" width="300" height="50"/>
+
+    <!-- ══════════════════════════════════════════════════════
+         СЛОЙ 1: ПРЕЗЕНТАЦИОННЫЙ (React SPA)
+    ══════════════════════════════════════════════════════════ -->
+    <mxCell id="L1" value="Презентационный слой (React 19 / TypeScript)"
+      style="rounded=0;verticalAlign=top;align=center;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=11;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="60" width="250" height="700" as="geometry"/>
     </mxCell>
-    <mxCell id="4" value="CatalogPage
-(фильтры, сетка карточек)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="40" y="140" width="300" height="44"/>
+
+    <mxCell id="l1a" value="App.tsx&#xa;маршрутизация, глобальное состояние&#xa;(ViewMode, bootstrap, фильтры)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="110" width="220" height="60" as="geometry"/>
     </mxCell>
-    <mxCell id="5" value="WorkshopPanel
-(панель управления)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="40" y="195" width="300" height="44"/>
+
+    <mxCell id="l1b" value="ProductCard + CatalogPage&#xa;сетка каталога, фильтрация"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="190" width="220" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="6" value="SetsPage / ProductDetail
-(комплекты, карточки)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="40" y="250" width="300" height="44"/>
+
+    <mxCell id="l1c" value="ProductDetail&#xa;карточка товара, галерея, отзывы"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="260" width="220" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="7" value="Nginx 1.18  (обратный прокси)" style="rounded=1;arcSize=3;verticalAlign=top;align=center;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=12;fontStyle=1;dashed=0;" vertex="1" parent="1">
-      <mxGeometry x="420" y="20" width="260" height="300" as="geometry"/>
+
+    <mxCell id="l1d" value="SetsPage&#xa;страница комплектов снаряжения"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="330" width="220" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="8" value="/static/*
-→ dist/ (SPA, CSS, JS)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="440" y="70" width="220" height="50"/>
+
+    <mxCell id="l1e" value="FiltersPanel&#xa;категории, эпохи, материалы, размеры"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="400" width="220" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="9" value="/api/*
-→ Gunicorn (UNIX socket)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="440" y="145" width="220" height="50"/>
+
+    <mxCell id="l1f" value="WorkshopPanel (администратор)&#xa;вкладки: Сводка, Заказы, Задачи,&#xa;Клиенты, Допуски, Каталог, Комплекты, Отзывы"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#fff0f0;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="470" width="220" height="70" as="geometry"/>
     </mxCell>
-    <mxCell id="10" value="/api/integrations/vk/callback/
-→ VKCallbackView" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="440" y="215" width="220" height="80"/>
+
+    <mxCell id="l1g" value="ReviewsPage&#xa;список отзывов покупателей"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="35" y="560" width="220" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="11" value="Django 5.2 + DRF  (Gunicorn WSGI)" style="rounded=1;arcSize=3;verticalAlign=top;align=center;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=12;fontStyle=1;dashed=0;" vertex="1" parent="1">
-      <mxGeometry x="740" y="20" width="360" height="460" as="geometry"/>
+
+    <!-- ══════════════════════════════════════════════════════
+         СЛОЙ 2: NGINX
+    ══════════════════════════════════════════════════════════ -->
+    <mxCell id="L2" value="Nginx 1.18 (обратный прокси-сервер)"
+      style="rounded=0;verticalAlign=top;align=center;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=11;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="300" y="60" width="230" height="700" as="geometry"/>
     </mxCell>
-    <mxCell id="12" value="BootstrapView
-(товары, отзывы, ссылки)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="70" width="320" height="50"/>
+
+    <mxCell id="l2a" value="GET /&#xa;→ dist/index.html (SPA)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="315" y="110" width="200" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="13" value="ProductView
-(CRUD каталога)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="140" width="320" height="44"/>
+
+    <mxCell id="l2b" value="GET /assets/*&#xa;→ dist/assets/ (JS, CSS, шрифты)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="315" y="180" width="200" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="14" value="OrderView + TaskView
-(заказы, задачи)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="195" width="320" height="44"/>
+
+    <mxCell id="l2c" value="GET|POST /api/*&#xa;→ Gunicorn (Unix-сокет)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="315" y="250" width="200" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="15" value="ApprovalsView
-(допуски мастеров)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="250" width="320" height="44"/>
+
+    <mxCell id="l2d" value="POST /api/integrations/vk/callback/&#xa;→ VKCallbackView"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="315" y="320" width="200" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="16" value="ReviewView
-(публикация отзывов)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="305" width="320" height="44"/>
+
+    <mxCell id="l2e" value="GET /media/*&#xa;→ /var/www/calradia/media/"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="315" y="390" width="200" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="17" value="TelegramService  /  VKService
-(интеграция с внешними сервисами)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="390" width="320" height="60"/>
+
+    <!-- ══════════════════════════════════════════════════════
+         СЛОЙ 3: ПРИКЛАДНОЙ (Django)
+    ══════════════════════════════════════════════════════════ -->
+    <mxCell id="L3" value="Прикладной слой (Django 5.2 + DRF, Gunicorn WSGI)"
+      style="rounded=0;verticalAlign=top;align=center;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Arial;fontSize=11;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="560" y="60" width="270" height="700" as="geometry"/>
     </mxCell>
-    <mxCell id="18" value="SQLite
-db.sqlite3" style="shape=mxgraph.flowchart.database;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Arial;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
-      <mxGeometry x="1160" y="200" width="160" height="120" as="geometry"/>
+
+    <mxCell id="l3a" value="BootstrapView&#xa;GET /api/bootstrap/&#xa;→ products, reviews, links, total"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="110" width="240" height="60" as="geometry"/>
     </mxCell>
-    <mxCell id="19" value="Внешние сервисы" style="rounded=1;arcSize=3;verticalAlign=top;align=center;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Arial;fontSize=12;fontStyle=1;dashed=0;" vertex="1" parent="1">
-      <mxGeometry x="740" y="530" width="580" height="220" as="geometry"/>
+
+    <mxCell id="l3b" value="ProductViewSet&#xa;GET /api/products/ — каталог&#xa;GET /api/products/{id}/ — карточка&#xa;GET /api/sets/ — комплекты"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="190" width="240" height="75" as="geometry"/>
     </mxCell>
-    <mxCell id="20" value="VK API  (vk.com)
-Callback, Wall Post events" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="580" width="260" height="60"/>
+
+    <mxCell id="l3c" value="ReviewViewSet&#xa;GET /api/reviews/ — список отзывов"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="285" width="240" height="50" as="geometry"/>
     </mxCell>
-    <mxCell id="21" value="Telegram Bot API
-sendMessage / sendPhoto / sendMediaGroup" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="1040" y="580" width="260" height="60"/>
+
+    <mxCell id="l3d" value="WorkshopOrderCreateView&#xa;POST /api/orders/ — создание заказа&#xa;(авто-создание клиента, дедупликация)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="355" width="240" height="65" as="geometry"/>
     </mxCell>
-    <mxCell id="22" value="Telegram-канал @BandKalrad
-(публикация новостей клуба)" style="rounded=1;arcSize=8;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
-      <mxGeometry as="geometry" x="760" y="668" width="540" height="50"/>
+
+    <mxCell id="l3e" value="TaskView + ApprovalsView&#xa;GET|POST /api/tasks/&#xa;GET|POST /api/masterapprovalslist/"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="440" width="240" height="60" as="geometry"/>
     </mxCell>
-    <mxCell id="23" value="GET / (SPA)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;" edge="1" source="3" target="8" parent="1">
+
+    <mxCell id="l3f" value="ClientView&#xa;GET /api/clients/?name=...&#xa;GET|POST /api/clients/"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="520" width="240" height="55" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l3g" value="TelegramService / VKService&#xa;отправка уведомлений, разбор webhook"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#fffde7;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="595" width="240" height="55" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l3h" value="Планировщик (cron/systemd)&#xa;notify_urgent_orders — ежечасно"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#fffde7;strokeColor=#82b366;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="575" y="665" width="240" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════
+         СЛОЙ 4: ДАННЫЕ
+    ══════════════════════════════════════════════════════════ -->
+    <mxCell id="L4" value="Слой данных (SQLite WAL)"
+      style="rounded=0;verticalAlign=top;align=center;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Arial;fontSize=11;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="860" y="60" width="210" height="700" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4a" value="Product&#xa;slug, name, category, era,&#xa;material, sizes, price_from,&#xa;badge, gallery, status"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="110" width="180" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4b" value="Order&#xa;client FK, client_name,&#xa;client_vk, items, deadline,&#xa;status, telegram_msg_id"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="210" width="180" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4c" value="Client&#xa;name, vk_url, status,&#xa;notes, order_count"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="310" width="180" height="70" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4d" value="Review&#xa;product FK, author,&#xa;text, review_date"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="400" width="180" height="65" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4e" value="Task&#xa;order FK, assigned_master,&#xa;status, deadline"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="485" width="180" height="65" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4f" value="MasterApproval&#xa;product FK, master,&#xa;approved (bool)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#666666;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="570" width="180" height="65" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l4g" value="db.sqlite3  (WAL-режим)&#xa;/var/www/calradia/"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#e0e0e0;strokeColor=#666666;fontFamily=Arial;fontSize=10;fontStyle=1;align=center;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="655" width="180" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════
+         СЛОЙ 5: ВНЕШНИЕ СИСТЕМЫ
+    ══════════════════════════════════════════════════════════ -->
+    <mxCell id="L5" value="Внешние системы"
+      style="rounded=0;verticalAlign=top;align=center;fillColor=#e1d5e7;strokeColor=#9673a6;fontFamily=Arial;fontSize=11;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="1100" y="60" width="300" height="700" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l5a" value="ВКонтакте API&#xa;api.vk.com&#xa;Callback API, Wall Post events&#xa;Группа сообщества"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="1115" y="110" width="270" height="75" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l5b" value="Telegram Bot API&#xa;api.telegram.org&#xa;sendMessage, sendPhoto,&#xa;sendMediaGroup"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="1115" y="210" width="270" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l5c" value="Telegram-канал @BandKalrad&#xa;публикация новостей клуба&#xa;(авто-трансляция из ВК)"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="1115" y="315" width="270" height="70" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="l5d" value="SMTP-сервер&#xa;порт 587 (STARTTLS)&#xa;уведомления о срочных заказах"
+      style="rounded=1;arcSize=10;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;align=left;"
+      vertex="1" parent="1">
+      <mxGeometry x="1115" y="415" width="270" height="70" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════
+         СВЯЗИ
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- L1 → L2 (браузер → nginx) -->
+    <mxCell id="e1" value="HTTPS :443"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;entryX=0;entryY=0.3;"
+      edge="1" source="l1a" target="l2a" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="24" value="GET /api/*  (JSON)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#6c8ebf;fontFamily=Arial;fontSize=10;" edge="1" source="3" target="9" parent="1">
+
+    <mxCell id="e2" value="GET /api/*"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l1b" target="l2c" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#82b366;fontFamily=Arial;fontSize=10;" edge="1" source="9" target="12" parent="1">
+
+    <mxCell id="e3" value="POST /api/orders/"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l1f" target="l2c" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#82b366;fontFamily=Arial;fontSize=10;" edge="1" source="9" target="13" parent="1">
+
+    <!-- L2 → L3 (nginx → django views) -->
+    <mxCell id="e4" value="WSGI"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;entryX=0;entryY=0.25;"
+      edge="1" source="l2c" target="l3a" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#82b366;fontFamily=Arial;fontSize=10;" edge="1" source="9" target="14" parent="1">
+
+    <mxCell id="e5" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l2c" target="l3b" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#82b366;fontFamily=Arial;fontSize=10;" edge="1" source="9" target="15" parent="1">
+
+    <mxCell id="e6" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.7;entryX=0;entryY=0.5;"
+      edge="1" source="l2c" target="l3d" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=1;strokeColor=#82b366;fontFamily=Arial;fontSize=10;" edge="1" source="9" target="16" parent="1">
+
+    <mxCell id="e7" value="webhook POST"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l2d" target="l3g" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="30" value="wall_post_new
-Confirmation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;" edge="1" source="10" target="17" parent="1">
+
+    <!-- L3 → L4 (django → models) -->
+    <mxCell id="e8" value="ORM"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;fontStyle=1;exitX=1;exitY=0.3;entryX=0;entryY=0.3;"
+      edge="1" source="l3a" target="l4a" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="31" value="ORM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#666666;fontFamily=Arial;fontSize=10;" edge="1" source="12" target="18" parent="1">
+
+    <mxCell id="e9" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3b" target="l4a" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#666666;fontFamily=Arial;fontSize=10;" edge="1" source="13" target="18" parent="1">
+
+    <mxCell id="e10" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3c" target="l4d" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#666666;fontFamily=Arial;fontSize=10;" edge="1" source="14" target="18" parent="1">
+
+    <mxCell id="e11" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3d" target="l4b" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="34" value="HTTPS POST" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;" edge="1" source="17" target="21" parent="1">
+
+    <mxCell id="e12" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3d" target="l4c" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="35" value="webhook
-(HTTP POST)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;" edge="1" source="20" target="10" parent="1">
+
+    <mxCell id="e13" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3e" target="l4e" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
-    <mxCell id="36" value="публикует" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;startArrow=none;startFill=0;endArrow=block;endFill=0;strokeColor=#9673a6;fontFamily=Arial;fontSize=10;" edge="1" source="21" target="22" parent="1">
+
+    <mxCell id="e14" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3e" target="l4f" parent="1">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
+
+    <mxCell id="e15" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3f" target="l4c" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- L3 → L5 (services → external) -->
+    <mxCell id="e16" value="HTTPS Bot API"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;exitX=1;exitY=0.4;entryX=0;entryY=0.5;"
+      edge="1" source="l3g" target="l5b" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e17" value="HTTPS POST"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;exitX=1;exitY=0.6;entryX=0;entryY=0.7;"
+      edge="1" source="l3g" target="l5a" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e18" value="SMTP :587"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+      edge="1" source="l3h" target="l5d" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- VK → nginx webhook (входящий) -->
+    <mxCell id="e19" value="webhook (HTTP POST)"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;endArrow=block;endFill=1;exitX=0;exitY=0.8;entryX=1;entryY=0.5;"
+      edge="1" source="l5a" target="l2d" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1080" y="178"/>
+          <mxPoint x="540" y="178"/>
+          <mxPoint x="540" y="345"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- TG Bot → TG Channel -->
+    <mxCell id="e20" value="публикует посты"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontFamily=Arial;fontSize=9;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+      edge="1" source="l5b" target="l5c" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ══ ЛЕГЕНДА ══ -->
+    <mxCell id="leg_border" value="" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;" vertex="1" parent="1">
+      <mxGeometry x="20" y="780" width="440" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_title" value="Условные обозначения:" style="text;html=1;fontFamily=Arial;fontSize=10;fontStyle=1;fillColor=none;strokeColor=none;align=left;" vertex="1" parent="1">
+      <mxGeometry x="28" y="783" width="200" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg1" value="" style="rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="28" y="803" width="20" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg1t" value="Клиентский слой (React)" style="text;html=1;fontFamily=Arial;fontSize=9;fillColor=none;strokeColor=none;align=left;" vertex="1" parent="1">
+      <mxGeometry x="52" y="801" width="170" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg2" value="" style="rounded=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="228" y="803" width="20" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg2t" value="Прокси / маршрутизация (Nginx)" style="text;html=1;fontFamily=Arial;fontSize=9;fillColor=none;strokeColor=none;align=left;" vertex="1" parent="1">
+      <mxGeometry x="252" y="801" width="200" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg3" value="" style="rounded=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="28" y="822" width="20" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg3t" value="Прикладной слой (Django)" style="text;html=1;fontFamily=Arial;fontSize=9;fillColor=none;strokeColor=none;align=left;" vertex="1" parent="1">
+      <mxGeometry x="52" y="820" width="170" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg4" value="" style="rounded=0;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="228" y="822" width="20" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg4t" value="Слой данных (SQLite)" style="text;html=1;fontFamily=Arial;fontSize=9;fillColor=none;strokeColor=none;align=left;" vertex="1" parent="1">
+      <mxGeometry x="252" y="820" width="200" height="18" as="geometry"/>
+    </mxCell>
+
   </root>
 </mxGraphModel>

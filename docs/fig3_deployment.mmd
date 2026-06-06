@@ -1,0 +1,22 @@
+graph LR
+    Browser["Браузер пользователя\n(React 19 / TypeScript)"]
+
+    subgraph Server["Сервер VPS Debian 11"]
+        Nginx["Nginx 1.18\n─ раздача статики dist/\n─ прокси /api/ и /admin/"]
+        Gunicorn["Gunicorn\n(3 рабочих процесса)"]
+        Django["Django 5.2 + DRF\nworkshop, services"]
+        DB[("SQLite WAL\ndb.sqlite3")]
+    end
+
+    VK["ВКонтакте API\napi.vk.com"]
+    TG["Telegram Bot API\napi.telegram.org"]
+    SMTP["SMTP-сервер\nпорт 587"]
+
+    Browser  -->|"HTTPS :443"| Nginx
+    Nginx   -.->|"HTML / JS / CSS"| Browser
+    Nginx    -->|"Unix-сокет"| Gunicorn
+    Gunicorn -->|"WSGI-вызов"| Django
+    Django   -->|"ORM"| DB
+    Django   -->|"HTTPS"| VK
+    Django   -->|"Bot API"| TG
+    Django   -->|"SMTP :587"| SMTP

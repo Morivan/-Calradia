@@ -1,0 +1,75 @@
+classDiagram
+    class BootstrapPayload {
+        <<interface>>
+        +products : Product[]
+        +reviews : Review[]
+        +links : ExternalLinks
+    }
+
+    class Product {
+        <<interface>>
+        +id : string
+        +name : string
+        +status : ProductStatus
+        +category : Category
+        +priceFrom : number
+        +sizes : Size[]
+        +gallery : string[]
+        +badge? : string
+        +setDiscounts? : SetDiscount[]
+    }
+
+    class ProductSet {
+        <<interface>>
+        +slug : string
+        +name : string
+        +price_from : number
+        +discount_percent : number
+        +products : SetProduct[]
+    }
+
+    class Review {
+        <<interface>>
+        +id? : number
+        +text : string
+        +date : string
+        +vk_url? : string
+        +photos? : string[]
+    }
+
+    class Filters {
+        <<interface>>
+        +categories : string[]
+        +eras : string[]
+        +materials : string[]
+        +sizes : string[]
+        +statuses : string[]
+    }
+
+    class ExternalLinks {
+        <<interface>>
+        +vkCommunity : string
+        +vkMessages : string
+        +telegramOrder : string
+        +telegramPublic : string
+    }
+
+    class ProductStatus {
+        <<type>>
+        В наличии
+        Изготовим на заказ
+        Снят с производства
+    }
+
+    class ViewMode {
+        <<type>>
+        home | catalog | sets
+        services | reviews
+        privacy | admin | login
+    }
+
+    BootstrapPayload --> Product      : products[ ]
+    BootstrapPayload --> Review       : reviews[ ]
+    BootstrapPayload --> ExternalLinks : links
+    Product          --> ProductStatus : status
+    ProductSet       --> Product      : включает

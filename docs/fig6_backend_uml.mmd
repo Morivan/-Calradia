@@ -2,64 +2,31 @@ classDiagram
     class ProductView {
         +list() Response
         +create() Response
-        +update(id) Response
         +destroy(id) Response
     }
-
     class OrderView {
         +list() Response
         +create() Response
-        +update(id) Response
     }
-
     class TaskView {
-        +list(view) Response
+        +list() Response
         +update(id, action) Response
     }
-
     class ApprovalsView {
         +list() Response
-        +toggle(master_id, product_id) Response
+        +toggle() Response
     }
 
-    class Product {
-        +slug : str
-        +name : str
-        +category : str
-        +status : Status
-        +price_from : int
-    }
-
-    class Order {
-        +client : FK
-        +product_name : str
-        +status : Status
-        +deadline : date
-    }
-
-    class Task {
-        +order : FK
-        +product_name : str
-        +status : Status
-    }
-
-    class MasterApproval {
-        +master : FK
-        +product : FK
-        +approved : bool
-    }
-
-    class Client {
-        +name : str
-        +vk_url : str
-        +status : Status
-    }
+    class Product
+    class Order
+    class Task
+    class MasterApproval
+    class Client
 
     class TelegramService {
         +send_message(chat_id, text)
         +repost_to_channel(id, text, photos)
     }
-
     class VKService {
         +parse_post(post) tuple
         +strip_mentions(text) str

@@ -1,75 +1,68 @@
 classDiagram
+    direction TB
+
     class BootstrapPayload {
         <<interface>>
         +products : Product[]
-        +reviews : Review[]
-        +links : ExternalLinks
+        +reviews  : Review[]
+        +links    : ExternalLinks
     }
 
     class Product {
         <<interface>>
-        +id : string
-        +name : string
-        +status : ProductStatus
-        +category : Category
+        +id        : string
+        +name      : string
+        +status    : ProductStatus
         +priceFrom : number
-        +sizes : Size[]
-        +gallery : string[]
-        +badge? : string
-        +setDiscounts? : SetDiscount[]
+        +sizes     : Size[]
+        +gallery   : string[]
+        +badge?    : string
     }
 
     class ProductSet {
         <<interface>>
-        +slug : string
-        +name : string
-        +price_from : number
+        +slug             : string
+        +name             : string
+        +price_from       : number
         +discount_percent : number
-        +products : SetProduct[]
+        +products         : SetProduct[]
     }
 
     class Review {
         <<interface>>
-        +id? : number
-        +text : string
-        +date : string
-        +vk_url? : string
-        +photos? : string[]
+        +text  : string
+        +date  : string
+    }
+
+    class ExternalLinks {
+        <<interface>>
+        +vkCommunity   : string
+        +telegramOrder : string
     }
 
     class Filters {
         <<interface>>
         +categories : string[]
-        +eras : string[]
-        +materials : string[]
-        +sizes : string[]
-        +statuses : string[]
-    }
-
-    class ExternalLinks {
-        <<interface>>
-        +vkCommunity : string
-        +vkMessages : string
-        +telegramOrder : string
-        +telegramPublic : string
+        +eras       : string[]
+        +materials  : string[]
+        +sizes      : string[]
+        +statuses   : string[]
     }
 
     class ProductStatus {
-        <<type>>
-        В наличии
-        Изготовим на заказ
-        Снят с производства
+        <<enumeration>>
     }
 
     class ViewMode {
-        <<type>>
-        home | catalog | sets
-        services | reviews
-        privacy | admin | login
+        <<enumeration>>
     }
 
-    BootstrapPayload --> Product      : products[ ]
-    BootstrapPayload --> Review       : reviews[ ]
+    class AuthUser {
+        <<interface>>
+    }
+
+    BootstrapPayload --> Product      : products[]
+    BootstrapPayload --> Review       : reviews[]
     BootstrapPayload --> ExternalLinks : links
     Product          --> ProductStatus : status
     ProductSet       --> Product      : включает

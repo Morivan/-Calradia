@@ -1,22 +1,25 @@
-graph LR
-    Browser["Браузер пользователя\n(React 19 / TypeScript)"]
+C4Container
+    title Рисунок 3 — Диаграмма контейнеров системы (C4 Level 2)
 
-    subgraph Server["Сервер VPS Debian 11"]
-        Nginx["Nginx 1.18\n─ раздача статики dist/\n─ прокси /api/ и /admin/"]
-        Gunicorn["Gunicorn\n(3 рабочих процесса)"]
-        Django["Django 5.2 + DRF\nworkshop, services"]
-        DB[("SQLite WAL\ndb.sqlite3")]
-    end
+    Person(user, "Пользователь", "Просматривает каталог и оформляет заказы")
 
-    VK["ВКонтакте API\napi.vk.com"]
-    TG["Telegram Bot API\napi.telegram.org"]
-    SMTP["SMTP-сервер\nпорт 587"]
+    System_Boundary(sys, "Кузница Кальрадия — VPS Debian 11") {
+        Container(spa, "React SPA", "React 19 / TypeScript", "Каталог, комплекты, панель администратора")
+        Container(nginx, "Nginx 1.18", "Reverse Proxy", "Раздаёт статику dist/ и проксирует /api/, /admin/")
+        Container(api, "Django App", "Django 5.2 + DRF", "REST API, бизнес-логика, интеграции ВК и Telegram")
+        ContainerDb(db, "База данных", "SQLite WAL", "Товары, заказы, клиенты, отзывы, задачи, допуски")
+    }
 
-    Browser  -->|"HTTPS :443"| Nginx
-    Nginx   -.->|"HTML / JS / CSS"| Browser
-    Nginx    -->|"Unix-сокет"| Gunicorn
-    Gunicorn -->|"WSGI-вызов"| Django
-    Django   -->|"ORM"| DB
-    Django   -->|"HTTPS"| VK
-    Django   -->|"Bot API"| TG
-    Django   -->|"SMTP :587"| SMTP
+    System_Ext(vk,   "ВКонтакте",  "Callback API — события группы")
+    System_Ext(tg,   "Telegram",   "Bot API — уведомления мастерам")
+    System_Ext(smtp, "SMTP",       "Email-уведомления о срочных заказах")
+
+    Rel(user,  nginx, "Открывает сайт",        "HTTPS :443")
+    Rel(nginx, spa,   "Отдаёт статику",         "HTTP")
+    Rel(nginx, api,   "Проксирует запросы",      "/api/, /admin/")
+    Rel(api,   db,    "Читает / записывает",     "ORM")
+    Rel(api,   tg,    "Отправляет уведомления",  "HTTPS Bot API")
+    Rel(api,   smtp,  "Отправляет email",        "SMTP :587")
+    Rel(vk,    api,   "Входящие webhook-события","HTTPS POST")
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")

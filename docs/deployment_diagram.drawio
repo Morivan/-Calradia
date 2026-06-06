@@ -1,0 +1,110 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ══ Клиент ══ -->
+    <mxCell id="10" value="&lt;&lt;device&gt;&gt;&lt;br&gt;&lt;b&gt;Браузер клиента&lt;/b&gt;" style="shape=mxgraph.uml.node_2;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=0;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="30" y="320" width="170" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ══ VPS сервер (большой контейнер) ══ -->
+    <mxCell id="20" value="&lt;&lt;server&gt;&gt;&lt;br&gt;&lt;b&gt;VPS Debian 11 — kalradia.ru&lt;/b&gt;" style="shape=mxgraph.uml.node_2;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=3;" vertex="1" parent="1">
+      <mxGeometry x="260" y="80" width="600" height="560" as="geometry" />
+    </mxCell>
+
+    <!-- ══ Nginx (execution environment) ══ -->
+    <mxCell id="30" value="&lt;&lt;execution environment&gt;&gt;&lt;br&gt;&lt;b&gt;Nginx 1.18&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontSize=11;arcSize=5;" vertex="1" parent="1">
+      <mxGeometry x="290" y="160" width="240" height="170" as="geometry" />
+    </mxCell>
+
+    <!-- Артефакт: dist/ -->
+    <mxCell id="31" value="&lt;&lt;artifact&gt;&gt;&lt;br&gt;dist/ — React SPA&lt;br&gt;(index.html, JS, CSS)" style="shape=mxgraph.uml.artifact;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="320" y="250" width="180" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- ══ Gunicorn (execution environment) ══ -->
+    <mxCell id="40" value="&lt;&lt;execution environment&gt;&gt;&lt;br&gt;&lt;b&gt;Gunicorn WSGI (3 workers)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=11;arcSize=5;" vertex="1" parent="1">
+      <mxGeometry x="290" y="370" width="240" height="220" as="geometry" />
+    </mxCell>
+
+    <!-- Компонент: Django -->
+    <mxCell id="41" value="&lt;&lt;component&gt;&gt;&lt;br&gt;&lt;b&gt;Django 5.2&lt;/b&gt;&lt;br&gt;apps: backend, workshop" style="shape=mxgraph.uml.component2;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="320" y="450" width="185" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Компонент: DRF -->
+    <mxCell id="42" value="Django REST Framework 3.16" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="320" y="540" width="185" height="35" as="geometry" />
+    </mxCell>
+
+    <!-- ══ SQLite ══ -->
+    <mxCell id="50" value="&lt;&lt;database&gt;&gt;&lt;br&gt;&lt;b&gt;SQLite (WAL)&lt;/b&gt;&lt;br&gt;db.sqlite3" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="590" y="390" width="140" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- systemd / cron -->
+    <mxCell id="60" value="systemd + cron&lt;br&gt;notify_urgent_orders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="590" y="520" width="150" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- ══ ВКонтакте ══ -->
+    <mxCell id="70" value="&lt;&lt;external system&gt;&gt;&lt;br&gt;&lt;b&gt;ВКонтакте&lt;/b&gt;&lt;br&gt;Callback API" style="shape=mxgraph.uml.node_2;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="940" y="140" width="170" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ══ Telegram ══ -->
+    <mxCell id="80" value="&lt;&lt;external system&gt;&gt;&lt;br&gt;&lt;b&gt;Telegram&lt;/b&gt;&lt;br&gt;Bot API" style="shape=mxgraph.uml.node_2;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="940" y="340" width="170" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ══ SMTP ══ -->
+    <mxCell id="90" value="&lt;&lt;external system&gt;&gt;&lt;br&gt;&lt;b&gt;SMTP-сервер&lt;/b&gt;&lt;br&gt;email-уведомления" style="shape=mxgraph.uml.node_2;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="940" y="520" width="170" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ══ Связи ══ -->
+
+    <!-- Браузер → Nginx: HTTPS :443 -->
+    <mxCell id="100" value="HTTPS :443" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10;fontStyle=1;" edge="1" source="10" target="30" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Nginx → Gunicorn: Unix socket -->
+    <mxCell id="101" value="Unix socket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontSize=10;fontStyle=2;" edge="1" source="30" target="40" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Django → SQLite: ORM / file I/O -->
+    <mxCell id="102" value="ORM / file I/O" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10;" edge="1" source="41" target="50" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- VKontakte → Nginx: POST webhook -->
+    <mxCell id="103" value="POST /api/integrations/vk/callback/" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.3;fontSize=9;endArrow=open;endFill=0;" edge="1" source="70" target="30" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="900" y="185" />
+          <mxPoint x="900" y="225" />
+          <mxPoint x="530" y="225" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Django → Telegram: HTTPS Bot API -->
+    <mxCell id="104" value="HTTPS Bot API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10;" edge="1" source="41" target="80" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="900" y="485" />
+          <mxPoint x="900" y="385" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- cron → SMTP -->
+    <mxCell id="105" value="SMTP :587" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=10;" edge="1" source="60" target="90" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

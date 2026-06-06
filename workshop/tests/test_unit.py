@@ -6,7 +6,7 @@ from workshop.models import Product, Review
 from workshop.serializers import ProductSerializer, ReviewSerializer
 from workshop.services.telegram import TelegramConfigError, get_api_base, send_message, store_update
 from workshop.services.vk import parse_post
-from workshop.views import _product_kwargs, _unique_slug
+from workshop.views import _parse_deadline, _parse_int, _product_kwargs, _unique_slug
 
 
 @tag("unit")
@@ -161,3 +161,24 @@ class ViewHelpersUnitTests(TestCase):
     def test_unique_slug_differs_on_repeated_calls(self):
         slugs = {_unique_slug("Саллет") for _ in range(5)}
         self.assertEqual(len(slugs), 5)
+
+
+@tag("unit")
+class ParseHelpersUnitTests(TestCase):
+    def test_parse_int_returns_integer_from_string(self):
+        self.assertEqual(_parse_int("42"), 42)
+        self.assertEqual(_parse_int(100), 100)
+
+    def test_parse_int_returns_default_for_invalid_input(self):
+        self.assertEqual(_parse_int("abc", 5), 5)
+        self.assertEqual(_parse_int(None, 7), 7)
+
+    def test_parse_deadline_parses_iso_and_ru_formats(self):
+        import datetime
+        self.assertEqual(_parse_deadline("2026-06-15"), datetime.date(2026, 6, 15))
+        self.assertEqual(_parse_deadline("15.06.2026"), datetime.date(2026, 6, 15))
+
+    def test_parse_deadline_returns_none_for_empty(self):
+        self.assertIsNone(_parse_deadline(None))
+        self.assertIsNone(_parse_deadline(""))
+        self.assertIsNone(_parse_deadline("не дата"))

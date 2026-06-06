@@ -3,58 +3,36 @@ classDiagram
 
     class BootstrapPayload {
         <<interface>>
-        +products : Product[]
-        +reviews  : Review[]
-        +links    : ExternalLinks
     }
-
     class Product {
         <<interface>>
-        +id        : string
-        +name      : string
-        +status    : ProductStatus
-        +priceFrom : number
-        +sizes     : Size[]
-        +gallery   : string[]
-        +badge?    : string
     }
-
     class ProductSet {
         <<interface>>
-        +slug             : string
-        +name             : string
-        +price_from       : number
-        +discount_percent : number
-        +products         : SetProduct[]
     }
-
     class Review {
         <<interface>>
-        +text  : string
-        +date  : string
     }
-
     class ExternalLinks {
         <<interface>>
-        +vkCommunity   : string
-        +telegramOrder : string
     }
-
     class Filters {
         <<interface>>
-        +categories : string[]
-        +eras       : string[]
-        +materials  : string[]
-        +sizes      : string[]
-        +statuses   : string[]
     }
-
     class ProductStatus {
         <<enumeration>>
     }
+    class SetProduct {
+        <<interface>>
+    }
+    class SetDiscount {
+        <<interface>>
+    }
 
-    BootstrapPayload --> Product      : products[]
-    BootstrapPayload --> Review       : reviews[]
+    BootstrapPayload --> Product       : products[]
+    BootstrapPayload --> Review        : reviews[]
     BootstrapPayload --> ExternalLinks : links
     Product          --> ProductStatus : status
-    ProductSet       --> Product      : включает
+    Product          --> SetDiscount   : setDiscounts[]
+    ProductSet       --> Product       : включает
+    ProductSet       --> SetProduct    : products[]

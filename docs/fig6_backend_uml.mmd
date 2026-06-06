@@ -1,44 +1,31 @@
 classDiagram
-    class ProductView {
-        +list() Response
-        +create() Response
-        +destroy(id) Response
-    }
-    class OrderView {
-        +list() Response
-        +create() Response
-    }
-    class TaskView {
-        +list() Response
-        +update(id, action) Response
-    }
-    class ApprovalsView {
-        +list() Response
-        +toggle() Response
-    }
+    class ProductView
+    class OrderView
+    class TaskView
+    class ApprovalsView
+    class BootstrapView
 
     class Product
     class Order
     class Task
     class MasterApproval
     class Client
+    class ProductSet
 
-    class TelegramService {
-        +send_message(chat_id, text)
-        +repost_to_channel(id, text, photos)
-    }
-    class VKService {
-        +parse_post(post) tuple
-        +strip_mentions(text) str
-    }
+    class TelegramService
+    class VKService
 
-    ProductView    ..> Product         : CRUD
-    OrderView      ..> Order           : CRUD
-    OrderView      ..> Client          : читает
-    OrderView      ..> TelegramService : использует
-    TaskView       ..> Task            : обновляет статус
-    ApprovalsView  ..> MasterApproval  : выдаёт / отзывает
-    Order          --> Client          : от клиента
-    Order          "1" --> "0..*" Task : содержит
-    Task           --> Product         : по изделию
-    MasterApproval --> Product         : допуск к
+    ProductView   ..> Product        : CRUD
+    OrderView     ..> Order          : CRUD
+    OrderView     ..> Client         : читает
+    OrderView     ..> TelegramService : использует
+    TaskView      ..> Task           : обновляет статус
+    ApprovalsView ..> MasterApproval : выдаёт / отзывает
+    BootstrapView ..> Product        : читает
+    BootstrapView ..> ProductSet     : читает
+
+    Order          --> Client         : от клиента
+    Order "1" --> "0..*" Task        : содержит
+    Task           --> Product        : по изделию
+    MasterApproval --> Product        : допуск к
+    ProductSet     --> Product        : включает
